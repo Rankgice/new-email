@@ -25,7 +25,7 @@ type VerificationRule struct {
 
 // TableName 指定表名
 func (VerificationRule) TableName() string {
-	return "verification_rules"
+	return "verification_rule"
 }
 
 // VerificationRuleModel 验证码规则模型

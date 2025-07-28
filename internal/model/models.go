@@ -18,7 +18,7 @@ type EmailAttachment struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (EmailAttachment) TableName() string { return "email_attachments" }
+func (EmailAttachment) TableName() string { return "email_attachment" }
 
 type EmailAttachmentModel struct{ db *gorm.DB }
 
@@ -39,7 +39,7 @@ type EmailTemplate struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-func (EmailTemplate) TableName() string { return "email_templates" }
+func (EmailTemplate) TableName() string { return "email_template" }
 
 type EmailTemplateModel struct{ db *gorm.DB }
 
@@ -58,7 +58,7 @@ type EmailSignature struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-func (EmailSignature) TableName() string { return "email_signatures" }
+func (EmailSignature) TableName() string { return "email_signature" }
 
 type EmailSignatureModel struct{ db *gorm.DB }
 
@@ -73,7 +73,7 @@ type UserVerificationRule struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (UserVerificationRule) TableName() string { return "user_verification_rules" }
+func (UserVerificationRule) TableName() string { return "user_verification_rule" }
 
 type UserVerificationRuleModel struct{ db *gorm.DB }
 
@@ -98,7 +98,7 @@ type ForwardRule struct {
 	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-func (ForwardRule) TableName() string { return "forward_rules" }
+func (ForwardRule) TableName() string { return "forward_rule" }
 
 type ForwardRuleModel struct{ db *gorm.DB }
 
@@ -120,7 +120,7 @@ type AntiSpamRule struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-func (AntiSpamRule) TableName() string { return "anti_spam_rules" }
+func (AntiSpamRule) TableName() string { return "anti_spam_rule" }
 
 type AntiSpamRuleModel struct{ db *gorm.DB }
 
@@ -144,7 +144,7 @@ type OperationLog struct {
 	CreatedAt  time.Time `json:"created_at"`
 }
 
-func (OperationLog) TableName() string { return "operation_logs" }
+func (OperationLog) TableName() string { return "operation_log" }
 
 type OperationLogModel struct{ db *gorm.DB }
 
@@ -165,7 +165,7 @@ type EmailLog struct {
 	CreatedAt  time.Time  `json:"created_at"`
 }
 
-func (EmailLog) TableName() string { return "email_logs" }
+func (EmailLog) TableName() string { return "email_log" }
 
 type EmailLogModel struct{ db *gorm.DB }
 
@@ -184,7 +184,7 @@ type VerificationCode struct {
 	CreatedAt   time.Time  `json:"created_at"`
 }
 
-func (VerificationCode) TableName() string { return "verification_codes" }
+func (VerificationCode) TableName() string { return "verification_code" }
 
 type VerificationCodeModel struct{ db *gorm.DB }
 
@@ -210,7 +210,7 @@ type EmailDraft struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
-func (EmailDraft) TableName() string { return "email_drafts" }
+func (EmailDraft) TableName() string { return "email_draft" }
 
 type EmailDraftModel struct{ db *gorm.DB }
 

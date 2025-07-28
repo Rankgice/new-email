@@ -31,7 +31,7 @@ type Email struct {
 
 // TableName 指定表名
 func (Email) TableName() string {
-	return "emails"
+	return "email"
 }
 
 // EmailModel 邮件模型

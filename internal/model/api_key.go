@@ -25,7 +25,7 @@ type ApiKey struct {
 
 // TableName 指定表名
 func (ApiKey) TableName() string {
-	return "api_keys"
+	return "api_key"
 }
 
 // ApiKeyModel API密钥模型
