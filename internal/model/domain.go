@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"new-email/internal/types"
 	"time"
 
 	"gorm.io/gorm"
@@ -101,7 +100,7 @@ func (m *DomainModel) GetByName(name string) (*Domain, error) {
 }
 
 // List 获取域名列表
-func (m *DomainModel) List(params types.DomainListReq) ([]*Domain, int64, error) {
+func (m *DomainModel) List(params DomainListParams) ([]*Domain, int64, error) {
 	var domains []*Domain
 	var total int64
 
@@ -122,6 +121,12 @@ func (m *DomainModel) List(params types.DomainListReq) ([]*Domain, int64, error)
 	}
 	if !params.CreatedAtEnd.IsZero() {
 		db = db.Where("created_at <= ?", params.CreatedAtEnd)
+	}
+	if !params.UpdatedAtStart.IsZero() {
+		db = db.Where("updated_at >= ?", params.UpdatedAtStart)
+	}
+	if !params.UpdatedAtEnd.IsZero() {
+		db = db.Where("updated_at <= ?", params.UpdatedAtEnd)
 	}
 
 	// 分页查询

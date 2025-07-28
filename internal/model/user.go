@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"new-email/internal/types"
 	"time"
 
 	"gorm.io/gorm"
@@ -114,7 +113,7 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 }
 
 // List 获取用户列表
-func (m *UserModel) List(params types.UserListReq) ([]*User, int64, error) {
+func (m *UserModel) List(params UserListParams) ([]*User, int64, error) {
 	var users []*User
 	var total int64
 
@@ -135,6 +134,12 @@ func (m *UserModel) List(params types.UserListReq) ([]*User, int64, error) {
 	}
 	if !params.CreatedAtEnd.IsZero() {
 		db = db.Where("created_at <= ?", params.CreatedAtEnd)
+	}
+	if !params.UpdatedAtStart.IsZero() {
+		db = db.Where("updated_at >= ?", params.UpdatedAtStart)
+	}
+	if !params.UpdatedAtEnd.IsZero() {
+		db = db.Where("updated_at <= ?", params.UpdatedAtEnd)
 	}
 
 	// 分页查询
@@ -167,13 +172,12 @@ func (m *UserModel) BatchUpdateStatus(ids []uint, status int) error {
 	return m.db.Model(&User{}).Where("id IN ?", ids).Update("status", status).Error
 }
 
-// GetActiveUsers 获取活跃用户
+// GetActiveUsers 获取活跃用户 (使用List方法替代)
+// 推荐使用: List(UserListParams{Status: &[]int{1}[0]})
 func (m *UserModel) GetActiveUsers() ([]*User, error) {
-	var users []*User
-	if err := m.db.Where("status = ?", 1).Find(&users).Error; err != nil {
-		return nil, err
-	}
-	return users, nil
+	status := 1
+	users, _, err := m.List(UserListParams{Status: &status})
+	return users, err
 }
 
 // CountUsers 统计用户数量

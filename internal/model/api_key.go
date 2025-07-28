@@ -101,13 +101,63 @@ func (m *ApiKeyModel) GetByKey(key string) (*ApiKey, error) {
 	return &apiKey, nil
 }
 
-// GetByUserId 根据用户ID获取API密钥列表
-func (m *ApiKeyModel) GetByUserId(userId uint) ([]*ApiKey, error) {
+// List 获取API密钥列表
+func (m *ApiKeyModel) List(params ApiKeyListParams) ([]*ApiKey, int64, error) {
 	var apiKeys []*ApiKey
-	if err := m.db.Where("user_id = ?", userId).Find(&apiKeys).Error; err != nil {
-		return nil, err
+	var total int64
+
+	db := m.db.Model(&ApiKey{})
+
+	// 添加查询条件
+	if params.UserId != 0 {
+		db = db.Where("user_id = ?", params.UserId)
 	}
-	return apiKeys, nil
+	if params.Name != "" {
+		db = db.Where("name LIKE ?", "%"+params.Name+"%")
+	}
+	if params.Permissions != "" {
+		db = db.Where("permissions LIKE ?", "%"+params.Permissions+"%")
+	}
+	if params.Status != nil {
+		db = db.Where("status = ?", *params.Status)
+	}
+	if !params.CreatedAtStart.IsZero() {
+		db = db.Where("created_at >= ?", params.CreatedAtStart)
+	}
+	if !params.CreatedAtEnd.IsZero() {
+		db = db.Where("created_at <= ?", params.CreatedAtEnd)
+	}
+	if !params.UpdatedAtStart.IsZero() {
+		db = db.Where("updated_at >= ?", params.UpdatedAtStart)
+	}
+	if !params.UpdatedAtEnd.IsZero() {
+		db = db.Where("updated_at <= ?", params.UpdatedAtEnd)
+	}
+
+	// 分页查询
+	if params.Page > 0 && params.PageSize > 0 {
+		// 获取总数
+		if err := db.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
+		db = db.Offset((params.Page - 1) * params.PageSize).Limit(params.PageSize)
+	}
+
+	if err := db.Order("created_at DESC").Find(&apiKeys).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if params.Page <= 0 || params.PageSize <= 0 {
+		total = int64(len(apiKeys))
+	}
+
+	return apiKeys, total, nil
+}
+
+// GetByUserId 根据用户ID获取API密钥列表 (使用List方法替代)
+func (m *ApiKeyModel) GetByUserId(userId uint) ([]*ApiKey, error) {
+	apiKeys, _, err := m.List(ApiKeyListParams{UserId: userId})
+	return apiKeys, err
 }
 
 // UpdateLastUsed 更新最后使用时间
@@ -141,13 +191,11 @@ func (m *ApiKeyModel) BatchUpdateStatus(ids []uint, status int) error {
 	return m.db.Model(&ApiKey{}).Where("id IN ?", ids).Update("status", status).Error
 }
 
-// GetActiveKeys 获取活跃API密钥
+// GetActiveKeys 获取活跃API密钥 (使用List方法替代)
 func (m *ApiKeyModel) GetActiveKeys() ([]*ApiKey, error) {
-	var apiKeys []*ApiKey
-	if err := m.db.Where("status = ?", 1).Find(&apiKeys).Error; err != nil {
-		return nil, err
-	}
-	return apiKeys, nil
+	status := 1
+	apiKeys, _, err := m.List(ApiKeyListParams{Status: &status})
+	return apiKeys, err
 }
 
 // CountKeys 统计API密钥数量

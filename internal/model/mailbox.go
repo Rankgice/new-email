@@ -58,3 +58,65 @@ func (m *MailboxModel) GetById(id uint) (*Mailbox, error) {
 	}
 	return &mailbox, nil
 }
+
+// List 获取邮箱列表
+func (m *MailboxModel) List(params MailboxListParams) ([]*Mailbox, int64, error) {
+	var mailboxes []*Mailbox
+	var total int64
+
+	db := m.db.Model(&Mailbox{})
+
+	// 添加查询条件
+	if params.UserId != 0 {
+		db = db.Where("user_id = ?", params.UserId)
+	}
+	if params.DomainId != 0 {
+		db = db.Where("domain_id = ?", params.DomainId)
+	}
+	if params.Email != "" {
+		db = db.Where("email LIKE ?", "%"+params.Email+"%")
+	}
+	if params.Type != "" {
+		db = db.Where("type = ?", params.Type)
+	}
+	if params.Provider != "" {
+		db = db.Where("provider = ?", params.Provider)
+	}
+	if params.Status != nil {
+		db = db.Where("status = ?", *params.Status)
+	}
+	if params.AutoReceive != nil {
+		db = db.Where("auto_receive = ?", *params.AutoReceive)
+	}
+	if !params.CreatedAtStart.IsZero() {
+		db = db.Where("created_at >= ?", params.CreatedAtStart)
+	}
+	if !params.CreatedAtEnd.IsZero() {
+		db = db.Where("created_at <= ?", params.CreatedAtEnd)
+	}
+	if !params.UpdatedAtStart.IsZero() {
+		db = db.Where("updated_at >= ?", params.UpdatedAtStart)
+	}
+	if !params.UpdatedAtEnd.IsZero() {
+		db = db.Where("updated_at <= ?", params.UpdatedAtEnd)
+	}
+
+	// 分页查询
+	if params.Page > 0 && params.PageSize > 0 {
+		// 获取总数
+		if err := db.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
+		db = db.Offset((params.Page - 1) * params.PageSize).Limit(params.PageSize)
+	}
+
+	if err := db.Order("created_at DESC").Find(&mailboxes).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if params.Page <= 0 || params.PageSize <= 0 {
+		total = int64(len(mailboxes))
+	}
+
+	return mailboxes, total, nil
+}

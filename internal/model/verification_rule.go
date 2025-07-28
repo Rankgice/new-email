@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"new-email/internal/types"
 	"time"
 
 	"gorm.io/gorm"
@@ -90,18 +89,27 @@ func (m *VerificationRuleModel) GetById(id uint) (*VerificationRule, error) {
 }
 
 // List 获取验证码规则列表
-func (m *VerificationRuleModel) List(params types.VerificationRuleListReq) ([]*VerificationRule, int64, error) {
+func (m *VerificationRuleModel) List(params VerificationRuleListParams) ([]*VerificationRule, int64, error) {
 	var rules []*VerificationRule
 	var total int64
 
 	db := m.db.Model(&VerificationRule{})
 
 	// 添加查询条件
-	if params.UserId != nil {
-		db = db.Where("user_id = ?", *params.UserId)
+	if params.UserId != 0 {
+		db = db.Where("user_id = ?", params.UserId)
 	}
 	if params.Name != "" {
 		db = db.Where("name LIKE ?", "%"+params.Name+"%")
+	}
+	if params.Pattern != "" {
+		db = db.Where("pattern LIKE ?", "%"+params.Pattern+"%")
+	}
+	if params.Source != "" {
+		db = db.Where("source = ?", params.Source)
+	}
+	if params.PatternType != "" {
+		db = db.Where("pattern_type = ?", params.PatternType)
 	}
 	if params.IsGlobal != nil {
 		db = db.Where("is_global = ?", *params.IsGlobal)
@@ -114,6 +122,12 @@ func (m *VerificationRuleModel) List(params types.VerificationRuleListReq) ([]*V
 	}
 	if !params.CreatedAtEnd.IsZero() {
 		db = db.Where("created_at <= ?", params.CreatedAtEnd)
+	}
+	if !params.UpdatedAtStart.IsZero() {
+		db = db.Where("updated_at >= ?", params.UpdatedAtStart)
+	}
+	if !params.UpdatedAtEnd.IsZero() {
+		db = db.Where("updated_at <= ?", params.UpdatedAtEnd)
 	}
 
 	// 分页查询

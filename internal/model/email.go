@@ -59,3 +59,71 @@ func (m *EmailModel) GetById(id uint) (*Email, error) {
 	}
 	return &email, nil
 }
+
+// List 获取邮件列表
+func (m *EmailModel) List(params EmailListParams) ([]*Email, int64, error) {
+	var emails []*Email
+	var total int64
+
+	db := m.db.Model(&Email{})
+
+	// 添加查询条件
+	if params.MailboxId != 0 {
+		db = db.Where("mailbox_id = ?", params.MailboxId)
+	}
+	if params.MessageId != "" {
+		db = db.Where("message_id = ?", params.MessageId)
+	}
+	if params.Subject != "" {
+		db = db.Where("subject LIKE ?", "%"+params.Subject+"%")
+	}
+	if params.FromEmail != "" {
+		db = db.Where("from_email LIKE ?", "%"+params.FromEmail+"%")
+	}
+	if params.ToEmails != "" {
+		db = db.Where("to_emails LIKE ?", "%"+params.ToEmails+"%")
+	}
+	if params.Direction != "" {
+		db = db.Where("direction = ?", params.Direction)
+	}
+	if params.IsRead != nil {
+		db = db.Where("is_read = ?", *params.IsRead)
+	}
+	if params.IsStarred != nil {
+		db = db.Where("is_starred = ?", *params.IsStarred)
+	}
+	if params.ContentType != "" {
+		db = db.Where("content_type = ?", params.ContentType)
+	}
+	if !params.CreatedAtStart.IsZero() {
+		db = db.Where("created_at >= ?", params.CreatedAtStart)
+	}
+	if !params.CreatedAtEnd.IsZero() {
+		db = db.Where("created_at <= ?", params.CreatedAtEnd)
+	}
+	if !params.UpdatedAtStart.IsZero() {
+		db = db.Where("updated_at >= ?", params.UpdatedAtStart)
+	}
+	if !params.UpdatedAtEnd.IsZero() {
+		db = db.Where("updated_at <= ?", params.UpdatedAtEnd)
+	}
+
+	// 分页查询
+	if params.Page > 0 && params.PageSize > 0 {
+		// 获取总数
+		if err := db.Count(&total).Error; err != nil {
+			return nil, 0, err
+		}
+		db = db.Offset((params.Page - 1) * params.PageSize).Limit(params.PageSize)
+	}
+
+	if err := db.Order("created_at DESC").Find(&emails).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if params.Page <= 0 || params.PageSize <= 0 {
+		total = int64(len(emails))
+	}
+
+	return emails, total, nil
+}

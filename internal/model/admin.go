@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"new-email/internal/types"
 	"time"
 
 	"gorm.io/gorm"
@@ -115,7 +114,7 @@ func (m *AdminModel) GetByEmail(email string) (*Admin, error) {
 }
 
 // List 获取管理员列表
-func (m *AdminModel) List(params types.AdminListReq) ([]*Admin, int64, error) {
+func (m *AdminModel) List(params AdminListParams) ([]*Admin, int64, error) {
 	var admins []*Admin
 	var total int64
 
@@ -139,6 +138,12 @@ func (m *AdminModel) List(params types.AdminListReq) ([]*Admin, int64, error) {
 	}
 	if !params.CreatedAtEnd.IsZero() {
 		db = db.Where("created_at <= ?", params.CreatedAtEnd)
+	}
+	if !params.UpdatedAtStart.IsZero() {
+		db = db.Where("updated_at >= ?", params.UpdatedAtStart)
+	}
+	if !params.UpdatedAtEnd.IsZero() {
+		db = db.Where("updated_at <= ?", params.UpdatedAtEnd)
 	}
 
 	// 分页查询
@@ -171,13 +176,12 @@ func (m *AdminModel) BatchUpdateStatus(ids []uint, status int) error {
 	return m.db.Model(&Admin{}).Where("id IN ?", ids).Update("status", status).Error
 }
 
-// GetActiveAdmins 获取活跃管理员
+// GetActiveAdmins 获取活跃管理员 (使用List方法替代)
+// 推荐使用: List(AdminListParams{Status: &[]int{1}[0]})
 func (m *AdminModel) GetActiveAdmins() ([]*Admin, error) {
-	var admins []*Admin
-	if err := m.db.Where("status = ?", 1).Find(&admins).Error; err != nil {
-		return nil, err
-	}
-	return admins, nil
+	status := 1
+	admins, _, err := m.List(AdminListParams{Status: &status})
+	return admins, err
 }
 
 // CountAdmins 统计管理员数量
@@ -235,13 +239,12 @@ func (m *AdminModel) CheckEmailExists(email string, excludeId ...uint) (bool, er
 	return count > 0, nil
 }
 
-// GetSuperAdmins 获取超级管理员列表
+// GetSuperAdmins 获取超级管理员列表 (使用List方法替代)
+// 推荐使用: List(AdminListParams{Role: "admin", Status: &[]int{1}[0]})
 func (m *AdminModel) GetSuperAdmins() ([]*Admin, error) {
-	var admins []*Admin
-	if err := m.db.Where("role = ? AND status = ?", "admin", 1).Find(&admins).Error; err != nil {
-		return nil, err
-	}
-	return admins, nil
+	status := 1
+	admins, _, err := m.List(AdminListParams{Role: "admin", Status: &status})
+	return admins, err
 }
 
 // HasSuperAdmin 检查是否存在超级管理员
