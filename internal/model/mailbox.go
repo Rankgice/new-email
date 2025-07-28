@@ -16,8 +16,10 @@ type Mailbox struct {
 	Provider     string         `gorm:"size:50" json:"provider"`                    // 邮箱提供商：gmail outlook qq imap
 	ImapHost     string         `gorm:"size:100" json:"imap_host"`                  // IMAP服务器地址
 	ImapPort     int            `gorm:"default:993" json:"imap_port"`               // IMAP端口
+	ImapSsl      bool           `gorm:"default:true" json:"imap_ssl"`               // IMAP是否使用SSL
 	SmtpHost     string         `gorm:"size:100" json:"smtp_host"`                  // SMTP服务器地址
 	SmtpPort     int            `gorm:"default:587" json:"smtp_port"`               // SMTP端口
+	SmtpSsl      bool           `gorm:"default:true" json:"smtp_ssl"`               // SMTP是否使用SSL
 	ClientId     string         `gorm:"size:255" json:"client_id"`                  // OAuth客户端ID
 	RefreshToken string         `gorm:"size:500" json:"refresh_token"`              // OAuth刷新令牌
 	Status       int            `gorm:"default:1" json:"status"`                    // 状态：1启用 0禁用
@@ -119,4 +121,64 @@ func (m *MailboxModel) List(params MailboxListParams) ([]*Mailbox, int64, error)
 	}
 
 	return mailboxes, total, nil
+}
+
+// Update 更新邮箱
+func (m *MailboxModel) Update(mailbox *Mailbox) error {
+	return m.db.Updates(mailbox).Error
+}
+
+// Delete 删除邮箱
+func (m *MailboxModel) Delete(mailbox *Mailbox) error {
+	return m.db.Delete(mailbox).Error
+}
+
+// MapUpdate 根据条件更新邮箱
+func (m *MailboxModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface{}) error {
+	db := m.db
+	if tx != nil {
+		db = tx
+	}
+	return db.Model(&Mailbox{}).Where("id = ?", id).Updates(data).Error
+}
+
+// CheckEmailExists 检查邮箱是否存在
+func (m *MailboxModel) CheckEmailExists(email string, excludeIds ...uint) (bool, error) {
+	var count int64
+	db := m.db.Model(&Mailbox{}).Where("email = ?", email)
+
+	// 排除指定的ID
+	if len(excludeIds) > 0 {
+		db = db.Where("id NOT IN ?", excludeIds)
+	}
+
+	if err := db.Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// GetByUserId 根据用户ID获取邮箱列表
+func (m *MailboxModel) GetByUserId(userId uint) ([]*Mailbox, error) {
+	mailboxes, _, err := m.List(MailboxListParams{UserId: userId})
+	return mailboxes, err
+}
+
+// GetByEmail 根据邮箱地址获取邮箱
+func (m *MailboxModel) GetByEmail(email string) (*Mailbox, error) {
+	var mailbox Mailbox
+	if err := m.db.Where("email = ?", email).First(&mailbox).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &mailbox, nil
+}
+
+// GetActiveMailboxes 获取活跃邮箱列表
+func (m *MailboxModel) GetActiveMailboxes(userId uint) ([]*Mailbox, error) {
+	status := 1
+	mailboxes, _, err := m.List(MailboxListParams{UserId: userId, Status: &status})
+	return mailboxes, err
 }
