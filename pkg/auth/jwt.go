@@ -108,12 +108,10 @@ func RefreshToken(tokenString string, secret string, expireHours int) (string, e
 
 	if err != nil {
 		// 检查是否只是过期错误
-		if ve, ok := err.(*jwt.ValidationError); ok {
-			if ve.Errors&jwt.ValidationErrorExpired != 0 {
-				// Token过期，但其他部分有效，可以刷新
-				if claims, ok := token.Claims.(*UserClaims); ok {
-					return GenerateUserToken(claims.UserId, claims.Username, secret, expireHours)
-				}
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			// Token过期，但其他部分有效，可以刷新
+			if claims, ok := token.Claims.(*UserClaims); ok {
+				return GenerateUserToken(claims.UserId, claims.Username, secret, expireHours)
 			}
 		}
 		return "", err
@@ -136,12 +134,10 @@ func RefreshAdminToken(tokenString string, secret string, expireHours int) (stri
 
 	if err != nil {
 		// 检查是否只是过期错误
-		if ve, ok := err.(*jwt.ValidationError); ok {
-			if ve.Errors&jwt.ValidationErrorExpired != 0 {
-				// Token过期，但其他部分有效，可以刷新
-				if claims, ok := token.Claims.(*AdminClaims); ok {
-					return GenerateAdminToken(claims.AdminId, claims.Username, claims.Role, secret, expireHours)
-				}
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			// Token过期，但其他部分有效，可以刷新
+			if claims, ok := token.Claims.(*AdminClaims); ok {
+				return GenerateAdminToken(claims.AdminId, claims.Username, claims.Role, secret, expireHours)
 			}
 		}
 		return "", err
