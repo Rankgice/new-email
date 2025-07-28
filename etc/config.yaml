@@ -1,0 +1,101 @@
+# 应用配置
+app:
+  name: "邮件管理系统"
+  version: "1.0.0"
+  debug: true
+
+# Web服务配置
+web:
+  port: 8081
+  mode: "debug"  # debug, release
+  read_timeout: 60
+  write_timeout: 60
+
+# 数据库配置
+database:
+  type: "sqlite"  # sqlite, mysql
+  sqlite:
+    path: "./data/email.db"
+  mysql:
+    host: "localhost"
+    port: 3306
+    username: "root"
+    password: "password"
+    database: "email_system"
+    charset: "utf8mb4"
+    max_idle_conns: 10
+    max_open_conns: 100
+
+# JWT配置
+jwt:
+  secret: "your-jwt-secret-key-change-in-production"
+  expire_hours: 24
+  refresh_expire_hours: 168
+
+# 邮件配置
+email:
+  # 默认SMTP配置
+  default_smtp:
+    host: "smtp.gmail.com"
+    port: 587
+    username: ""
+    password: ""
+    use_tls: true
+  
+  # 附件配置
+  attachment:
+    max_size: 10485760  # 10MB
+    storage_path: "./data/attachments"
+    allowed_types: ["jpg", "jpeg", "png", "gif", "pdf", "doc", "docx", "xls", "xlsx", "txt", "zip"]
+  
+  # 收信配置
+  receive:
+    batch_size: 100
+    sync_interval: 300  # 5分钟
+    max_retries: 3
+
+# 日志配置
+log:
+  level: "info"  # debug, info, warn, error
+  format: "json"  # json, text
+  output: "file"  # console, file, both
+  file_path: "./data/logs/app.log"
+  max_size: 100  # MB
+  max_backups: 10
+  max_age: 30  # days
+
+# Redis配置（可选，用于缓存和队列）
+redis:
+  enabled: false
+  host: "localhost"
+  port: 6379
+  password: ""
+  database: 0
+  pool_size: 10
+
+# 限流配置
+rate_limit:
+  enabled: true
+  requests_per_minute: 60
+  burst: 10
+
+# 系统默认设置
+system:
+  # 默认管理员账户
+  default_admin:
+    username: "admin"
+    email: "admin@example.com"
+    password: "admin123"
+    nickname: "系统管理员"
+  
+  # 注册设置
+  registration:
+    enabled: true
+    require_email_verification: false
+  
+  # 安全设置
+  security:
+    password_min_length: 6
+    session_timeout: 3600  # 1小时
+    max_login_attempts: 5
+    lockout_duration: 300  # 5分钟
