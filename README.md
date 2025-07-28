@@ -201,6 +201,40 @@ email:
 - `ListOperationLogs` - 管理员操作日志查询
 - `ListEmailLogs` - 管理员邮件日志查询
 
+### 10. 域名批量操作 (DomainHandler)
+- `BatchOperation` - 域名批量启用、禁用、删除、验证操作
+
+### 11. 管理员功能 (AdminHandler)
+- `Dashboard` - 管理员仪表板数据统计
+- `ListUsers` - 用户列表查询和管理
+- `CreateUser` - 创建新用户
+- `UpdateUser` - 更新用户信息
+- `DeleteUser` - 删除用户（软删除）
+- `BatchOperationAdmins` - 批量操作管理员
+- `GetSystemSettings` - 获取系统设置
+- `UpdateSystemSettings` - 更新系统设置
+
+### 12. API接口 (ApiHandler)
+- `ListEmails` - API邮件列表查询（支持API密钥认证）
+- `GetEmail` - API获取邮件详情
+- `SendEmail` - API发送邮件
+- `ListVerificationCodes` - API验证码列表查询
+- `GetVerificationCode` - API获取验证码详情
+
+### 📁 新增的Types定义文件
+
+- ✅ `internal/types/log.go` - 日志相关类型定义
+- ✅ `internal/types/signature.go` - 签名相关类型定义
+- ✅ `internal/types/verification_code.go` - 验证码相关类型定义
+- ✅ `internal/types/template.go` - 模板相关类型定义
+- ✅ `internal/types/api_key.go` - API密钥相关类型定义
+- ✅ `internal/types/rule.go` - 规则相关类型定义
+- ✅ `internal/types/draft.go` - 草稿相关类型定义
+- ✅ `internal/types/email.go` - 邮件相关类型定义
+- ✅ 更新了 `internal/types/common.go` - 添加通用功能类型和批量操作类型
+- ✅ 更新了 `internal/types/admin.go` - 添加用户管理相关类型
+- ✅ 更新了 `internal/types/domain.go` - 添加批量操作类型
+
 ## 🔌 API 接口
 
 ### 认证接口

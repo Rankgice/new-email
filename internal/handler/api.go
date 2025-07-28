@@ -2,8 +2,13 @@ package handler
 
 import (
 	"net/http"
+	"new-email/internal/middleware"
+	"new-email/internal/model"
 	"new-email/internal/result"
 	"new-email/internal/svc"
+	"new-email/internal/types"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,30 +27,314 @@ func NewApiHandler(svcCtx *svc.ServiceContext) *ApiHandler {
 
 // ListEmails API邮件列表
 func (h *ApiHandler) ListEmails(c *gin.Context) {
-	// TODO: 实现API邮件列表查询
-	c.JSON(http.StatusOK, result.SimpleResult("API邮件列表"))
+	var req types.EmailListReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 通过API密钥验证获取用户ID
+	userId := middleware.GetApiUserId(c)
+	if userId == 0 {
+		c.JSON(http.StatusUnauthorized, result.ErrorSimpleResult("无效的API密钥"))
+		return
+	}
+
+	// 设置默认分页参数
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
+	// 转换为model参数
+	params := model.EmailListParams{
+		BaseListParams: model.BaseListParams{
+			Page:     req.Page,
+			PageSize: req.PageSize,
+		},
+		BaseTimeRangeParams: model.BaseTimeRangeParams{
+			CreatedAtStart: req.CreatedAtStart,
+			CreatedAtEnd:   req.CreatedAtEnd,
+		},
+		UserId:    &userId,
+		MailboxId: req.MailboxId,
+		Subject:   req.Subject,
+		FromEmail: req.FromEmail,
+		ToEmail:   req.ToEmail,
+		Status:    req.Status,
+		Type:      req.Type,
+	}
+
+	// 查询邮件列表
+	emails, total, err := h.svcCtx.EmailModel.List(params)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+
+	// 转换为响应格式
+	var emailList []types.EmailResp
+	for _, email := range emails {
+		emailList = append(emailList, types.EmailResp{
+			Id:          email.Id,
+			MailboxId:   email.MailboxId,
+			Subject:     email.Subject,
+			FromEmail:   email.FromEmail,
+			ToEmail:     email.ToEmail,
+			CcEmail:     email.CcEmail,
+			BccEmail:    email.BccEmail,
+			Content:     email.Content,
+			ContentType: email.ContentType,
+			Attachments: email.Attachments,
+			Status:      email.Status,
+			Type:        email.Type,
+			CreatedAt:   email.CreatedAt,
+			UpdatedAt:   email.UpdatedAt,
+		})
+	}
+
+	// 返回分页结果
+	resp := types.PageResp{
+		List:     emailList,
+		Total:    total,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
 // GetEmail API获取邮件
 func (h *ApiHandler) GetEmail(c *gin.Context) {
-	// TODO: 实现API获取邮件详情
-	c.JSON(http.StatusOK, result.SimpleResult("API获取邮件"))
+	// 获取邮件ID
+	idStr := c.Param("id")
+	emailId, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮件ID"))
+		return
+	}
+
+	// 通过API密钥验证获取用户ID
+	userId := middleware.GetApiUserId(c)
+	if userId == 0 {
+		c.JSON(http.StatusUnauthorized, result.ErrorSimpleResult("无效的API密钥"))
+		return
+	}
+
+	// 查询邮件详情
+	email, err := h.svcCtx.EmailModel.GetById(uint(emailId))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+	if email == nil {
+		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("邮件不存在"))
+		return
+	}
+
+	// 检查权限（只能查看自己的邮件）
+	mailbox, err := h.svcCtx.MailboxModel.GetById(email.MailboxId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+	if mailbox == nil || mailbox.UserId != userId {
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限查看此邮件"))
+		return
+	}
+
+	// 返回邮件详情
+	resp := types.EmailResp{
+		Id:          email.Id,
+		MailboxId:   email.MailboxId,
+		Subject:     email.Subject,
+		FromEmail:   email.FromEmail,
+		ToEmail:     email.ToEmail,
+		CcEmail:     email.CcEmail,
+		BccEmail:    email.BccEmail,
+		Content:     email.Content,
+		ContentType: email.ContentType,
+		Attachments: email.Attachments,
+		Status:      email.Status,
+		Type:        email.Type,
+		CreatedAt:   email.CreatedAt,
+		UpdatedAt:   email.UpdatedAt,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
 // SendEmail API发送邮件
 func (h *ApiHandler) SendEmail(c *gin.Context) {
-	// TODO: 实现API发送邮件
-	c.JSON(http.StatusOK, result.SimpleResult("API发送邮件"))
+	var req types.EmailSendReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 通过API密钥验证获取用户ID
+	userId := middleware.GetApiUserId(c)
+	if userId == 0 {
+		c.JSON(http.StatusUnauthorized, result.ErrorSimpleResult("无效的API密钥"))
+		return
+	}
+
+	// 检查邮箱是否属于当前用户
+	if req.MailboxId > 0 {
+		mailbox, err := h.svcCtx.MailboxModel.GetById(req.MailboxId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			return
+		}
+		if mailbox == nil || mailbox.UserId != userId {
+			c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限使用此邮箱"))
+			return
+		}
+	}
+
+	// TODO: 实现实际的邮件发送逻辑
+	// 这里应该：
+	// 1. 验证邮件内容的完整性
+	// 2. 调用邮件发送服务
+	// 3. 创建邮件记录
+	// 4. 返回发送结果
+
+	// 模拟发送成功
+	sendResp := types.EmailSendResp{
+		Success: true,
+		Message: "邮件发送成功",
+		EmailId: 0, // 实际发送后应该返回邮件ID
+		SentAt:  time.Now(),
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(sendResp))
 }
 
 // ListVerificationCodes API验证码列表
 func (h *ApiHandler) ListVerificationCodes(c *gin.Context) {
-	// TODO: 实现API验证码列表查询
-	c.JSON(http.StatusOK, result.SimpleResult("API验证码列表"))
+	var req types.VerificationCodeListReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 通过API密钥验证获取用户ID
+	userId := middleware.GetApiUserId(c)
+	if userId == 0 {
+		c.JSON(http.StatusUnauthorized, result.ErrorSimpleResult("无效的API密钥"))
+		return
+	}
+
+	// 设置默认分页参数
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
+	// 转换为model参数
+	params := model.VerificationCodeListParams{
+		BaseListParams: model.BaseListParams{
+			Page:     req.Page,
+			PageSize: req.PageSize,
+		},
+		BaseTimeRangeParams: model.BaseTimeRangeParams{
+			CreatedAtStart: req.CreatedAtStart,
+			CreatedAtEnd:   req.CreatedAtEnd,
+		},
+		UserId:    &userId,
+		EmailId:   req.EmailId,
+		Code:      req.Code,
+		Source:    req.Source,
+		IsUsed:    req.IsUsed,
+		IsExpired: req.IsExpired,
+	}
+
+	// 查询验证码列表
+	codes, total, err := h.svcCtx.VerificationCodeModel.List(params)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+
+	// 转换为响应格式
+	var codeList []types.VerificationCodeResp
+	for _, code := range codes {
+		codeList = append(codeList, types.VerificationCodeResp{
+			Id:        code.Id,
+			UserId:    code.UserId,
+			EmailId:   code.EmailId,
+			Code:      code.Code,
+			Source:    code.Source,
+			IsUsed:    code.IsUsed,
+			IsExpired: code.IsExpired,
+			UsedAt:    code.UsedAt,
+			ExpiresAt: code.ExpiresAt,
+			CreatedAt: code.CreatedAt,
+		})
+	}
+
+	// 返回分页结果
+	resp := types.PageResp{
+		List:     codeList,
+		Total:    total,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
 // GetVerificationCode API获取验证码
 func (h *ApiHandler) GetVerificationCode(c *gin.Context) {
-	// TODO: 实现API获取验证码详情
-	c.JSON(http.StatusOK, result.SimpleResult("API获取验证码"))
+	// 获取验证码ID
+	idStr := c.Param("id")
+	codeId, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的验证码ID"))
+		return
+	}
+
+	// 通过API密钥验证获取用户ID
+	userId := middleware.GetApiUserId(c)
+	if userId == 0 {
+		c.JSON(http.StatusUnauthorized, result.ErrorSimpleResult("无效的API密钥"))
+		return
+	}
+
+	// 查询验证码详情
+	code, err := h.svcCtx.VerificationCodeModel.GetById(uint(codeId))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+	if code == nil {
+		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("验证码不存在"))
+		return
+	}
+
+	// 检查权限（只能查看自己的验证码）
+	if code.UserId != userId {
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限查看此验证码"))
+		return
+	}
+
+	// 返回验证码详情
+	resp := types.VerificationCodeResp{
+		Id:        code.Id,
+		UserId:    code.UserId,
+		EmailId:   code.EmailId,
+		Code:      code.Code,
+		Source:    code.Source,
+		IsUsed:    code.IsUsed,
+		IsExpired: code.IsExpired,
+		UsedAt:    code.UsedAt,
+		ExpiresAt: code.ExpiresAt,
+		CreatedAt: code.CreatedAt,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }

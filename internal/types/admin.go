@@ -193,3 +193,56 @@ type AdminExportReq struct {
 	Ids    []uint   `json:"ids"`                  // 指定管理员ID（可选）
 	AdminListReq
 }
+
+// UserCreateReq 创建用户请求
+type UserCreateReq struct {
+	Username string `json:"username" binding:"required,min=3,max=50"`  // 用户名
+	Email    string `json:"email" binding:"required,email"`            // 邮箱
+	Password string `json:"password" binding:"required,min=6,max=100"` // 密码
+	Nickname string `json:"nickname" binding:"max=100"`                // 昵称
+	Avatar   string `json:"avatar" binding:"max=500"`                  // 头像URL
+	Status   int    `json:"status" binding:"oneof=0 1"`                // 状态：0禁用 1启用
+}
+
+// UserUpdateReq 更新用户请求
+type UserUpdateReq struct {
+	Username string `json:"username" binding:"required,min=3,max=50"` // 用户名
+	Email    string `json:"email" binding:"required,email"`           // 邮箱
+	Password string `json:"password" binding:"max=100"`               // 密码（可选）
+	Nickname string `json:"nickname" binding:"max=100"`               // 昵称
+	Avatar   string `json:"avatar" binding:"max=500"`                 // 头像URL
+	Status   int    `json:"status" binding:"oneof=0 1"`               // 状态：0禁用 1启用
+}
+
+// UserListReq 用户列表请求
+type UserListReq struct {
+	Username       string    `json:"username" form:"username"`             // 用户名（模糊搜索）
+	Email          string    `json:"email" form:"email"`                   // 邮箱（模糊搜索）
+	Status         *int      `json:"status" form:"status"`                 // 状态
+	CreatedAtStart time.Time `json:"createdAtStart" form:"createdAtStart"` // 创建时间开始
+	CreatedAtEnd   time.Time `json:"createdAtEnd" form:"createdAtEnd"`     // 创建时间结束
+	PageReq
+}
+
+// UserResp 用户响应
+type UserResp struct {
+	Id          uint       `json:"id"`          // 用户ID
+	Username    string     `json:"username"`    // 用户名
+	Email       string     `json:"email"`       // 邮箱
+	Nickname    string     `json:"nickname"`    // 昵称
+	Avatar      string     `json:"avatar"`      // 头像URL
+	Status      int        `json:"status"`      // 状态
+	LastLoginAt *time.Time `json:"lastLoginAt"` // 最后登录时间
+	CreatedAt   time.Time  `json:"createdAt"`   // 创建时间
+	UpdatedAt   time.Time  `json:"updatedAt"`   // 更新时间
+}
+
+// UserStatsResp 用户统计响应
+type UserStatsResp struct {
+	Total     int64 `json:"total"`     // 总用户数
+	Active    int64 `json:"active"`    // 活跃用户数
+	Inactive  int64 `json:"inactive"`  // 非活跃用户数
+	Today     int64 `json:"today"`     // 今日新增用户数
+	ThisWeek  int64 `json:"thisWeek"`  // 本周新增用户数
+	ThisMonth int64 `json:"thisMonth"` // 本月新增用户数
+}

@@ -229,3 +229,11 @@ type HealthResp struct {
 	Uptime   string            `json:"uptime"`   // 运行时间
 	Services map[string]string `json:"services"` // 服务状态
 }
+
+// BatchOperationResp 批量操作响应
+type BatchOperationResp struct {
+	Total        int      `json:"total"`        // 总数
+	SuccessCount int      `json:"successCount"` // 成功数
+	FailCount    int      `json:"failCount"`    // 失败数
+	Errors       []string `json:"errors"`       // 错误信息
+}

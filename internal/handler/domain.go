@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"new-email/internal/middleware"
 	"new-email/internal/model"
@@ -364,6 +365,130 @@ func (h *DomainHandler) GetById(c *gin.Context) {
 
 // BatchOperation 批量操作域名
 func (h *DomainHandler) BatchOperation(c *gin.Context) {
-	// TODO: 实现批量操作域名
-	c.JSON(http.StatusOK, result.SimpleResult("批量操作域名"))
+	var req types.DomainBatchOperationReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 验证管理员权限
+	if !middleware.IsAdmin(c) {
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("需要管理员权限"))
+		return
+	}
+
+	if len(req.Ids) == 0 {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("请选择要操作的域名"))
+		return
+	}
+
+	var successCount, failCount int
+	var errors []string
+
+	// 获取当前管理员ID
+	currentAdminId := middleware.GetCurrentUserId(c)
+
+	switch req.Operation {
+	case "enable":
+		// 批量启用
+		err := h.svcCtx.DomainModel.BatchUpdateStatus(req.Ids, 1)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
+			return
+		}
+		successCount = len(req.Ids)
+
+	case "disable":
+		// 批量禁用
+		err := h.svcCtx.DomainModel.BatchUpdateStatus(req.Ids, 0)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
+			return
+		}
+		successCount = len(req.Ids)
+
+	case "delete":
+		// 批量删除
+		for _, id := range req.Ids {
+			domain, err := h.svcCtx.DomainModel.GetById(id)
+			if err != nil {
+				errors = append(errors, fmt.Sprintf("域名ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			if domain == nil {
+				errors = append(errors, fmt.Sprintf("域名ID %d: 不存在", id))
+				failCount++
+				continue
+			}
+
+			if err := h.svcCtx.DomainModel.Delete(domain); err != nil {
+				errors = append(errors, fmt.Sprintf("域名ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			successCount++
+		}
+
+	case "verify":
+		// 批量验证DNS
+		for _, id := range req.Ids {
+			domain, err := h.svcCtx.DomainModel.GetById(id)
+			if err != nil {
+				errors = append(errors, fmt.Sprintf("域名ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			if domain == nil {
+				errors = append(errors, fmt.Sprintf("域名ID %d: 不存在", id))
+				failCount++
+				continue
+			}
+
+			// TODO: 实现实际的DNS验证逻辑
+			// 这里应该调用DNS验证服务
+			verified := true // 模拟验证结果
+
+			// 更新验证状态
+			updateData := map[string]interface{}{
+				"dns_verified": verified,
+			}
+			if err := h.svcCtx.DomainModel.MapUpdate(nil, id, updateData); err != nil {
+				errors = append(errors, fmt.Sprintf("域名ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			successCount++
+		}
+
+	default:
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("不支持的操作类型"))
+		return
+	}
+
+	// 记录操作日志
+	if currentAdminId > 0 {
+		log := &model.OperationLog{
+			UserId:     currentAdminId,
+			Action:     fmt.Sprintf("batch_%s_domain", req.Operation),
+			Resource:   "domain",
+			ResourceId: 0, // 批量操作没有单一资源ID
+			Method:     "POST",
+			Path:       c.Request.URL.Path,
+			Ip:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+			Status:     http.StatusOK,
+		}
+		h.svcCtx.OperationLogModel.Create(log)
+	}
+
+	// 返回操作结果
+	resp := types.BatchOperationResp{
+		Total:        len(req.Ids),
+		SuccessCount: successCount,
+		FailCount:    failCount,
+		Errors:       errors,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }

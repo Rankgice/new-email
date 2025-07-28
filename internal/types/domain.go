@@ -36,3 +36,9 @@ type DomainResp struct {
 	CreatedAt   time.Time `json:"createdAt"`   // 创建时间
 	UpdatedAt   time.Time `json:"updatedAt"`   // 更新时间
 }
+
+// DomainBatchOperationReq 域名批量操作请求
+type DomainBatchOperationReq struct {
+	Ids       []uint `json:"ids" binding:"required,min=1"`                                    // 域名ID列表
+	Operation string `json:"operation" binding:"required,oneof=enable disable delete verify"` // 操作类型
+}
