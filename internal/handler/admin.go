@@ -8,6 +8,7 @@ import (
 	"new-email/internal/svc"
 	"new-email/internal/types"
 	"new-email/pkg/auth"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -320,26 +321,304 @@ func (h *AdminHandler) ExportUsers(c *gin.Context) {
 
 // ListAdmins 管理员列表
 func (h *AdminHandler) ListAdmins(c *gin.Context) {
-	// TODO: 实现管理员列表查询
-	c.JSON(http.StatusOK, result.SimpleResult("管理员列表接口"))
+	var req types.AdminListReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 设置默认分页参数
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 10
+	}
+
+	// 转换为model参数
+	params := model.AdminListParams{
+		BaseListParams: model.BaseListParams{
+			Page:     req.Page,
+			PageSize: req.PageSize,
+		},
+		BaseTimeRangeParams: model.BaseTimeRangeParams{
+			CreatedAtStart: req.CreatedAtStart,
+			CreatedAtEnd:   req.CreatedAtEnd,
+		},
+		Username: req.Username,
+		Email:    req.Email,
+		Role:     req.Role,
+		Status:   req.Status,
+	}
+
+	// 查询管理员列表
+	admins, total, err := h.svcCtx.AdminModel.List(params)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+
+	// 转换为响应格式
+	var adminList []types.AdminResp
+	for _, admin := range admins {
+		adminList = append(adminList, types.AdminResp{
+			Id:          admin.Id,
+			Username:    admin.Username,
+			Email:       admin.Email,
+			Nickname:    admin.Nickname,
+			Avatar:      admin.Avatar,
+			Role:        admin.Role,
+			Status:      admin.Status,
+			LastLoginAt: admin.LastLoginAt,
+			CreatedAt:   admin.CreatedAt,
+			UpdatedAt:   admin.UpdatedAt,
+		})
+	}
+
+	// 返回分页结果
+	resp := types.PageResp{
+		List:     adminList,
+		Total:    total,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
 // CreateAdmin 创建管理员
 func (h *AdminHandler) CreateAdmin(c *gin.Context) {
-	// TODO: 实现创建管理员
-	c.JSON(http.StatusOK, result.SimpleResult("创建管理员接口"))
+	var req types.AdminCreateReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 检查用户名是否已存在
+	if exists, err := h.svcCtx.AdminModel.CheckUsernameExists(req.Username); err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	} else if exists {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("用户名已存在"))
+		return
+	}
+
+	// 检查邮箱是否已存在
+	if exists, err := h.svcCtx.AdminModel.CheckEmailExists(req.Email); err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	} else if exists {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱已存在"))
+		return
+	}
+
+	// 加密密码
+	hashedPassword, err := auth.HashPassword(req.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("密码加密失败"))
+		return
+	}
+
+	// 创建管理员
+	admin := &model.Admin{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: hashedPassword,
+		Nickname: req.Nickname,
+		Avatar:   req.Avatar,
+		Role:     req.Role,
+		Status:   req.Status,
+	}
+
+	if err := h.svcCtx.AdminModel.Create(admin); err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorAdd.AddError(err))
+		return
+	}
+
+	// 记录操作日志
+	currentAdminId := middleware.GetCurrentUserId(c)
+	if currentAdminId > 0 {
+		log := &model.OperationLog{
+			UserId:     currentAdminId,
+			Action:     "create_admin",
+			Resource:   "admin",
+			ResourceId: admin.Id,
+			Method:     "POST",
+			Path:       c.Request.URL.Path,
+			Ip:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+			Status:     http.StatusOK,
+		}
+		h.svcCtx.OperationLogModel.Create(log)
+	}
+
+	resp := types.AdminResp{
+		Id:        admin.Id,
+		Username:  admin.Username,
+		Email:     admin.Email,
+		Nickname:  admin.Nickname,
+		Avatar:    admin.Avatar,
+		Role:      admin.Role,
+		Status:    admin.Status,
+		CreatedAt: admin.CreatedAt,
+		UpdatedAt: admin.UpdatedAt,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
 // UpdateAdmin 更新管理员
 func (h *AdminHandler) UpdateAdmin(c *gin.Context) {
-	// TODO: 实现更新管理员
-	c.JSON(http.StatusOK, result.SimpleResult("更新管理员接口"))
+	var req types.AdminUpdateReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 检查管理员是否存在
+	admin, err := h.svcCtx.AdminModel.GetById(req.Id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+	if admin == nil {
+		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("管理员不存在"))
+		return
+	}
+
+	// 检查用户名是否已被其他管理员使用
+	if req.Username != "" && req.Username != admin.Username {
+		if exists, err := h.svcCtx.AdminModel.CheckUsernameExists(req.Username); err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			return
+		} else if exists {
+			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("用户名已被其他管理员使用"))
+			return
+		}
+	}
+
+	// 检查邮箱是否已被其他管理员使用
+	if req.Email != "" && req.Email != admin.Email {
+		if exists, err := h.svcCtx.AdminModel.CheckEmailExists(req.Email, req.Id); err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			return
+		} else if exists {
+			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱已被其他管理员使用"))
+			return
+		}
+	}
+
+	// 构建更新数据
+	updateData := map[string]interface{}{}
+	if req.Username != "" {
+		updateData["username"] = req.Username
+	}
+	if req.Email != "" {
+		updateData["email"] = req.Email
+	}
+	if req.Nickname != "" {
+		updateData["nickname"] = req.Nickname
+	}
+	if req.Avatar != "" {
+		updateData["avatar"] = req.Avatar
+	}
+	if req.Role != "" {
+		updateData["role"] = req.Role
+	}
+	updateData["status"] = req.Status
+
+	// 更新管理员信息
+	if err := h.svcCtx.AdminModel.MapUpdate(nil, req.Id, updateData); err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
+		return
+	}
+
+	// 记录操作日志
+	currentAdminId := middleware.GetCurrentUserId(c)
+	if currentAdminId > 0 {
+		log := &model.OperationLog{
+			UserId:     currentAdminId,
+			Action:     "update_admin",
+			Resource:   "admin",
+			ResourceId: req.Id,
+			Method:     "PUT",
+			Path:       c.Request.URL.Path,
+			Ip:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+			Status:     http.StatusOK,
+		}
+		h.svcCtx.OperationLogModel.Create(log)
+	}
+
+	c.JSON(http.StatusOK, result.SimpleResult("更新成功"))
 }
 
 // DeleteAdmin 删除管理员
 func (h *AdminHandler) DeleteAdmin(c *gin.Context) {
-	// TODO: 实现删除管理员
-	c.JSON(http.StatusOK, result.SimpleResult("删除管理员接口"))
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的管理员ID"))
+		return
+	}
+
+	adminId := uint(id)
+
+	// 检查管理员是否存在
+	admin, err := h.svcCtx.AdminModel.GetById(adminId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+	if admin == nil {
+		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("管理员不存在"))
+		return
+	}
+
+	// 检查是否为当前登录管理员（不能删除自己）
+	currentAdminId := middleware.GetCurrentUserId(c)
+	if currentAdminId == adminId {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("不能删除自己"))
+		return
+	}
+
+	// 检查是否为超级管理员（可选：保护超级管理员不被删除）
+	if admin.Role == "admin" {
+		// 检查是否还有其他超级管理员
+		superAdmins, err := h.svcCtx.AdminModel.GetSuperAdmins()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			return
+		}
+		if len(superAdmins) <= 1 {
+			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("不能删除最后一个超级管理员"))
+			return
+		}
+	}
+
+	// 软删除管理员
+	if err := h.svcCtx.AdminModel.Delete(admin); err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorDelete.AddError(err))
+		return
+	}
+
+	// 记录操作日志
+	if currentAdminId > 0 {
+		log := &model.OperationLog{
+			UserId:     currentAdminId,
+			Action:     "delete_admin",
+			Resource:   "admin",
+			ResourceId: adminId,
+			Method:     "DELETE",
+			Path:       c.Request.URL.Path,
+			Ip:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+			Status:     http.StatusOK,
+		}
+		h.svcCtx.OperationLogModel.Create(log)
+	}
+
+	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
 }
 
 // BatchOperationAdmins 批量操作管理员
