@@ -221,6 +221,27 @@ email:
 - `ListVerificationCodes` - API验证码列表查询
 - `GetVerificationCode` - API获取验证码详情
 
+### 13. 邮件管理 (EmailHandler)
+- `List` - 邮件列表查询，支持多条件筛选
+- `GetById` - 获取邮件详情，包含权限验证
+- `Send` - 发送邮件，创建邮件记录
+- `MarkRead` - 标记邮件为已读
+- `MarkStar` - 标记/取消邮件星标
+- `Delete` - 删除邮件（软删除）
+- `BatchOperation` - 批量操作邮件（已读、未读、删除、移动）
+
+### 14. 管理员扩展功能 (AdminHandler)
+- `BatchOperationUsers` - 批量操作用户（启用、禁用、删除）
+- `ImportUsers` - 导入用户（支持CSV格式，框架已完成）
+- `ExportUsers` - 导出用户（支持CSV/Excel格式，框架已完成）
+
+### 15. 规则管理扩展 (RuleHandler)
+- **反垃圾规则**
+  - `ListAntiSpamRules` - 反垃圾规则列表（管理员权限）
+  - `CreateAntiSpamRule` - 创建反垃圾规则
+  - `UpdateAntiSpamRule` - 更新反垃圾规则
+  - `DeleteAntiSpamRule` - 删除反垃圾规则
+
 ### 📁 新增的Types定义文件
 
 - ✅ `internal/types/log.go` - 日志相关类型定义

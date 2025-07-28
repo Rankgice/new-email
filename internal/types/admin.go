@@ -246,3 +246,41 @@ type UserStatsResp struct {
 	ThisWeek  int64 `json:"thisWeek"`  // 本周新增用户数
 	ThisMonth int64 `json:"thisMonth"` // 本月新增用户数
 }
+
+// UserBatchOperationReq 用户批量操作请求
+type UserBatchOperationReq struct {
+	Ids       []uint `json:"ids" binding:"required,min=1"`                             // 用户ID列表
+	Operation string `json:"operation" binding:"required,oneof=enable disable delete"` // 操作类型
+}
+
+// ImportUsersReq 导入用户请求
+type ImportUsersReq struct {
+	File string `json:"file" binding:"required"` // 文件路径或内容
+}
+
+// ImportUsersResp 导入用户响应
+type ImportUsersResp struct {
+	Total        int      `json:"total"`        // 总数
+	SuccessCount int      `json:"successCount"` // 成功数
+	FailCount    int      `json:"failCount"`    // 失败数
+	Errors       []string `json:"errors"`       // 错误信息
+	Message      string   `json:"message"`      // 消息
+}
+
+// ExportUsersReq 导出用户请求
+type ExportUsersReq struct {
+	Username       string    `json:"username" form:"username"`             // 用户名（模糊搜索）
+	Email          string    `json:"email" form:"email"`                   // 邮箱（模糊搜索）
+	Status         *int      `json:"status" form:"status"`                 // 状态
+	Format         string    `json:"format" form:"format"`                 // 导出格式：csv, excel
+	CreatedAtStart time.Time `json:"createdAtStart" form:"createdAtStart"` // 创建时间开始
+	CreatedAtEnd   time.Time `json:"createdAtEnd" form:"createdAtEnd"`     // 创建时间结束
+}
+
+// ExportUsersResp 导出用户响应
+type ExportUsersResp struct {
+	Total    int64  `json:"total"`    // 导出总数
+	Format   string `json:"format"`   // 导出格式
+	Filename string `json:"filename"` // 文件名
+	Message  string `json:"message"`  // 消息
+}

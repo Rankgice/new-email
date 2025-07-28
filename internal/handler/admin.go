@@ -10,6 +10,7 @@ import (
 	"new-email/internal/types"
 	"new-email/pkg/auth"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -653,20 +654,278 @@ func (h *AdminHandler) DeleteUser(c *gin.Context) {
 
 // BatchOperationUsers 批量操作用户
 func (h *AdminHandler) BatchOperationUsers(c *gin.Context) {
-	// TODO: 实现批量操作用户
-	c.JSON(http.StatusOK, result.SimpleResult("批量操作用户接口"))
+	var req types.UserBatchOperationReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 验证管理员权限
+	if !middleware.IsAdmin(c) {
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("需要管理员权限"))
+		return
+	}
+
+	if len(req.Ids) == 0 {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("请选择要操作的用户"))
+		return
+	}
+
+	var successCount, failCount int
+	var errors []string
+
+	// 获取当前管理员ID
+	currentAdminId := middleware.GetCurrentUserId(c)
+
+	switch req.Operation {
+	case "enable":
+		// 批量启用
+		for _, id := range req.Ids {
+			if id == currentAdminId {
+				errors = append(errors, fmt.Sprintf("用户ID %d: 不能操作自己", id))
+				failCount++
+				continue
+			}
+
+			user, err := h.svcCtx.UserModel.GetById(id)
+			if err != nil {
+				errors = append(errors, fmt.Sprintf("用户ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			if user == nil {
+				errors = append(errors, fmt.Sprintf("用户ID %d: 不存在", id))
+				failCount++
+				continue
+			}
+
+			user.Status = 1
+			if err := h.svcCtx.UserModel.Update(nil, user); err != nil {
+				errors = append(errors, fmt.Sprintf("用户ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			successCount++
+		}
+
+	case "disable":
+		// 批量禁用
+		for _, id := range req.Ids {
+			if id == currentAdminId {
+				errors = append(errors, fmt.Sprintf("用户ID %d: 不能操作自己", id))
+				failCount++
+				continue
+			}
+
+			user, err := h.svcCtx.UserModel.GetById(id)
+			if err != nil {
+				errors = append(errors, fmt.Sprintf("用户ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			if user == nil {
+				errors = append(errors, fmt.Sprintf("用户ID %d: 不存在", id))
+				failCount++
+				continue
+			}
+
+			user.Status = 0
+			if err := h.svcCtx.UserModel.Update(nil, user); err != nil {
+				errors = append(errors, fmt.Sprintf("用户ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			successCount++
+		}
+
+	case "delete":
+		// 批量删除
+		for _, id := range req.Ids {
+			if id == currentAdminId {
+				errors = append(errors, fmt.Sprintf("用户ID %d: 不能删除自己", id))
+				failCount++
+				continue
+			}
+
+			user, err := h.svcCtx.UserModel.GetById(id)
+			if err != nil {
+				errors = append(errors, fmt.Sprintf("用户ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			if user == nil {
+				errors = append(errors, fmt.Sprintf("用户ID %d: 不存在", id))
+				failCount++
+				continue
+			}
+
+			if err := h.svcCtx.UserModel.Delete(user); err != nil {
+				errors = append(errors, fmt.Sprintf("用户ID %d: %v", id, err))
+				failCount++
+				continue
+			}
+			successCount++
+		}
+
+	default:
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("不支持的操作类型"))
+		return
+	}
+
+	// 记录操作日志
+	if currentAdminId > 0 {
+		log := &model.OperationLog{
+			UserId:     currentAdminId,
+			Action:     fmt.Sprintf("batch_%s_user", req.Operation),
+			Resource:   "user",
+			ResourceId: 0, // 批量操作没有单一资源ID
+			Method:     "POST",
+			Path:       c.Request.URL.Path,
+			Ip:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+			Status:     http.StatusOK,
+		}
+		h.svcCtx.OperationLogModel.Create(log)
+	}
+
+	// 返回操作结果
+	resp := types.BatchOperationResp{
+		Total:        len(req.Ids),
+		SuccessCount: successCount,
+		FailCount:    failCount,
+		Errors:       errors,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
 // ImportUsers 导入用户
 func (h *AdminHandler) ImportUsers(c *gin.Context) {
-	// TODO: 实现导入用户
-	c.JSON(http.StatusOK, result.SimpleResult("导入用户接口"))
+	// 验证超级管理员权限
+	if !middleware.IsSuperAdmin(c) {
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("需要超级管理员权限"))
+		return
+	}
+
+	// 获取上传的文件
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("请选择要导入的文件"))
+		return
+	}
+	defer file.Close()
+
+	// 检查文件类型
+	if header.Header.Get("Content-Type") != "text/csv" &&
+		!strings.HasSuffix(header.Filename, ".csv") {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("只支持CSV格式文件"))
+		return
+	}
+
+	// TODO: 实现CSV文件解析和用户导入逻辑
+	// 这里应该：
+	// 1. 解析CSV文件
+	// 2. 验证数据格式
+	// 3. 批量创建用户
+	// 4. 返回导入结果
+
+	// 记录操作日志
+	currentAdminId := middleware.GetCurrentUserId(c)
+	if currentAdminId > 0 {
+		log := &model.OperationLog{
+			UserId:     currentAdminId,
+			Action:     "import_users",
+			Resource:   "user",
+			ResourceId: 0,
+			Method:     "POST",
+			Path:       c.Request.URL.Path,
+			Ip:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+			Status:     http.StatusOK,
+		}
+		h.svcCtx.OperationLogModel.Create(log)
+	}
+
+	// 模拟导入结果
+	resp := types.ImportUsersResp{
+		Total:        0,
+		SuccessCount: 0,
+		FailCount:    0,
+		Errors:       []string{},
+		Message:      "用户导入功能待实现",
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
 // ExportUsers 导出用户
 func (h *AdminHandler) ExportUsers(c *gin.Context) {
-	// TODO: 实现导出用户
-	c.JSON(http.StatusOK, result.SimpleResult("导出用户接口"))
+	var req types.ExportUsersReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 验证管理员权限
+	if !middleware.IsAdmin(c) {
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("需要管理员权限"))
+		return
+	}
+
+	// 设置默认导出格式
+	if req.Format == "" {
+		req.Format = "csv"
+	}
+
+	// 查询用户数据
+	params := model.UserListParams{
+		BaseListParams: model.BaseListParams{
+			Page:     1,
+			PageSize: 10000, // 导出时不分页
+		},
+		Username: req.Username,
+		Email:    req.Email,
+		Status:   req.Status,
+	}
+
+	users, _, err := h.svcCtx.UserModel.List(params)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+
+	// TODO: 实现实际的文件导出逻辑
+	// 这里应该：
+	// 1. 根据格式生成文件内容
+	// 2. 设置响应头
+	// 3. 返回文件流
+
+	// 记录操作日志
+	currentAdminId := middleware.GetCurrentUserId(c)
+	if currentAdminId > 0 {
+		log := &model.OperationLog{
+			UserId:     currentAdminId,
+			Action:     "export_users",
+			Resource:   "user",
+			ResourceId: 0,
+			Method:     "GET",
+			Path:       c.Request.URL.Path,
+			Ip:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+			Status:     http.StatusOK,
+		}
+		h.svcCtx.OperationLogModel.Create(log)
+	}
+
+	// 模拟导出结果
+	resp := types.ExportUsersResp{
+		Total:    int64(len(users)),
+		Format:   req.Format,
+		Filename: fmt.Sprintf("users_%s.%s", time.Now().Format("20060102_150405"), req.Format),
+		Message:  "用户导出功能待实现",
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
 // ListAdmins 管理员列表
