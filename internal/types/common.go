@@ -182,3 +182,50 @@ type ListResp struct {
 	Total int64       `json:"total"` // 总数
 	PageReq
 }
+
+// SendCodeReq 发送验证码请求
+type SendCodeReq struct {
+	Type          string `json:"type" binding:"required,oneof=email sms"` // 验证码类型：email, sms
+	Target        string `json:"target" binding:"required"`               // 目标（邮箱或手机号）
+	Length        int    `json:"length" binding:"min=4,max=8"`            // 验证码长度
+	ExpireMinutes int    `json:"expireMinutes" binding:"min=1,max=60"`    // 过期时间（分钟）
+}
+
+// SendCodeResp 发送验证码响应
+type SendCodeResp struct {
+	Success   bool      `json:"success"`   // 是否成功
+	Message   string    `json:"message"`   // 消息
+	ExpiresAt time.Time `json:"expiresAt"` // 过期时间
+	CodeId    uint      `json:"codeId"`    // 验证码ID
+}
+
+// VerifyCodeReq 验证验证码请求
+type VerifyCodeReq struct {
+	Code   string `json:"code" binding:"required"` // 验证码
+	Type   string `json:"type" binding:"required"` // 验证码类型
+	Target string `json:"target"`                  // 目标（邮箱或手机号）
+	CodeId uint   `json:"codeId"`                  // 验证码ID（可选）
+}
+
+// VerifyCodeResp 验证验证码响应
+type VerifyCodeResp struct {
+	Success bool   `json:"success"` // 是否成功
+	Message string `json:"message"` // 消息
+	CodeId  uint   `json:"codeId"`  // 验证码ID
+}
+
+// SystemInfoResp 系统信息响应
+type SystemInfoResp struct {
+	Version     string    `json:"version"`     // 系统版本
+	Environment string    `json:"environment"` // 运行环境
+	ServerTime  time.Time `json:"serverTime"`  // 服务器时间
+	Timezone    string    `json:"timezone"`    // 时区
+}
+
+// HealthResp 健康检查响应
+type HealthResp struct {
+	Status   string            `json:"status"`   // 状态
+	Version  string            `json:"version"`  // 版本
+	Uptime   string            `json:"uptime"`   // 运行时间
+	Services map[string]string `json:"services"` // 服务状态
+}

@@ -18,6 +18,16 @@
 - **日志审计** - 完整的操作日志和邮件日志
 - **数据导入导出** - 支持批量操作和数据迁移
 
+### 已实现的Handler方法
+- **日志管理** - 操作日志和邮件日志的查询和管理
+- **签名管理** - 邮件签名的创建、更新、删除和设置默认
+- **验证码管理** - 验证码列表查询、详情查看、标记使用状态
+- **模板管理** - 邮件模板的完整CRUD操作和分类管理
+- **API密钥管理** - API密钥的创建、更新、删除和权限管理
+- **规则管理** - 验证码规则和转发规则的完整管理
+- **通用功能** - 验证码发送验证、系统信息查询
+- **草稿管理** - 邮件草稿的创建、编辑、删除和发送
+
 ## 🛠️ 技术栈
 
 ### 后端
@@ -121,6 +131,75 @@ email:
     password: "your-app-password"
     use_tls: true
 ```
+
+## ✅ 已完成的功能模块
+
+### 1. 日志管理 (LogHandler)
+- `ListOperationLogs` - 操作日志列表查询，支持分页和筛选
+- `ListEmailLogs` - 邮件日志列表查询，支持按邮件ID、邮箱ID等筛选
+
+### 2. 签名管理 (SignatureHandler)
+- `List` - 签名列表查询，支持分页和按名称筛选
+- `Create` - 创建新的邮件签名
+- `Update` - 更新现有签名信息
+- `Delete` - 删除签名（软删除）
+- `GetById` - 获取签名详情
+- `SetDefault` - 设置默认签名
+
+### 3. 验证码管理 (VerificationCodeHandler)
+- `List` - 验证码列表查询，支持按来源、使用状态等筛选
+- `GetById` - 获取验证码详情
+- `MarkAsUsed` - 标记验证码为已使用
+- `GetLatest` - 获取指定来源的最新验证码
+- `GetStatistics` - 获取验证码统计信息
+
+### 4. 模板管理 (TemplateHandler)
+- `List` - 模板列表查询，支持按分类、名称筛选
+- `Create` - 创建新的邮件模板
+- `Update` - 更新模板内容和配置
+- `Delete` - 删除模板（软删除）
+- `GetById` - 获取模板详情
+- `GetCategories` - 获取模板分类列表
+- `Copy` - 复制现有模板
+
+### 5. API密钥管理 (ApiKeyHandler)
+- `List` - API密钥列表查询（密钥已脱敏）
+- `Create` - 创建新的API密钥（仅创建时返回完整密钥）
+- `Update` - 更新API密钥权限和配置
+- `Delete` - 删除API密钥（软删除）
+- `GetById` - 获取API密钥详情
+
+### 6. 规则管理 (RuleHandler)
+- **验证码规则**
+  - `ListVerificationRules` - 验证码规则列表
+  - `CreateVerificationRule` - 创建验证码提取规则
+  - `UpdateVerificationRule` - 更新验证码规则
+  - `DeleteVerificationRule` - 删除验证码规则
+- **转发规则**
+  - `ListForwardRules` - 转发规则列表
+  - `CreateForwardRule` - 创建邮件转发规则
+  - `UpdateForwardRule` - 更新转发规则
+  - `DeleteForwardRule` - 删除转发规则
+
+### 7. 通用功能 (CommonHandler)
+- `SendCode` - 发送验证码（邮件/短信）
+- `VerifyCode` - 验证验证码有效性
+- `GetSystemInfo` - 获取系统基本信息
+- `GetCaptcha` - 获取图形验证码（待实现）
+- `VerifyCaptcha` - 验证图形验证码（待实现）
+- `Upload` - 文件上传（待实现）
+
+### 8. 草稿管理 (DraftHandler)
+- `List` - 草稿列表查询，支持按邮箱、主题筛选
+- `Create` - 创建新的邮件草稿
+- `Update` - 更新草稿内容
+- `Delete` - 删除草稿（软删除）
+- `GetById` - 获取草稿详情
+- `Send` - 发送草稿邮件（待完善邮件发送逻辑）
+
+### 9. 管理员日志 (AdminLogHandler)
+- `ListOperationLogs` - 管理员操作日志查询
+- `ListEmailLogs` - 管理员邮件日志查询
 
 ## 🔌 API 接口
 
