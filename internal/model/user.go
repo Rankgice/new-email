@@ -198,6 +198,51 @@ func (m *UserModel) CountActiveUsers() (int64, error) {
 	return count, nil
 }
 
+// GetStatistics 获取用户统计信息
+func (m *UserModel) GetStatistics() (map[string]interface{}, error) {
+	var total, active, inactive, today, thisWeek, thisMonth int64
+
+	// 总用户数
+	if err := m.db.Model(&User{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// 活跃用户数
+	if err := m.db.Model(&User{}).Where("status = ?", 1).Count(&active).Error; err != nil {
+		return nil, err
+	}
+
+	// 非活跃用户数
+	inactive = total - active
+
+	// 今日新增用户数
+	todayStart := time.Now().Truncate(24 * time.Hour)
+	if err := m.db.Model(&User{}).Where("created_at >= ?", todayStart).Count(&today).Error; err != nil {
+		return nil, err
+	}
+
+	// 本周新增用户数
+	weekStart := time.Now().AddDate(0, 0, -int(time.Now().Weekday())).Truncate(24 * time.Hour)
+	if err := m.db.Model(&User{}).Where("created_at >= ?", weekStart).Count(&thisWeek).Error; err != nil {
+		return nil, err
+	}
+
+	// 本月新增用户数
+	monthStart := time.Date(time.Now().Year(), time.Now().Month(), 1, 0, 0, 0, 0, time.Now().Location())
+	if err := m.db.Model(&User{}).Where("created_at >= ?", monthStart).Count(&thisMonth).Error; err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"total":     total,
+		"active":    active,
+		"inactive":  inactive,
+		"today":     today,
+		"thisWeek":  thisWeek,
+		"thisMonth": thisMonth,
+	}, nil
+}
+
 // UpdateLastLogin 更新最后登录时间
 func (m *UserModel) UpdateLastLogin(id uint) error {
 	return m.db.Model(&User{}).Where("id = ?", id).Update("last_login_at", time.Now()).Error

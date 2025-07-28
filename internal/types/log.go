@@ -10,6 +10,8 @@ type LogListReq struct {
 	Method         string    `json:"method" form:"method"`                 // 请求方法
 	Status         *int      `json:"status" form:"status"`                 // 状态码
 	Ip             string    `json:"ip" form:"ip"`                         // IP地址
+	Level          string    `json:"level" form:"level"`                   // 日志级别（用于系统日志）
+	Module         string    `json:"module" form:"module"`                 // 模块名称（用于系统日志）
 	CreatedAtStart time.Time `json:"createdAtStart" form:"createdAtStart"` // 创建时间开始
 	CreatedAtEnd   time.Time `json:"createdAtEnd" form:"createdAtEnd"`     // 创建时间结束
 	PageReq
@@ -55,5 +57,14 @@ type EmailLogResp struct {
 	ToEmail   string    `json:"toEmail"`   // 收件人
 	Subject   string    `json:"subject"`   // 邮件主题
 	ErrorMsg  string    `json:"errorMsg"`  // 错误信息
+	CreatedAt time.Time `json:"createdAt"` // 创建时间
+}
+
+// SystemLogResp 系统日志响应
+type SystemLogResp struct {
+	Id        uint      `json:"id"`        // 日志ID
+	Level     string    `json:"level"`     // 日志级别：DEBUG, INFO, WARN, ERROR
+	Message   string    `json:"message"`   // 日志消息
+	Module    string    `json:"module"`    // 模块名称
 	CreatedAt time.Time `json:"createdAt"` // 创建时间
 }

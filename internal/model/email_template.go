@@ -121,3 +121,15 @@ func (m *EmailTemplateModel) GetDefaultTemplates(userId uint) ([]*EmailTemplate,
 	templates, _, err := m.List(EmailTemplateListParams{UserId: userId, IsDefault: &isDefault})
 	return templates, err
 }
+
+// GetCategoriesByUserId 获取用户的模板分类列表
+func (m *EmailTemplateModel) GetCategoriesByUserId(userId uint) ([]string, error) {
+	// 由于EmailTemplate模型中没有Category字段，返回默认分类
+	categories := []string{
+		"通用模板",
+		"营销邮件",
+		"通知邮件",
+		"系统邮件",
+	}
+	return categories, nil
+}

@@ -14,6 +14,10 @@ type Config struct {
 	Database  DatabaseConfig  `yaml:"database"`
 	JWT       JWTConfig       `yaml:"jwt"`
 	Email     EmailConfig     `yaml:"email"`
+	SMTP      SMTPConfig      `yaml:"smtp"`    // 新增SMTP配置
+	IMAP      IMAPConfig      `yaml:"imap"`    // 新增IMAP配置
+	SMS       SMSConfig       `yaml:"sms"`     // 新增SMS配置
+	Storage   StorageConfig   `yaml:"storage"` // 新增存储配置
 	Log       LogConfig       `yaml:"log"`
 	Redis     RedisConfig     `yaml:"redis"`
 	RateLimit RateLimitConfig `yaml:"rate_limit"`
@@ -113,7 +117,7 @@ type RedisConfig struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
 	Password string `yaml:"password"`
-	Database int    `yaml:"database"`
+	DB       int    `yaml:"db"`
 	PoolSize int    `yaml:"pool_size"`
 }
 
@@ -151,6 +155,33 @@ type SecurityConfig struct {
 	SessionTimeout    int `yaml:"session_timeout"`
 	MaxLoginAttempts  int `yaml:"max_login_attempts"`
 	LockoutDuration   int `yaml:"lockout_duration"`
+}
+
+// IMAPConfig IMAP配置
+type IMAPConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	UseTLS   bool   `yaml:"use_tls"`
+}
+
+// SMSConfig SMS配置
+type SMSConfig struct {
+	Provider  string `yaml:"provider"` // aliyun, tencent, twilio
+	AccessKey string `yaml:"access_key"`
+	SecretKey string `yaml:"secret_key"`
+	SignName  string `yaml:"sign_name"`
+	Region    string `yaml:"region"`
+}
+
+// StorageConfig 存储配置
+type StorageConfig struct {
+	Type      string   `yaml:"type"` // local, oss, s3
+	BasePath  string   `yaml:"base_path"`
+	MaxSize   int64    `yaml:"max_size"`
+	AllowExts []string `yaml:"allow_exts"`
+	CDNDomain string   `yaml:"cdn_domain"`
 }
 
 // NewConfig 创建配置

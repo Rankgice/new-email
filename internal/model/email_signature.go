@@ -119,3 +119,8 @@ func (m *EmailSignatureModel) GetDefaultSignature(userId uint) (*EmailSignature,
 	}
 	return nil, nil
 }
+
+// ClearDefaultByUserId 清除用户的默认签名
+func (m *EmailSignatureModel) ClearDefaultByUserId(userId uint) error {
+	return m.db.Model(&EmailSignature{}).Where("user_id = ?", userId).Update("is_default", false).Error
+}

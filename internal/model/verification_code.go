@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"gorm.io/gorm"
 	"time"
 )
@@ -115,4 +116,74 @@ func (m *VerificationCodeModel) MarkAsUsed(id uint) error {
 		"is_used": true,
 		"used_at": &now,
 	}).Error
+}
+
+// GetLatestByTargetAndType 根据目标和类型获取最新验证码
+func (m *VerificationCodeModel) GetLatestByTargetAndType(target, codeType string) (*VerificationCode, error) {
+	var code VerificationCode
+	if err := m.db.Where("source = ? AND code = ?", codeType, target).
+		Order("created_at DESC").First(&code).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &code, nil
+}
+
+// MarkAsExpired 标记验证码为已过期
+func (m *VerificationCodeModel) MarkAsExpired(id uint) error {
+	return m.db.Model(&VerificationCode{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"is_used": true, // 过期的验证码也标记为已使用
+		"used_at": time.Now(),
+	}).Error
+}
+
+// GetGlobalStatistics 获取全局验证码统计
+func (m *VerificationCodeModel) GetGlobalStatistics() (map[string]interface{}, error) {
+	var total, used, unused int64
+
+	// 总数
+	if err := m.db.Model(&VerificationCode{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// 已使用数
+	if err := m.db.Model(&VerificationCode{}).Where("is_used = ?", true).Count(&used).Error; err != nil {
+		return nil, err
+	}
+
+	unused = total - used
+
+	// 今日新增
+	today := time.Now().Truncate(24 * time.Hour)
+	var todayCount int64
+	if err := m.db.Model(&VerificationCode{}).Where("created_at >= ?", today).Count(&todayCount).Error; err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"total":  total,
+		"used":   used,
+		"unused": unused,
+		"today":  todayCount,
+	}, nil
+}
+
+// GetLatestBySource 根据来源获取最新验证码
+func (m *VerificationCodeModel) GetLatestBySource(source string) (*VerificationCode, error) {
+	var code VerificationCode
+	if err := m.db.Where("source = ?", source).
+		Order("created_at DESC").First(&code).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &code, nil
+}
+
+// GetStatistics 获取验证码统计信息（别名方法）
+func (m *VerificationCodeModel) GetStatistics() (map[string]interface{}, error) {
+	return m.GetGlobalStatistics()
 }

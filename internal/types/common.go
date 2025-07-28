@@ -75,19 +75,6 @@ type ResetPasswordReq struct {
 	Password string `json:"password" binding:"required"`    // 新密码
 }
 
-// SendCodeReq 发送验证码请求
-type SendCodeReq struct {
-	Email string `json:"email" binding:"required,email"` // 邮箱
-	Type  string `json:"type" binding:"required"`        // 类型：register, reset
-}
-
-// VerifyCodeReq 验证码验证请求
-type VerifyCodeReq struct {
-	Email string `json:"email" binding:"required,email"` // 邮箱
-	Code  string `json:"code" binding:"required"`        // 验证码
-	Type  string `json:"type" binding:"required"`        // 类型
-}
-
 // UploadReq 上传请求
 type UploadReq struct {
 	Type string `json:"type" form:"type"` // 上传类型：avatar, attachment
@@ -98,6 +85,26 @@ type UploadResp struct {
 	Url      string `json:"url"`      // 文件URL
 	Filename string `json:"filename"` // 文件名
 	Size     int64  `json:"size"`     // 文件大小
+	Type     string `json:"type"`     // 上传类型
+}
+
+// CaptchaResp 图形验证码响应
+type CaptchaResp struct {
+	CaptchaId string    `json:"captchaId"` // 验证码ID
+	ImageData string    `json:"imageData"` // base64编码的图片数据
+	ExpiresAt time.Time `json:"expiresAt"` // 过期时间
+}
+
+// CaptchaVerifyReq 图形验证码验证请求
+type CaptchaVerifyReq struct {
+	CaptchaId string `json:"captchaId" binding:"required"` // 验证码ID
+	Code      string `json:"code" binding:"required"`      // 验证码
+}
+
+// CaptchaVerifyResp 图形验证码验证响应
+type CaptchaVerifyResp struct {
+	Success bool   `json:"success"` // 是否成功
+	Message string `json:"message"` // 消息
 }
 
 // SearchReq 搜索请求
@@ -153,14 +160,6 @@ type ConfigResp struct {
 	Value       string `json:"value"`       // 配置值
 	Description string `json:"description"` // 描述
 	Type        string `json:"type"`        // 类型
-}
-
-// HealthResp 健康检查响应
-type HealthResp struct {
-	Status   string            `json:"status"`   // 状态：ok, error
-	Version  string            `json:"version"`  // 版本
-	Uptime   string            `json:"uptime"`   // 运行时间
-	Services map[string]string `json:"services"` // 服务状态
 }
 
 // ErrorResp 错误响应

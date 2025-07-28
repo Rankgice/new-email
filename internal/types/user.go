@@ -2,49 +2,6 @@ package types
 
 import "time"
 
-// UserCreateReq 创建用户请求
-type UserCreateReq struct {
-	Username string `json:"username" binding:"required,min=3,max=50"` // 用户名
-	Email    string `json:"email" binding:"required,email"`           // 邮箱
-	Password string `json:"password" binding:"required,min=6"`        // 密码
-	Nickname string `json:"nickname"`                                 // 昵称
-	Avatar   string `json:"avatar"`                                   // 头像
-	Status   int    `json:"status" binding:"oneof=0 1"`               // 状态
-}
-
-// UserUpdateReq 更新用户请求
-type UserUpdateReq struct {
-	Id       uint   `json:"id" binding:"required"`           // 用户ID
-	Username string `json:"username" binding:"min=3,max=50"` // 用户名
-	Email    string `json:"email" binding:"email"`           // 邮箱
-	Nickname string `json:"nickname"`                        // 昵称
-	Avatar   string `json:"avatar"`                          // 头像
-	Status   int    `json:"status" binding:"oneof=0 1"`      // 状态
-}
-
-// UserListReq 用户列表请求
-type UserListReq struct {
-	Username       string    `json:"username" form:"username"`             // 用户名（模糊搜索）
-	Email          string    `json:"email" form:"email"`                   // 邮箱（模糊搜索）
-	Status         *int      `json:"status" form:"status"`                 // 状态
-	CreatedAtStart time.Time `json:"createdAtStart" form:"createdAtStart"` // 创建时间开始
-	CreatedAtEnd   time.Time `json:"createdAtEnd" form:"createdAtEnd"`     // 创建时间结束
-	PageReq
-}
-
-// UserResp 用户响应
-type UserResp struct {
-	Id          uint       `json:"id"`                    // 用户ID
-	Username    string     `json:"username"`              // 用户名
-	Email       string     `json:"email"`                 // 邮箱
-	Nickname    string     `json:"nickname"`              // 昵称
-	Avatar      string     `json:"avatar"`                // 头像
-	Status      int        `json:"status"`                // 状态
-	LastLoginAt *time.Time `json:"lastLoginAt,omitempty"` // 最后登录时间
-	CreatedAt   time.Time  `json:"createdAt"`             // 创建时间
-	UpdatedAt   time.Time  `json:"updatedAt"`             // 更新时间
-}
-
 // UserProfileReq 用户资料更新请求
 type UserProfileReq struct {
 	Nickname string `json:"nickname"`              // 昵称
@@ -73,14 +30,6 @@ type UserLoginResp struct {
 	RefreshToken string    `json:"refreshToken"` // 刷新令牌
 	ExpiresAt    time.Time `json:"expiresAt"`    // 过期时间
 	User         UserResp  `json:"user"`         // 用户信息
-}
-
-// UserStatsResp 用户统计响应
-type UserStatsResp struct {
-	TotalUsers  int64 `json:"totalUsers"`  // 总用户数
-	ActiveUsers int64 `json:"activeUsers"` // 活跃用户数
-	NewUsers    int64 `json:"newUsers"`    // 新增用户数（今日）
-	OnlineUsers int64 `json:"onlineUsers"` // 在线用户数
 }
 
 // UserBatchCreateReq 批量创建用户请求

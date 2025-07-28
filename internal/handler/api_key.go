@@ -60,7 +60,7 @@ func (h *ApiKeyHandler) List(c *gin.Context) {
 			CreatedAtStart: req.CreatedAtStart,
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
-		UserId:      &currentUserId,
+		UserId:      currentUserId,
 		Name:        req.Name,
 		Status:      req.Status,
 		Permissions: req.Permissions,
@@ -394,16 +394,4 @@ func (h *ApiKeyHandler) generateApiKey() (string, error) {
 		return "", err
 	}
 	return "ak_" + hex.EncodeToString(bytes), nil
-}
-
-// Update 更新API密钥
-func (h *ApiKeyHandler) Update(c *gin.Context) {
-	// TODO: 实现更新API密钥
-	c.JSON(http.StatusOK, result.SimpleResult("更新API密钥"))
-}
-
-// Delete 删除API密钥
-func (h *ApiKeyHandler) Delete(c *gin.Context) {
-	// TODO: 实现删除API密钥
-	c.JSON(http.StatusOK, result.SimpleResult("删除API密钥"))
 }

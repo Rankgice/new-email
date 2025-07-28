@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"new-email/internal/middleware"
 	"new-email/internal/model"

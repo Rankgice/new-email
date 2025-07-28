@@ -127,3 +127,80 @@ func (m *EmailModel) List(params EmailListParams) ([]*Email, int64, error) {
 
 	return emails, total, nil
 }
+
+// Update 更新邮件
+func (m *EmailModel) Update(email *Email) error {
+	return m.db.Updates(email).Error
+}
+
+// MapUpdate 使用map更新邮件
+func (m *EmailModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface{}) error {
+	db := m.db
+	if tx != nil {
+		db = tx
+	}
+	return db.Model(&Email{}).Where("id = ?", id).Updates(data).Error
+}
+
+// Delete 删除邮件
+func (m *EmailModel) Delete(email *Email) error {
+	return m.db.Delete(email).Error
+}
+
+// BatchDelete 批量删除邮件
+func (m *EmailModel) BatchDelete(ids []uint) error {
+	return m.db.Where("id IN ?", ids).Delete(&Email{}).Error
+}
+
+// GetStatistics 获取邮件统计信息
+func (m *EmailModel) GetStatistics() (map[string]interface{}, error) {
+	var total, sent, received, today int64
+
+	// 总邮件数
+	if err := m.db.Model(&Email{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// 发送邮件数
+	if err := m.db.Model(&Email{}).Where("direction = ?", "sent").Count(&sent).Error; err != nil {
+		return nil, err
+	}
+
+	// 接收邮件数
+	if err := m.db.Model(&Email{}).Where("direction = ?", "received").Count(&received).Error; err != nil {
+		return nil, err
+	}
+
+	// 今日邮件数
+	todayStart := time.Now().Truncate(24 * time.Hour)
+	if err := m.db.Model(&Email{}).Where("created_at >= ?", todayStart).Count(&today).Error; err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"totalEmails":    total,
+		"sentEmails":     sent,
+		"receivedEmails": received,
+		"todayEmails":    today,
+	}, nil
+}
+
+// MarkAsRead 标记邮件为已读
+func (m *EmailModel) MarkAsRead(id uint) error {
+	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_read", true).Error
+}
+
+// MarkAsUnread 标记邮件为未读
+func (m *EmailModel) MarkAsUnread(id uint) error {
+	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_read", false).Error
+}
+
+// MarkAsStarred 标记邮件为星标
+func (m *EmailModel) MarkAsStarred(id uint) error {
+	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_starred", true).Error
+}
+
+// UnmarkAsStarred 取消邮件星标
+func (m *EmailModel) UnmarkAsStarred(id uint) error {
+	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_starred", false).Error
+}

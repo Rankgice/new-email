@@ -182,3 +182,35 @@ func (m *MailboxModel) GetActiveMailboxes(userId uint) ([]*Mailbox, error) {
 	mailboxes, _, err := m.List(MailboxListParams{UserId: userId, Status: &status})
 	return mailboxes, err
 }
+
+// GetStatistics 获取邮箱统计信息
+func (m *MailboxModel) GetStatistics() (map[string]interface{}, error) {
+	var total, active, self, third int64
+
+	// 总邮箱数
+	if err := m.db.Model(&Mailbox{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// 活跃邮箱数
+	if err := m.db.Model(&Mailbox{}).Where("status = ?", 1).Count(&active).Error; err != nil {
+		return nil, err
+	}
+
+	// 自建邮箱数
+	if err := m.db.Model(&Mailbox{}).Where("type = ?", "self").Count(&self).Error; err != nil {
+		return nil, err
+	}
+
+	// 第三方邮箱数
+	if err := m.db.Model(&Mailbox{}).Where("type = ?", "third").Count(&third).Error; err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"total":  total,
+		"active": active,
+		"self":   self,
+		"third":  third,
+	}, nil
+}

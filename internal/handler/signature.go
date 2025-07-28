@@ -57,7 +57,7 @@ func (h *SignatureHandler) List(c *gin.Context) {
 			CreatedAtStart: req.CreatedAtStart,
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
-		UserId: &currentUserId,
+		UserId: currentUserId,
 		Name:   req.Name,
 		Status: req.Status,
 	}
@@ -215,7 +215,7 @@ func (h *SignatureHandler) Update(c *gin.Context) {
 	signature.IsDefault = req.IsDefault
 	signature.Status = req.Status
 
-	if err := h.svcCtx.EmailSignatureModel.Update(nil, signature); err != nil {
+	if err := h.svcCtx.EmailSignatureModel.Update(signature); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -397,7 +397,7 @@ func (h *SignatureHandler) SetDefault(c *gin.Context) {
 
 	// 设置为默认签名
 	signature.IsDefault = true
-	if err := h.svcCtx.EmailSignatureModel.Update(nil, signature); err != nil {
+	if err := h.svcCtx.EmailSignatureModel.Update(signature); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -417,10 +417,4 @@ func (h *SignatureHandler) SetDefault(c *gin.Context) {
 	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SimpleResult("设置成功"))
-}
-
-// Delete 删除签名
-func (h *SignatureHandler) Delete(c *gin.Context) {
-	// TODO: 实现删除签名
-	c.JSON(http.StatusOK, result.SimpleResult("删除签名"))
 }

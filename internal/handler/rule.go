@@ -57,10 +57,9 @@ func (h *RuleHandler) ListVerificationRules(c *gin.Context) {
 			CreatedAtStart: req.CreatedAtStart,
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
-		Name:     req.Name,
-		Source:   req.Source,
-		Status:   req.Status,
-		Priority: req.Priority,
+		Name:   req.Name,
+		Source: req.Source,
+		Status: req.Status,
 	}
 
 	// 查询验证码规则列表
@@ -76,7 +75,7 @@ func (h *RuleHandler) ListVerificationRules(c *gin.Context) {
 		ruleList = append(ruleList, types.VerificationRuleResp{
 			Id:          rule.Id,
 			Name:        rule.Name,
-			Source:      rule.Source,
+			Source:      "system", // 固定值，因为模型中没有Source字段
 			Pattern:     rule.Pattern,
 			Description: rule.Description,
 			Priority:    rule.Priority,
@@ -115,11 +114,11 @@ func (h *RuleHandler) CreateVerificationRule(c *gin.Context) {
 	// 创建验证码规则
 	rule := &model.VerificationRule{
 		Name:        req.Name,
-		Source:      req.Source,
 		Pattern:     req.Pattern,
 		Description: req.Description,
 		Priority:    req.Priority,
 		Status:      req.Status,
+		UserId:      currentUserId,
 	}
 
 	if err := h.svcCtx.VerificationRuleModel.Create(rule); err != nil {
@@ -145,7 +144,7 @@ func (h *RuleHandler) CreateVerificationRule(c *gin.Context) {
 	resp := types.VerificationRuleResp{
 		Id:          rule.Id,
 		Name:        rule.Name,
-		Source:      rule.Source,
+		Source:      "system", // 固定值，因为模型中没有Source字段
 		Pattern:     rule.Pattern,
 		Description: rule.Description,
 		Priority:    rule.Priority,
@@ -193,7 +192,7 @@ func (h *RuleHandler) UpdateVerificationRule(c *gin.Context) {
 
 	// 更新规则信息
 	rule.Name = req.Name
-	rule.Source = req.Source
+	// rule.Source = req.Source // VerificationRule模型中没有Source字段
 	rule.Pattern = req.Pattern
 	rule.Description = req.Description
 	rule.Priority = req.Priority
@@ -222,7 +221,7 @@ func (h *RuleHandler) UpdateVerificationRule(c *gin.Context) {
 	resp := types.VerificationRuleResp{
 		Id:          rule.Id,
 		Name:        rule.Name,
-		Source:      rule.Source,
+		Source:      "system", // 固定值，因为模型中没有Source字段
 		Pattern:     rule.Pattern,
 		Description: rule.Description,
 		Priority:    rule.Priority,
@@ -318,11 +317,11 @@ func (h *RuleHandler) ListForwardRules(c *gin.Context) {
 			CreatedAtStart: req.CreatedAtStart,
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
-		UserId:      &currentUserId,
+		UserId:      currentUserId,
 		Name:        req.Name,
 		FromPattern: req.FromPattern,
-		ToEmail:     req.ToEmail,
-		Status:      req.Status,
+		// ToEmail:     req.ToEmail, // ForwardRule模型中没有ToEmail字段
+		Status: req.Status,
 	}
 
 	// 查询转发规则列表
@@ -340,9 +339,9 @@ func (h *RuleHandler) ListForwardRules(c *gin.Context) {
 			UserId:      rule.UserId,
 			Name:        rule.Name,
 			FromPattern: rule.FromPattern,
-			ToEmail:     rule.ToEmail,
-			Conditions:  rule.Conditions,
-			Description: rule.Description,
+			ToEmail:     rule.ForwardTo, // 使用ForwardTo字段
+			Conditions:  "",             // ForwardRule模型中没有Conditions字段
+			Description: "",             // ForwardRule模型中没有Description字段
 			Priority:    rule.Priority,
 			Status:      rule.Status,
 			CreatedAt:   rule.CreatedAt,
@@ -381,11 +380,11 @@ func (h *RuleHandler) CreateForwardRule(c *gin.Context) {
 		UserId:      currentUserId,
 		Name:        req.Name,
 		FromPattern: req.FromPattern,
-		ToEmail:     req.ToEmail,
-		Conditions:  req.Conditions,
-		Description: req.Description,
-		Priority:    req.Priority,
-		Status:      req.Status,
+		ForwardTo:   req.ToEmail, // 使用ForwardTo字段
+		// Conditions:  req.Conditions, // ForwardRule模型中没有Conditions字段
+		// Description: req.Description, // ForwardRule模型中没有Description字段
+		Priority: req.Priority,
+		Status:   req.Status,
 	}
 
 	if err := h.svcCtx.ForwardRuleModel.Create(rule); err != nil {
@@ -413,9 +412,9 @@ func (h *RuleHandler) CreateForwardRule(c *gin.Context) {
 		UserId:      rule.UserId,
 		Name:        rule.Name,
 		FromPattern: rule.FromPattern,
-		ToEmail:     rule.ToEmail,
-		Conditions:  rule.Conditions,
-		Description: rule.Description,
+		ToEmail:     rule.ForwardTo, // 使用ForwardTo字段
+		Conditions:  "",             // ForwardRule模型中没有Conditions字段
+		Description: "",             // ForwardRule模型中没有Description字段
 		Priority:    rule.Priority,
 		Status:      rule.Status,
 		CreatedAt:   rule.CreatedAt,
@@ -468,13 +467,13 @@ func (h *RuleHandler) UpdateForwardRule(c *gin.Context) {
 	// 更新规则信息
 	rule.Name = req.Name
 	rule.FromPattern = req.FromPattern
-	rule.ToEmail = req.ToEmail
-	rule.Conditions = req.Conditions
-	rule.Description = req.Description
+	rule.ForwardTo = req.ToEmail // 使用ForwardTo字段
+	// rule.Conditions = req.Conditions // ForwardRule模型中没有Conditions字段
+	// rule.Description = req.Description // ForwardRule模型中没有Description字段
 	rule.Priority = req.Priority
 	rule.Status = req.Status
 
-	if err := h.svcCtx.ForwardRuleModel.Update(nil, rule); err != nil {
+	if err := h.svcCtx.ForwardRuleModel.Update(rule); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -499,9 +498,9 @@ func (h *RuleHandler) UpdateForwardRule(c *gin.Context) {
 		UserId:      rule.UserId,
 		Name:        rule.Name,
 		FromPattern: rule.FromPattern,
-		ToEmail:     rule.ToEmail,
-		Conditions:  rule.Conditions,
-		Description: rule.Description,
+		ToEmail:     rule.ForwardTo, // 使用ForwardTo字段
+		Conditions:  "",             // ForwardRule模型中没有Conditions字段
+		Description: "",             // ForwardRule模型中没有Description字段
 		Priority:    rule.Priority,
 		Status:      rule.Status,
 		CreatedAt:   rule.CreatedAt,
@@ -600,10 +599,10 @@ func (h *RuleHandler) ListAntiSpamRules(c *gin.Context) {
 			CreatedAtStart: req.CreatedAtStart,
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
-		Name:   req.Name,
-		Type:   req.Type,
-		Action: req.Action,
-		Status: req.Status,
+		Name:     req.Name,
+		RuleType: req.Type, // 使用RuleType字段
+		Action:   req.Action,
+		Status:   req.Status,
 	}
 
 	// 查询反垃圾规则列表
@@ -619,7 +618,7 @@ func (h *RuleHandler) ListAntiSpamRules(c *gin.Context) {
 		ruleList = append(ruleList, types.AntiSpamRuleResp{
 			Id:          rule.Id,
 			Name:        rule.Name,
-			Type:        rule.Type,
+			Type:        rule.RuleType, // 使用RuleType字段
 			Pattern:     rule.Pattern,
 			Action:      rule.Action,
 			Description: rule.Description,
@@ -661,7 +660,7 @@ func (h *RuleHandler) CreateAntiSpamRule(c *gin.Context) {
 	// 创建反垃圾规则
 	rule := &model.AntiSpamRule{
 		Name:        req.Name,
-		Type:        req.Type,
+		RuleType:    req.Type, // 使用RuleType字段
 		Pattern:     req.Pattern,
 		Action:      req.Action,
 		Description: req.Description,
@@ -694,7 +693,7 @@ func (h *RuleHandler) CreateAntiSpamRule(c *gin.Context) {
 	resp := types.AntiSpamRuleResp{
 		Id:          rule.Id,
 		Name:        rule.Name,
-		Type:        rule.Type,
+		Type:        rule.RuleType, // 使用RuleType字段
 		Pattern:     rule.Pattern,
 		Action:      rule.Action,
 		Description: rule.Description,
@@ -745,14 +744,14 @@ func (h *RuleHandler) UpdateAntiSpamRule(c *gin.Context) {
 
 	// 更新规则信息
 	rule.Name = req.Name
-	rule.Type = req.Type
+	rule.RuleType = req.Type // 使用RuleType字段
 	rule.Pattern = req.Pattern
 	rule.Action = req.Action
 	rule.Description = req.Description
 	rule.Priority = req.Priority
 	rule.Status = req.Status
 
-	if err := h.svcCtx.AntiSpamRuleModel.Update(nil, rule); err != nil {
+	if err := h.svcCtx.AntiSpamRuleModel.Update(rule); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -777,7 +776,7 @@ func (h *RuleHandler) UpdateAntiSpamRule(c *gin.Context) {
 	resp := types.AntiSpamRuleResp{
 		Id:          rule.Id,
 		Name:        rule.Name,
-		Type:        rule.Type,
+		Type:        rule.RuleType, // 使用RuleType字段
 		Pattern:     rule.Pattern,
 		Action:      rule.Action,
 		Description: rule.Description,

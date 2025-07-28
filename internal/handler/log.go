@@ -44,16 +44,17 @@ func (h *LogHandler) ListOperationLogs(c *gin.Context) {
 			Page:     req.Page,
 			PageSize: req.PageSize,
 		},
-		BaseTimeRangeParams: model.BaseTimeRangeParams{
-			CreatedAtStart: req.CreatedAtStart,
-			CreatedAtEnd:   req.CreatedAtEnd,
-		},
-		UserId:   req.UserId,
+		UserId:   0, // 默认值
 		Action:   req.Action,
 		Resource: req.Resource,
 		Method:   req.Method,
-		Status:   req.Status,
+		Status:   req.Status, // 直接使用*int类型
 		Ip:       req.Ip,
+	}
+
+	// 处理可选参数
+	if req.UserId != nil {
+		params.UserId = *req.UserId
 	}
 
 	// 查询操作日志列表
@@ -77,7 +78,7 @@ func (h *LogHandler) ListOperationLogs(c *gin.Context) {
 			Ip:         log.Ip,
 			UserAgent:  log.UserAgent,
 			Status:     log.Status,
-			ErrorMsg:   log.ErrorMsg,
+			ErrorMsg:   "", // OperationLog模型中没有ErrorMsg字段
 			CreatedAt:  log.CreatedAt,
 		})
 	}
@@ -115,16 +116,18 @@ func (h *LogHandler) ListEmailLogs(c *gin.Context) {
 			Page:     req.Page,
 			PageSize: req.PageSize,
 		},
-		BaseTimeRangeParams: model.BaseTimeRangeParams{
-			CreatedAtStart: req.CreatedAtStart,
-			CreatedAtEnd:   req.CreatedAtEnd,
-		},
-		EmailId:   req.EmailId,
-		MailboxId: req.MailboxId,
+		EmailId:   0, // 默认值
+		MailboxId: 0, // 默认值
 		Type:      req.Type,
-		Status:    req.Status,
-		FromEmail: req.FromEmail,
-		ToEmail:   req.ToEmail,
+		Status:    "", // 默认值
+	}
+
+	// 处理可选参数
+	if req.EmailId != nil {
+		params.EmailId = *req.EmailId
+	}
+	if req.MailboxId != nil {
+		params.MailboxId = *req.MailboxId
 	}
 
 	// 查询邮件日志列表
@@ -137,15 +140,23 @@ func (h *LogHandler) ListEmailLogs(c *gin.Context) {
 	// 转换为响应格式
 	var logList []types.EmailLogResp
 	for _, log := range logs {
+		// 将string类型的Status转换为int
+		statusInt := 0
+		if log.Status == "success" {
+			statusInt = 1
+		} else if log.Status == "failed" {
+			statusInt = 2
+		}
+
 		logList = append(logList, types.EmailLogResp{
 			Id:        log.Id,
 			EmailId:   log.EmailId,
 			MailboxId: log.MailboxId,
 			Type:      log.Type,
-			Status:    log.Status,
-			FromEmail: log.FromEmail,
-			ToEmail:   log.ToEmail,
-			Subject:   log.Subject,
+			Status:    statusInt, // 使用转换后的int值
+			FromEmail: "",        // EmailLog模型中没有FromEmail字段
+			ToEmail:   "",        // EmailLog模型中没有ToEmail字段
+			Subject:   "",        // EmailLog模型中没有Subject字段
 			ErrorMsg:  log.ErrorMsg,
 			CreatedAt: log.CreatedAt,
 		})

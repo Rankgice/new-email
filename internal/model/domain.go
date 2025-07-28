@@ -230,3 +230,29 @@ func (m *DomainModel) UpdateSPFRecord(id uint, spfRecord string) error {
 func (m *DomainModel) UpdateDMARCRecord(id uint, dmarcRecord string) error {
 	return m.db.Model(&Domain{}).Where("id = ?", id).Update("dmarc_record", dmarcRecord).Error
 }
+
+// GetStatistics 获取域名统计信息
+func (m *DomainModel) GetStatistics() (map[string]interface{}, error) {
+	var total, verified, active int64
+
+	// 总域名数
+	if err := m.db.Model(&Domain{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// 已验证域名数
+	if err := m.db.Model(&Domain{}).Where("dns_verified = ?", true).Count(&verified).Error; err != nil {
+		return nil, err
+	}
+
+	// 活跃域名数
+	if err := m.db.Model(&Domain{}).Where("status = ?", 1).Count(&active).Error; err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		"total":    total,
+		"verified": verified,
+		"active":   active,
+	}, nil
+}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"new-email/internal/config"
 	"new-email/internal/model"
+	"new-email/internal/service"
 	"os"
 	"path/filepath"
 
@@ -17,6 +18,9 @@ import (
 type ServiceContext struct {
 	Config config.Config
 	DB     *gorm.DB
+
+	// 服务管理器
+	ServiceManager *service.ServiceManager
 
 	// Model层实例
 	UserModel                 *model.UserModel
@@ -53,10 +57,14 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		log.Printf("初始化默认数据失败: %v", err)
 	}
 
+	// 初始化服务管理器
+	serviceManager := initServiceManager(c)
+
 	// 初始化Model层实例
 	return &ServiceContext{
-		Config: c,
-		DB:     db,
+		Config:         c,
+		DB:             db,
+		ServiceManager: serviceManager,
 
 		// 初始化所有Model实例
 		UserModel:                 model.NewUserModel(db),
@@ -135,6 +143,63 @@ func initDatabase(c config.Config) *gorm.DB {
 	}
 
 	return db
+}
+
+// initServiceManager 初始化服务管理器
+func initServiceManager(c config.Config) *service.ServiceManager {
+	// 构建服务配置
+	serviceConfig := service.ServiceConfig{
+		SMTP: service.SMTPConfig{
+			Host:     c.SMTP.Host,
+			Port:     c.SMTP.Port,
+			Username: c.SMTP.Username,
+			Password: c.SMTP.Password,
+			UseTLS:   c.SMTP.UseTLS,
+		},
+		IMAP: service.IMAPConfig{
+			Host:     c.IMAP.Host,
+			Port:     c.IMAP.Port,
+			Username: c.IMAP.Username,
+			Password: c.IMAP.Password,
+			UseTLS:   c.IMAP.UseTLS,
+		},
+		SMS: service.SMSConfig{
+			Provider:  c.SMS.Provider,
+			AccessKey: c.SMS.AccessKey,
+			SecretKey: c.SMS.SecretKey,
+			SignName:  c.SMS.SignName,
+			Region:    c.SMS.Region,
+		},
+		Storage: service.StorageConfig{
+			Type:      c.Storage.Type,
+			BasePath:  c.Storage.BasePath,
+			MaxSize:   c.Storage.MaxSize,
+			AllowExts: c.Storage.AllowExts,
+			CDNDomain: c.Storage.CDNDomain,
+		},
+		Cache: service.CacheConfig{
+			Host:     c.Redis.Host,
+			Port:     c.Redis.Port,
+			Password: c.Redis.Password,
+			DB:       c.Redis.DB,
+			PoolSize: c.Redis.PoolSize,
+		},
+	}
+
+	// 创建服务管理器
+	manager := service.NewServiceManager(serviceConfig)
+
+	// 测试所有连接
+	results := manager.TestAllConnections()
+	for serviceName, err := range results {
+		if err != nil {
+			log.Printf("服务 %s 连接失败: %v", serviceName, err)
+		} else {
+			log.Printf("服务 %s 连接成功", serviceName)
+		}
+	}
+
+	return manager
 }
 
 // autoMigrate 自动迁移数据表结构

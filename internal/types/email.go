@@ -81,18 +81,6 @@ type EmailSendResp struct {
 	SentAt  time.Time `json:"sentAt"`  // 发送时间
 }
 
-// EmailStatsResp 邮件统计响应
-type EmailStatsResp struct {
-	Total     int64 `json:"total"`     // 总邮件数
-	Unread    int64 `json:"unread"`    // 未读邮件数
-	Read      int64 `json:"read"`      // 已读邮件数
-	Sent      int64 `json:"sent"`      // 已发送邮件数
-	Draft     int64 `json:"draft"`     // 草稿邮件数
-	Today     int64 `json:"today"`     // 今日邮件数
-	ThisWeek  int64 `json:"thisWeek"`  // 本周邮件数
-	ThisMonth int64 `json:"thisMonth"` // 本月邮件数
-}
-
 // EmailBatchOperationReq 邮件批量操作请求
 type EmailBatchOperationReq struct {
 	Ids       []uint `json:"ids" binding:"required,min=1"`                                    // 邮件ID列表

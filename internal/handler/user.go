@@ -505,6 +505,14 @@ func (h *UserHandler) Create(c *gin.Context) {
 
 // Update 更新用户信息（管理员功能）
 func (h *UserHandler) Update(c *gin.Context) {
+	// 获取用户ID
+	userIdStr := c.Param("id")
+	userId, err := strconv.ParseUint(userIdStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
+		return
+	}
+
 	var req types.UserUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
@@ -512,7 +520,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 
 	// 检查用户是否存在
-	user, err := h.svcCtx.UserModel.GetById(req.Id)
+	user, err := h.svcCtx.UserModel.GetById(uint(userId))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -535,7 +543,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 
 	// 检查邮箱是否已被其他用户使用
 	if req.Email != "" && req.Email != user.Email {
-		if exists, err := h.svcCtx.UserModel.CheckEmailExists(req.Email, req.Id); err != nil {
+		if exists, err := h.svcCtx.UserModel.CheckEmailExists(req.Email, uint(userId)); err != nil {
 			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 			return
 		} else if exists {
@@ -561,7 +569,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 	updateData["status"] = req.Status
 
 	// 更新用户信息
-	if err := h.svcCtx.UserModel.MapUpdate(nil, req.Id, updateData); err != nil {
+	if err := h.svcCtx.UserModel.MapUpdate(nil, uint(userId), updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -573,7 +581,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 			UserId:     currentUserId,
 			Action:     "update_user",
 			Resource:   "user",
-			ResourceId: req.Id,
+			ResourceId: uint(userId),
 			Method:     "PUT",
 			Path:       c.Request.URL.Path,
 			Ip:         c.ClientIP(),
@@ -802,10 +810,12 @@ func (h *UserHandler) GetStats(c *gin.Context) {
 	}
 
 	resp := types.UserStatsResp{
-		TotalUsers:  int64(len(totalUsers)),
-		ActiveUsers: int64(len(activeUsers)),
-		NewUsers:    int64(len(newUsers)),
-		OnlineUsers: 0, // 在线用户数需要额外的逻辑来实现
+		Total:     int64(len(totalUsers)),
+		Active:    int64(len(activeUsers)),
+		Inactive:  int64(len(totalUsers) - len(activeUsers)),
+		Today:     int64(len(newUsers)),
+		ThisWeek:  0, // 本周新增用户数需要额外的逻辑来实现
+		ThisMonth: 0, // 本月新增用户数需要额外的逻辑来实现
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))

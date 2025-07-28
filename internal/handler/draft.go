@@ -58,10 +58,15 @@ func (h *DraftHandler) List(c *gin.Context) {
 			CreatedAtStart: req.CreatedAtStart,
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
-		UserId:    &currentUserId,
-		MailboxId: req.MailboxId,
+		UserId:    currentUserId,
+		MailboxId: 0, // 默认值
 		Subject:   req.Subject,
-		ToEmail:   req.ToEmail,
+		ToEmails:  req.ToEmail, // 注意字段名是ToEmails
+	}
+
+	// 处理可选的MailboxId参数
+	if req.MailboxId != nil {
+		params.MailboxId = *req.MailboxId
 	}
 
 	// 查询草稿列表
@@ -79,13 +84,13 @@ func (h *DraftHandler) List(c *gin.Context) {
 			UserId:      draft.UserId,
 			MailboxId:   draft.MailboxId,
 			Subject:     draft.Subject,
-			FromEmail:   draft.FromEmail,
-			ToEmail:     draft.ToEmail,
-			CcEmail:     draft.CcEmail,
-			BccEmail:    draft.BccEmail,
+			FromEmail:   "",              // EmailDraft模型中没有FromEmail字段
+			ToEmail:     draft.ToEmails,  // 使用ToEmails字段
+			CcEmail:     draft.CcEmails,  // 使用CcEmails字段
+			BccEmail:    draft.BccEmails, // 使用BccEmails字段
 			Content:     draft.Content,
 			ContentType: draft.ContentType,
-			Attachments: draft.Attachments,
+			Attachments: "", // EmailDraft模型中没有Attachments字段
 			CreatedAt:   draft.CreatedAt,
 			UpdatedAt:   draft.UpdatedAt,
 		})
@@ -135,13 +140,12 @@ func (h *DraftHandler) Create(c *gin.Context) {
 		UserId:      currentUserId,
 		MailboxId:   req.MailboxId,
 		Subject:     req.Subject,
-		FromEmail:   req.FromEmail,
-		ToEmail:     req.ToEmail,
-		CcEmail:     req.CcEmail,
-		BccEmail:    req.BccEmail,
+		ToEmails:    req.ToEmail,  // 使用ToEmails字段
+		CcEmails:    req.CcEmail,  // 使用CcEmails字段
+		BccEmails:   req.BccEmail, // 使用BccEmails字段
 		Content:     req.Content,
 		ContentType: req.ContentType,
-		Attachments: req.Attachments,
+		Status:      "draft", // 设置状态为草稿
 	}
 
 	if err := h.svcCtx.EmailDraftModel.Create(draft); err != nil {
@@ -169,13 +173,13 @@ func (h *DraftHandler) Create(c *gin.Context) {
 		UserId:      draft.UserId,
 		MailboxId:   draft.MailboxId,
 		Subject:     draft.Subject,
-		FromEmail:   draft.FromEmail,
-		ToEmail:     draft.ToEmail,
-		CcEmail:     draft.CcEmail,
-		BccEmail:    draft.BccEmail,
+		FromEmail:   "",              // EmailDraft模型中没有FromEmail字段
+		ToEmail:     draft.ToEmails,  // 使用ToEmails字段
+		CcEmail:     draft.CcEmails,  // 使用CcEmails字段
+		BccEmail:    draft.BccEmails, // 使用BccEmails字段
 		Content:     draft.Content,
 		ContentType: draft.ContentType,
-		Attachments: draft.Attachments,
+		Attachments: "", // EmailDraft模型中没有Attachments字段
 		CreatedAt:   draft.CreatedAt,
 		UpdatedAt:   draft.UpdatedAt,
 	}
@@ -239,15 +243,13 @@ func (h *DraftHandler) Update(c *gin.Context) {
 	// 更新草稿信息
 	draft.MailboxId = req.MailboxId
 	draft.Subject = req.Subject
-	draft.FromEmail = req.FromEmail
-	draft.ToEmail = req.ToEmail
-	draft.CcEmail = req.CcEmail
-	draft.BccEmail = req.BccEmail
+	draft.ToEmails = req.ToEmail   // 使用ToEmails字段
+	draft.CcEmails = req.CcEmail   // 使用CcEmails字段
+	draft.BccEmails = req.BccEmail // 使用BccEmails字段
 	draft.Content = req.Content
 	draft.ContentType = req.ContentType
-	draft.Attachments = req.Attachments
 
-	if err := h.svcCtx.EmailDraftModel.Update(nil, draft); err != nil {
+	if err := h.svcCtx.EmailDraftModel.Update(draft); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -272,13 +274,13 @@ func (h *DraftHandler) Update(c *gin.Context) {
 		UserId:      draft.UserId,
 		MailboxId:   draft.MailboxId,
 		Subject:     draft.Subject,
-		FromEmail:   draft.FromEmail,
-		ToEmail:     draft.ToEmail,
-		CcEmail:     draft.CcEmail,
-		BccEmail:    draft.BccEmail,
+		FromEmail:   "",              // EmailDraft模型中没有FromEmail字段
+		ToEmail:     draft.ToEmails,  // 使用ToEmails字段
+		CcEmail:     draft.CcEmails,  // 使用CcEmails字段
+		BccEmail:    draft.BccEmails, // 使用BccEmails字段
 		Content:     draft.Content,
 		ContentType: draft.ContentType,
-		Attachments: draft.Attachments,
+		Attachments: "", // EmailDraft模型中没有Attachments字段
 		CreatedAt:   draft.CreatedAt,
 		UpdatedAt:   draft.UpdatedAt,
 	}
@@ -449,13 +451,13 @@ func (h *DraftHandler) GetById(c *gin.Context) {
 		UserId:      draft.UserId,
 		MailboxId:   draft.MailboxId,
 		Subject:     draft.Subject,
-		FromEmail:   draft.FromEmail,
-		ToEmail:     draft.ToEmail,
-		CcEmail:     draft.CcEmail,
-		BccEmail:    draft.BccEmail,
+		FromEmail:   "",              // EmailDraft模型中没有FromEmail字段
+		ToEmail:     draft.ToEmails,  // 使用ToEmails字段
+		CcEmail:     draft.CcEmails,  // 使用CcEmails字段
+		BccEmail:    draft.BccEmails, // 使用BccEmails字段
 		Content:     draft.Content,
 		ContentType: draft.ContentType,
-		Attachments: draft.Attachments,
+		Attachments: "", // EmailDraft模型中没有Attachments字段
 		CreatedAt:   draft.CreatedAt,
 		UpdatedAt:   draft.UpdatedAt,
 	}

@@ -57,10 +57,10 @@ func (h *TemplateHandler) List(c *gin.Context) {
 			CreatedAtStart: req.CreatedAtStart,
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
-		UserId:   &currentUserId,
-		Name:     req.Name,
-		Category: req.Category,
-		Status:   req.Status,
+		UserId: currentUserId,
+		Name:   req.Name,
+		// Category: req.Category, // EmailTemplateListParams中没有Category字段
+		Status: req.Status,
 	}
 
 	// 查询模板列表
@@ -77,11 +77,11 @@ func (h *TemplateHandler) List(c *gin.Context) {
 			Id:          template.Id,
 			UserId:      template.UserId,
 			Name:        template.Name,
-			Category:    template.Category,
+			Category:    "", // EmailTemplate模型中没有Category字段
 			Subject:     template.Subject,
 			Content:     template.Content,
-			Variables:   template.Variables,
-			Description: template.Description,
+			Variables:   "", // EmailTemplate模型中没有Variables字段
+			Description: "", // EmailTemplate模型中没有Description字段
 			Status:      template.Status,
 			CreatedAt:   template.CreatedAt,
 			UpdatedAt:   template.UpdatedAt,
@@ -116,14 +116,14 @@ func (h *TemplateHandler) Create(c *gin.Context) {
 
 	// 创建模板
 	template := &model.EmailTemplate{
-		UserId:      currentUserId,
-		Name:        req.Name,
-		Category:    req.Category,
-		Subject:     req.Subject,
-		Content:     req.Content,
-		Variables:   req.Variables,
-		Description: req.Description,
-		Status:      req.Status,
+		UserId: currentUserId,
+		Name:   req.Name,
+		// Category:    req.Category, // EmailTemplate模型中没有Category字段
+		Subject: req.Subject,
+		Content: req.Content,
+		// Variables:   req.Variables, // EmailTemplate模型中没有Variables字段
+		// Description: req.Description, // EmailTemplate模型中没有Description字段
+		Status: req.Status,
 	}
 
 	if err := h.svcCtx.EmailTemplateModel.Create(template); err != nil {
@@ -150,11 +150,11 @@ func (h *TemplateHandler) Create(c *gin.Context) {
 		Id:          template.Id,
 		UserId:      template.UserId,
 		Name:        template.Name,
-		Category:    template.Category,
+		Category:    "", // EmailTemplate模型中没有Category字段
 		Subject:     template.Subject,
 		Content:     template.Content,
-		Variables:   template.Variables,
-		Description: template.Description,
+		Variables:   "", // EmailTemplate模型中没有Variables字段
+		Description: "", // EmailTemplate模型中没有Description字段
 		Status:      template.Status,
 		CreatedAt:   template.CreatedAt,
 		UpdatedAt:   template.UpdatedAt,
@@ -205,14 +205,14 @@ func (h *TemplateHandler) Update(c *gin.Context) {
 
 	// 更新模板信息
 	template.Name = req.Name
-	template.Category = req.Category
+	// template.Category = req.Category // EmailTemplate模型中没有Category字段
 	template.Subject = req.Subject
 	template.Content = req.Content
-	template.Variables = req.Variables
-	template.Description = req.Description
+	// template.Variables = req.Variables // EmailTemplate模型中没有Variables字段
+	// template.Description = req.Description // EmailTemplate模型中没有Description字段
 	template.Status = req.Status
 
-	if err := h.svcCtx.EmailTemplateModel.Update(nil, template); err != nil {
+	if err := h.svcCtx.EmailTemplateModel.Update(template); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -236,11 +236,11 @@ func (h *TemplateHandler) Update(c *gin.Context) {
 		Id:          template.Id,
 		UserId:      template.UserId,
 		Name:        template.Name,
-		Category:    template.Category,
+		Category:    "", // EmailTemplate模型中没有Category字段
 		Subject:     template.Subject,
 		Content:     template.Content,
-		Variables:   template.Variables,
-		Description: template.Description,
+		Variables:   "", // EmailTemplate模型中没有Variables字段
+		Description: "", // EmailTemplate模型中没有Description字段
 		Status:      template.Status,
 		CreatedAt:   template.CreatedAt,
 		UpdatedAt:   template.UpdatedAt,
@@ -345,11 +345,11 @@ func (h *TemplateHandler) GetById(c *gin.Context) {
 		Id:          template.Id,
 		UserId:      template.UserId,
 		Name:        template.Name,
-		Category:    template.Category,
+		Category:    "", // EmailTemplate模型中没有Category字段
 		Subject:     template.Subject,
 		Content:     template.Content,
-		Variables:   template.Variables,
-		Description: template.Description,
+		Variables:   "", // EmailTemplate模型中没有Variables字段
+		Description: "", // EmailTemplate模型中没有Description字段
 		Status:      template.Status,
 		CreatedAt:   template.CreatedAt,
 		UpdatedAt:   template.UpdatedAt,
@@ -419,14 +419,14 @@ func (h *TemplateHandler) Copy(c *gin.Context) {
 
 	// 创建新模板
 	newTemplate := &model.EmailTemplate{
-		UserId:      currentUserId,
-		Name:        req.Name,
-		Category:    originalTemplate.Category,
-		Subject:     originalTemplate.Subject,
-		Content:     originalTemplate.Content,
-		Variables:   originalTemplate.Variables,
-		Description: originalTemplate.Description,
-		Status:      1, // 默认启用
+		UserId: currentUserId,
+		Name:   req.Name,
+		// Category:    originalTemplate.Category, // EmailTemplate模型中没有Category字段
+		Subject: originalTemplate.Subject,
+		Content: originalTemplate.Content,
+		// Variables:   originalTemplate.Variables, // EmailTemplate模型中没有Variables字段
+		// Description: originalTemplate.Description, // EmailTemplate模型中没有Description字段
+		Status: 1, // 默认启用
 	}
 
 	if err := h.svcCtx.EmailTemplateModel.Create(newTemplate); err != nil {
@@ -453,21 +453,15 @@ func (h *TemplateHandler) Copy(c *gin.Context) {
 		Id:          newTemplate.Id,
 		UserId:      newTemplate.UserId,
 		Name:        newTemplate.Name,
-		Category:    newTemplate.Category,
+		Category:    "", // EmailTemplate模型中没有Category字段
 		Subject:     newTemplate.Subject,
 		Content:     newTemplate.Content,
-		Variables:   newTemplate.Variables,
-		Description: newTemplate.Description,
+		Variables:   "", // EmailTemplate模型中没有Variables字段
+		Description: "", // EmailTemplate模型中没有Description字段
 		Status:      newTemplate.Status,
 		CreatedAt:   newTemplate.CreatedAt,
 		UpdatedAt:   newTemplate.UpdatedAt,
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
-}
-
-// Delete 删除模板
-func (h *TemplateHandler) Delete(c *gin.Context) {
-	// TODO: 实现删除模板
-	c.JSON(http.StatusOK, result.SimpleResult("删除模板"))
 }
