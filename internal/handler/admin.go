@@ -77,14 +77,14 @@ func (h *AdminHandler) Login(c *gin.Context) {
 	}
 
 	// 生成JWT token
-	token, err := auth.GenerateAdminToken(admin.Id, admin.Username, admin.Role, h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.ExpireHours)
+	token, err := auth.GenerateToken(admin.Id, admin.Username, true, admin.Role, h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.ExpireHours)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("生成token失败"))
 		return
 	}
 
 	// 生成刷新token
-	refreshToken, err := auth.GenerateAdminToken(admin.Id, admin.Username, admin.Role, h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.RefreshExpireHours)
+	refreshToken, err := auth.GenerateToken(admin.Id, admin.Username, true, admin.Role, h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.RefreshExpireHours)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("生成刷新token失败"))
 		return
@@ -115,27 +115,6 @@ func (h *AdminHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
-}
-
-// RefreshToken 刷新token
-func (h *AdminHandler) RefreshToken(c *gin.Context) {
-	var req types.RefreshTokenReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
-		return
-	}
-
-	// 刷新token
-	newToken, err := auth.RefreshAdminToken(req.RefreshToken, h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.ExpireHours)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid.AddError(err))
-		return
-	}
-
-	c.JSON(http.StatusOK, result.SuccessResult(map[string]interface{}{
-		"token":     newToken,
-		"expiresAt": time.Now().Add(time.Duration(h.svcCtx.Config.JWT.ExpireHours) * time.Hour),
-	}))
 }
 
 // GetProfile 获取管理员资料

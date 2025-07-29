@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"new-email/internal/result"
 	"new-email/internal/svc"
@@ -10,38 +11,14 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // AuthMiddleware 用户认证中间件
 func AuthMiddleware(svcCtx *svc.ServiceContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 获取Authorization头
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
-			c.Abort()
-			return
-		}
-
-		// 检查Bearer前缀
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid)
-			c.Abort()
-			return
-		}
-
-		// 提取token
-		token := strings.TrimPrefix(authHeader, "Bearer ")
-		if token == "" {
-			c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid)
-			c.Abort()
-			return
-		}
-
-		// 验证token
-		claims, err := auth.ParseToken(token, svcCtx.Config.JWT.Secret)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid.AddError(err))
+		newToken, claims, statusCode := validateAndRefreshToken(c, svcCtx, false)
+		if statusCode != http.StatusOK {
 			c.Abort()
 			return
 		}
@@ -72,6 +49,11 @@ func AuthMiddleware(svcCtx *svc.ServiceContext) gin.HandlerFunc {
 		c.Set("userType", "user")
 		c.Set("user", user)
 
+		// 如果有新token，设置到响应头
+		if newToken != "" {
+			c.Header("New-Token", newToken)
+		}
+
 		c.Next()
 	}
 }
@@ -79,39 +61,14 @@ func AuthMiddleware(svcCtx *svc.ServiceContext) gin.HandlerFunc {
 // AdminAuthMiddleware 管理员认证中间件
 func AdminAuthMiddleware(svcCtx *svc.ServiceContext) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 获取Authorization头
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
-			c.Abort()
-			return
-		}
-
-		// 检查Bearer前缀
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid)
-			c.Abort()
-			return
-		}
-
-		// 提取token
-		token := strings.TrimPrefix(authHeader, "Bearer ")
-		if token == "" {
-			c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid)
-			c.Abort()
-			return
-		}
-
-		// 验证token
-		claims, err := auth.ParseAdminToken(token, svcCtx.Config.JWT.Secret)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid.AddError(err))
+		newToken, claims, statusCode := validateAndRefreshToken(c, svcCtx, true)
+		if statusCode != http.StatusOK {
 			c.Abort()
 			return
 		}
 
 		// 检查管理员是否存在且状态正常
-		admin, err := svcCtx.AdminModel.GetById(claims.AdminId)
+		admin, err := svcCtx.AdminModel.GetById(claims.UserId) // 使用UserId，因为IsAdmin=true时代表adminId
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 			c.Abort()
@@ -131,14 +88,93 @@ func AdminAuthMiddleware(svcCtx *svc.ServiceContext) gin.HandlerFunc {
 		}
 
 		// 将管理员信息存储到上下文
-		c.Set("adminId", claims.AdminId)
+		c.Set("adminId", claims.UserId) // 使用UserId，因为IsAdmin=true时代表adminId
+		c.Set("userId", claims.UserId)  // 为了兼容性也设置userId
 		c.Set("username", claims.Username)
 		c.Set("role", claims.Role)
 		c.Set("userType", "admin")
 		c.Set("admin", admin)
 
+		// 如果有新token，设置到响应头
+		if newToken != "" {
+			c.Header("New-Token", newToken)
+		}
+
 		c.Next()
 	}
+}
+
+// validateAndRefreshToken 统一的token验证和刷新逻辑
+// 返回值：newToken(如果刷新了), claims, statusCode
+func validateAndRefreshToken(c *gin.Context, svcCtx *svc.ServiceContext, requireAdmin bool) (string, *auth.Claims, int) {
+	// 获取Authorization头
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		return "", nil, http.StatusUnauthorized
+	}
+
+	// 检查Bearer前缀
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid)
+		return "", nil, http.StatusUnauthorized
+	}
+
+	// 提取token
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid)
+		return "", nil, http.StatusUnauthorized
+	}
+
+	// 解析token
+	claims, err := auth.ParseToken(token, svcCtx.Config.JWT.Secret)
+	if err != nil {
+		// 检查是否是过期错误
+		if errors.Is(err, jwt.ErrTokenExpired) && claims != nil {
+			// Token过期但有效，检查是否在可刷新时间内（比如过期后24小时内）
+			refreshWindow := time.Duration(svcCtx.Config.JWT.RefreshExpireHours) * time.Hour
+			if time.Since(claims.ExpiresAt.Time) <= refreshWindow {
+				// 生成新token
+				newToken, genErr := auth.GenerateToken(
+					claims.UserId,
+					claims.Username,
+					claims.IsAdmin,
+					claims.Role,
+					svcCtx.Config.JWT.Secret,
+					svcCtx.Config.JWT.ExpireHours,
+				)
+				if genErr != nil {
+					c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid.AddError(genErr))
+					return "", nil, http.StatusUnauthorized
+				}
+
+				// 检查用户类型是否匹配
+				if claims.IsAdmin != requireAdmin {
+					c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid)
+					return "", nil, http.StatusUnauthorized
+				}
+
+				// 返回状态码401表示token已刷新
+				c.JSON(401, result.Result{
+					Code: 401,
+					Msg:  "Token refreshed",
+					Data: map[string]string{"newToken": newToken},
+				})
+				return newToken, claims, 401
+			}
+		}
+		c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid.AddError(err))
+		return "", nil, http.StatusUnauthorized
+	}
+
+	// 检查用户类型是否匹配
+	if claims.IsAdmin != requireAdmin {
+		c.JSON(http.StatusUnauthorized, result.ErrorTokenInvalid)
+		return "", nil, http.StatusUnauthorized
+	}
+
+	return "", claims, http.StatusOK
 }
 
 // SuperAdminMiddleware 超级管理员权限中间件

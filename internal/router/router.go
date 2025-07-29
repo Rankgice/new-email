@@ -31,11 +31,9 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 			// 用户注册登录
 			public.POST("/user/register", handler.NewUserHandler(svcCtx).Register)
 			public.POST("/user/login", handler.NewUserHandler(svcCtx).Login)
-			public.POST("/user/refresh", handler.NewUserHandler(svcCtx).RefreshToken)
 
 			// 管理员登录
 			public.POST("/admin/login", handler.NewAdminHandler(svcCtx).Login)
-			public.POST("/admin/refresh", handler.NewAdminHandler(svcCtx).RefreshToken)
 
 			// 验证码相关
 			public.POST("/send-code", handler.NewCommonHandler(svcCtx).SendCode)
