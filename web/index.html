@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📧 邮件系统 - 现代化毛玻璃美学</title>
+    <meta name="description" content="基于Vue 3的现代化邮件系统，采用毛玻璃美学设计" />
+    
+    <!-- 预加载字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 预设CSS变量 -->
+    <style>
+      :root {
+        --color-primary: #6366f1;
+        --color-secondary: #8b5cf6;
+        --color-background: #0a0a0a;
+        --color-surface: #1a1a1a;
+        --color-text-primary: #ffffff;
+        --color-text-secondary: #a0a0a0;
+        --color-text-disabled: #666666;
+        --color-glass-light: rgba(255, 255, 255, 0.05);
+        --color-glass-medium: rgba(255, 255, 255, 0.08);
+        --color-glass-heavy: rgba(255, 255, 255, 0.12);
+        --color-glass-border: rgba(255, 255, 255, 0.1);
+      }
+      
+      body {
+        margin: 0;
+        font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+        background: var(--color-background);
+        color: var(--color-text-primary);
+        overflow-x: hidden;
+      }
+      
+      /* 加载动画 */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--color-background);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top: 3px solid var(--color-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 加载屏幕 -->
+      <div class="loading-screen">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
