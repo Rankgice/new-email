@@ -175,37 +175,6 @@ func (m *AdminModel) BatchUpdateStatus(ids []uint, status int) error {
 	return m.db.Model(&Admin{}).Where("id IN ?", ids).Update("status", status).Error
 }
 
-// GetActiveAdmins 获取活跃管理员 (使用List方法替代)
-// 推荐使用: List(AdminListParams{Status: &[]int{1}[0]})
-func (m *AdminModel) GetActiveAdmins() ([]*Admin, error) {
-	status := 1
-	admins, _, err := m.List(AdminListParams{Status: &status})
-	return admins, err
-}
-
-// CountAdmins 统计管理员数量
-func (m *AdminModel) CountAdmins() (int64, error) {
-	var count int64
-	if err := m.db.Model(&Admin{}).Count(&count).Error; err != nil {
-		return 0, err
-	}
-	return count, nil
-}
-
-// CountActiveAdmins 统计活跃管理员数量
-func (m *AdminModel) CountActiveAdmins() (int64, error) {
-	var count int64
-	if err := m.db.Model(&Admin{}).Where("status = ?", 1).Count(&count).Error; err != nil {
-		return 0, err
-	}
-	return count, nil
-}
-
-// UpdateLastLogin 更新最后登录时间
-func (m *AdminModel) UpdateLastLogin(id uint) error {
-	return m.db.Model(&Admin{}).Where("id = ?", id).Update("last_login_at", time.Now()).Error
-}
-
 // CheckUsernameExists 检查用户名是否存在
 func (m *AdminModel) CheckUsernameExists(username string, excludeId ...uint) (bool, error) {
 	var count int64
@@ -244,13 +213,4 @@ func (m *AdminModel) GetSuperAdmins() ([]*Admin, error) {
 	status := 1
 	admins, _, err := m.List(AdminListParams{Role: "admin", Status: &status})
 	return admins, err
-}
-
-// HasSuperAdmin 检查是否存在超级管理员
-func (m *AdminModel) HasSuperAdmin() (bool, error) {
-	var count int64
-	if err := m.db.Model(&Admin{}).Where("role = ? AND status = ?", "admin", 1).Count(&count).Error; err != nil {
-		return false, err
-	}
-	return count > 0, nil
 }

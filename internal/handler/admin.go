@@ -1156,7 +1156,8 @@ func (h *AdminHandler) DeleteAdmin(c *gin.Context) {
 	// 检查是否为超级管理员（可选：保护超级管理员不被删除）
 	if admin.Role == "admin" {
 		// 检查是否还有其他超级管理员
-		superAdmins, err := h.svcCtx.AdminModel.GetSuperAdmins()
+		status := 1
+		superAdmins, _, err := h.svcCtx.AdminModel.List(model.AdminListParams{Role: "admin", Status: &status})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 			return
