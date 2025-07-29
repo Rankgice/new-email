@@ -41,13 +41,22 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config)
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
 
-      const data = await response.json()
-      return data
+      const backendResponse = await response.json()
+
+      // 转换后端响应格式为前端期望的格式
+      const apiResponse: ApiResponse<T> = {
+        success: backendResponse.code === 0,
+        data: backendResponse.data,
+        message: backendResponse.msg,
+        code: backendResponse.code
+      }
+
+      return apiResponse
     } catch (error: any) {
       console.error(`API Error [${endpoint}]:`, error)
       

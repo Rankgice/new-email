@@ -130,7 +130,7 @@
             style="pointer-events: auto !important; position: relative; z-index: 9999;"
           >
             <span v-if="!isLoading">🚀 创建账户</span>
-            <span v-else">创建中...</span>
+            <span v-else>创建中...</span>
           </Button>
         </form>
 

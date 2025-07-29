@@ -31,7 +31,7 @@ func NewUserHandler(svcCtx *svc.ServiceContext) *UserHandler {
 func (h *UserHandler) Register(c *gin.Context) {
 	var req types.UserRegisterReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
@@ -40,7 +40,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
 	} else if exists {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("用户名已存在"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("用户名已存在"))
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
 	} else if exists {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱已存在"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱已存在"))
 		return
 	}
 
@@ -154,7 +154,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userId := middleware.GetCurrentUserId(c)
 	if userId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
@@ -187,13 +187,13 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	userId := middleware.GetCurrentUserId(c)
 	if userId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
 	var req types.UserProfileReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
@@ -203,7 +203,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 			return
 		} else if exists {
-			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱已被其他用户使用"))
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱已被其他用户使用"))
 			return
 		}
 	}
@@ -234,13 +234,13 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	userId := middleware.GetCurrentUserId(c)
 	if userId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
 	var req types.ChangePasswordReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
@@ -261,7 +261,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("密码验证失败"))
 		return
 	} else if !valid {
-		c.JSON(http.StatusBadRequest, result.ErrorPasswordWrong)
+		c.JSON(http.StatusOK, result.ErrorPasswordWrong)
 		return
 	}
 
@@ -287,7 +287,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 func (h *UserHandler) List(c *gin.Context) {
 	var req types.UserListReq
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
@@ -352,7 +352,7 @@ func (h *UserHandler) GetById(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无效的用户ID"))
 		return
 	}
 
@@ -385,7 +385,7 @@ func (h *UserHandler) GetById(c *gin.Context) {
 func (h *UserHandler) Create(c *gin.Context) {
 	var req types.UserCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
@@ -394,7 +394,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
 	} else if exists {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("用户名已存在"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("用户名已存在"))
 		return
 	}
 
@@ -403,7 +403,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
 	} else if exists {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱已存在"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱已存在"))
 		return
 	}
 
@@ -466,13 +466,13 @@ func (h *UserHandler) Update(c *gin.Context) {
 	userIdStr := c.Param("id")
 	userId, err := strconv.ParseInt(userIdStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无效的用户ID"))
 		return
 	}
 
 	var req types.UserUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
@@ -493,7 +493,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 			return
 		} else if exists {
-			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("用户名已被其他用户使用"))
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("用户名已被其他用户使用"))
 			return
 		}
 	}
@@ -504,7 +504,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 			return
 		} else if exists {
-			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱已被其他用户使用"))
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱已被其他用户使用"))
 			return
 		}
 	}
@@ -556,7 +556,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	userId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无效的用户ID"))
 		return
 	}
 
@@ -574,7 +574,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	// 检查是否为当前登录用户（不能删除自己）
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == userId {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("不能删除自己"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("不能删除自己"))
 		return
 	}
 
@@ -608,7 +608,7 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 	idStr := c.Param("id")
 	userId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无效的用户ID"))
 		return
 	}
 
@@ -667,7 +667,7 @@ func (h *UserHandler) ToggleStatus(c *gin.Context) {
 	idStr := c.Param("id")
 	userId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无效的用户ID"))
 		return
 	}
 
@@ -685,7 +685,7 @@ func (h *UserHandler) ToggleStatus(c *gin.Context) {
 	// 检查是否为当前登录用户（不能禁用自己）
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == userId {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("不能禁用自己"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("不能禁用自己"))
 		return
 	}
 
@@ -776,7 +776,7 @@ func (h *UserHandler) GetStats(c *gin.Context) {
 func (h *UserHandler) Search(c *gin.Context) {
 	var req types.UserSearchReq
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
