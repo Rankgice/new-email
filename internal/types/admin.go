@@ -76,44 +76,6 @@ type AdminStatsResp struct {
 	Managers     int64 `json:"managers"`     // 普通管理员数
 }
 
-// AdminPermissionReq 管理员权限设置请求
-type AdminPermissionReq struct {
-	AdminId     int64    `json:"adminId" binding:"required"`     // 管理员ID
-	Permissions []string `json:"permissions" binding:"required"` // 权限列表
-}
-
-// AdminPermissionResp 管理员权限响应
-type AdminPermissionResp struct {
-	AdminId     int64     `json:"adminId"`     // 管理员ID
-	Permissions []string  `json:"permissions"` // 权限列表
-	UpdatedAt   time.Time `json:"updatedAt"`   // 更新时间
-}
-
-// AdminRoleReq 管理员角色设置请求
-type AdminRoleReq struct {
-	AdminId int64  `json:"adminId" binding:"required"`                  // 管理员ID
-	Role    string `json:"role" binding:"required,oneof=admin manager"` // 角色
-}
-
-// AdminActivityReq 管理员活动记录请求
-type AdminActivityReq struct {
-	AdminId int64  `json:"adminId" form:"adminId"` // 管理员ID
-	Action  string `json:"action" form:"action"`   // 操作类型
-	TimeRangeReq
-	PageReq
-}
-
-// AdminActivityResp 管理员活动记录响应
-type AdminActivityResp struct {
-	Id        int64     `json:"id"`        // 记录ID
-	AdminId   int64     `json:"adminId"`   // 管理员ID
-	Action    string    `json:"action"`    // 操作类型
-	Resource  string    `json:"resource"`  // 操作资源
-	IP        string    `json:"ip"`        // IP地址
-	UserAgent string    `json:"userAgent"` // 用户代理
-	CreatedAt time.Time `json:"createdAt"` // 创建时间
-}
-
 // AdminSystemConfigReq 系统配置请求
 type AdminSystemConfigReq struct {
 	SiteName                  string        `json:"siteName"`                  // 网站名称
@@ -154,14 +116,6 @@ type SMTPConfigResp struct {
 	UseTLS   bool   `json:"useTLS"`   // 是否使用TLS
 }
 
-// AdminDashboardResp 管理员仪表板响应
-type AdminDashboardResp struct {
-	UserStats   UserStatsResp   `json:"userStats"`   // 用户统计
-	AdminStats  AdminStatsResp  `json:"adminStats"`  // 管理员统计
-	EmailStats  EmailStatsResp  `json:"emailStats"`  // 邮件统计
-	SystemStats SystemStatsResp `json:"systemStats"` // 系统统计
-}
-
 // EmailStatsResp 邮件统计响应
 type EmailStatsResp struct {
 	TotalEmails    int64 `json:"totalEmails"`    // 总邮件数
@@ -182,14 +136,6 @@ type SystemStatsResp struct {
 type AdminBatchOperationReq struct {
 	Ids       []int64 `json:"ids" binding:"required,min=1"`                             // ID列表
 	Operation string  `json:"operation" binding:"required,oneof=enable disable delete"` // 操作类型
-}
-
-// AdminExportReq 管理员导出请求
-type AdminExportReq struct {
-	Format string   `json:"format" form:"format"` // 导出格式：csv, excel
-	Fields []string `json:"fields"`               // 导出字段
-	Ids    []int64  `json:"ids"`                  // 指定管理员ID（可选）
-	AdminListReq
 }
 
 // UserCreateReq 创建用户请求
@@ -249,11 +195,6 @@ type UserStatsResp struct {
 type UserBatchOperationReq struct {
 	Ids       []int64 `json:"ids" binding:"required,min=1"`                             // 用户ID列表
 	Operation string  `json:"operation" binding:"required,oneof=enable disable delete"` // 操作类型
-}
-
-// ImportUsersReq 导入用户请求
-type ImportUsersReq struct {
-	File string `json:"file" binding:"required"` // 文件路径或内容
 }
 
 // ImportUsersResp 导入用户响应

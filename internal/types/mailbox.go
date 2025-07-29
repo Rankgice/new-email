@@ -116,13 +116,6 @@ type MailboxStatsResp struct {
 	ThirdMailboxes  int64 `json:"thirdMailboxes"`  // 第三方邮箱数
 }
 
-// MailboxConfigReq 邮箱配置请求
-type MailboxConfigReq struct {
-	Id           int64 `json:"id" binding:"required"` // 邮箱ID
-	AutoReceive  bool  `json:"autoReceive"`           // 是否自动收信
-	SyncInterval int   `json:"syncInterval"`          // 同步间隔（分钟）
-}
-
 // MailboxProviderResp 邮箱提供商配置响应
 type MailboxProviderResp struct {
 	Provider string `json:"provider"` // 提供商名称

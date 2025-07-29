@@ -32,14 +32,3 @@ type VerificationCodeResp struct {
 type VerificationCodeLatestReq struct {
 	Source string `json:"source" form:"source" binding:"required"` // 来源
 }
-
-// VerificationCodeStatsResp 验证码统计响应
-type VerificationCodeStatsResp struct {
-	Total     int64 `json:"total"`     // 总数
-	Used      int64 `json:"used"`      // 已使用数
-	Unused    int64 `json:"unused"`    // 未使用数
-	Expired   int64 `json:"expired"`   // 已过期数
-	Today     int64 `json:"today"`     // 今日新增数
-	ThisWeek  int64 `json:"thisWeek"`  // 本周新增数
-	ThisMonth int64 `json:"thisMonth"` // 本月新增数
-}

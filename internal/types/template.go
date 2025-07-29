@@ -53,9 +53,3 @@ type TemplateResp struct {
 type TemplateCopyReq struct {
 	Name string `json:"name" binding:"required,max=100"` // 新模板名称
 }
-
-// TemplateCategoryResp 模板分类响应
-type TemplateCategoryResp struct {
-	Category string `json:"category"` // 分类名称
-	Count    int64  `json:"count"`    // 模板数量
-}

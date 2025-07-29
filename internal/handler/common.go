@@ -350,15 +350,3 @@ func (h *CommonHandler) Upload(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
-
-// GetSystemInfo 获取系统信息
-func (h *CommonHandler) GetSystemInfo(c *gin.Context) {
-	info := types.SystemInfoResp{
-		Version:     h.svcCtx.Config.App.Version,
-		Environment: h.svcCtx.Config.Web.Mode,
-		ServerTime:  time.Now(),
-		Timezone:    "Asia/Shanghai",
-	}
-
-	c.JSON(http.StatusOK, result.SuccessResult(info))
-}

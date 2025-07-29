@@ -1,7 +1,5 @@
 package types
 
-import "time"
-
 // UserProfileReq 用户资料更新请求
 type UserProfileReq struct {
 	Nickname string `json:"nickname"`              // 昵称
@@ -30,93 +28,9 @@ type UserLoginResp struct {
 	User  UserResp `json:"user"`  // 用户信息
 }
 
-// UserBatchCreateReq 批量创建用户请求
-type UserBatchCreateReq struct {
-	Users []UserCreateReq `json:"users" binding:"required,min=1"` // 用户列表
-}
-
-// UserBatchImportReq 批量导入用户请求
-type UserBatchImportReq struct {
-	File   string `json:"file" binding:"required"`   // 文件路径
-	Format string `json:"format" binding:"required"` // 文件格式：csv, excel
-}
-
-// UserExportReq 用户导出请求
-type UserExportReq struct {
-	Format string   `json:"format" form:"format"` // 导出格式：csv, excel
-	Fields []string `json:"fields"`               // 导出字段
-	Ids    []int64  `json:"ids"`                  // 指定用户ID（可选）
-	UserListReq
-}
-
 // UserSearchReq 用户搜索请求
 type UserSearchReq struct {
 	Keyword string `json:"keyword" form:"keyword" binding:"required"` // 搜索关键词
 	Type    string `json:"type" form:"type"`                          // 搜索类型：username, email, nickname
 	PageReq
-}
-
-// UserActivityReq 用户活动记录请求
-type UserActivityReq struct {
-	UserId int64  `json:"userId" form:"userId"` // 用户ID
-	Action string `json:"action" form:"action"` // 操作类型
-	TimeRangeReq
-	PageReq
-}
-
-// UserActivityResp 用户活动记录响应
-type UserActivityResp struct {
-	Id        int64     `json:"id"`        // 记录ID
-	UserId    int64     `json:"userId"`    // 用户ID
-	Action    string    `json:"action"`    // 操作类型
-	Resource  string    `json:"resource"`  // 操作资源
-	IP        string    `json:"ip"`        // IP地址
-	UserAgent string    `json:"userAgent"` // 用户代理
-	CreatedAt time.Time `json:"createdAt"` // 创建时间
-}
-
-// UserPreferenceReq 用户偏好设置请求
-type UserPreferenceReq struct {
-	Language string            `json:"language"` // 语言
-	Timezone string            `json:"timezone"` // 时区
-	Theme    string            `json:"theme"`    // 主题
-	Settings map[string]string `json:"settings"` // 其他设置
-}
-
-// UserPreferenceResp 用户偏好设置响应
-type UserPreferenceResp struct {
-	Language  string            `json:"language"`  // 语言
-	Timezone  string            `json:"timezone"`  // 时区
-	Theme     string            `json:"theme"`     // 主题
-	Settings  map[string]string `json:"settings"`  // 其他设置
-	UpdatedAt time.Time         `json:"updatedAt"` // 更新时间
-}
-
-// UserSecurityReq 用户安全设置请求
-type UserSecurityReq struct {
-	EnableTwoFactor bool   `json:"enableTwoFactor"` // 启用双因子认证
-	TwoFactorSecret string `json:"twoFactorSecret"` // 双因子认证密钥
-}
-
-// UserSecurityResp 用户安全设置响应
-type UserSecurityResp struct {
-	EnableTwoFactor    bool      `json:"enableTwoFactor"`    // 启用双因子认证
-	LastPasswordChange time.Time `json:"lastPasswordChange"` // 最后修改密码时间
-	LoginAttempts      int       `json:"loginAttempts"`      // 登录尝试次数
-	IsLocked           bool      `json:"isLocked"`           // 是否锁定
-}
-
-// UserNotificationReq 用户通知设置请求
-type UserNotificationReq struct {
-	EmailNotification bool `json:"emailNotification"` // 邮件通知
-	SmsNotification   bool `json:"smsNotification"`   // 短信通知
-	PushNotification  bool `json:"pushNotification"`  // 推送通知
-}
-
-// UserNotificationResp 用户通知设置响应
-type UserNotificationResp struct {
-	EmailNotification bool      `json:"emailNotification"` // 邮件通知
-	SmsNotification   bool      `json:"smsNotification"`   // 短信通知
-	PushNotification  bool      `json:"pushNotification"`  // 推送通知
-	UpdatedAt         time.Time `json:"updatedAt"`         // 更新时间
 }
