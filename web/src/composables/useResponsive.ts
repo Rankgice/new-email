@@ -1,5 +1,5 @@
 import { useWindowSize } from '@vueuse/core'
-import { computed } from 'vue'
+import { computed, readonly } from 'vue'
 
 export const useResponsive = () => {
   const { width, height } = useWindowSize()
