@@ -82,35 +82,19 @@ func (h *AdminHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("生成token失败"))
 		return
 	}
-
-	// 生成刷新token
-	refreshToken, err := auth.GenerateToken(admin.Id, admin.Username, true, admin.Role, h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.RefreshExpireHours)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("生成刷新token失败"))
-		return
-	}
-
-	// 更新最后登录时间
-	if err := h.svcCtx.AdminModel.UpdateLastLogin(admin.Id); err != nil {
-		// 记录日志但不影响登录
-	}
-
 	// 返回登录信息
 	resp := types.AdminLoginResp{
-		Token:        token,
-		RefreshToken: refreshToken,
-		ExpiresAt:    time.Now().Add(time.Duration(h.svcCtx.Config.JWT.ExpireHours) * time.Hour),
+		Token: token,
 		Admin: types.AdminResp{
-			Id:          admin.Id,
-			Username:    admin.Username,
-			Email:       admin.Email,
-			Nickname:    admin.Nickname,
-			Avatar:      admin.Avatar,
-			Role:        admin.Role,
-			Status:      admin.Status,
-			LastLoginAt: admin.LastLoginAt,
-			CreatedAt:   admin.CreatedAt,
-			UpdatedAt:   admin.UpdatedAt,
+			Id:        admin.Id,
+			Username:  admin.Username,
+			Email:     admin.Email,
+			Nickname:  admin.Nickname,
+			Avatar:    admin.Avatar,
+			Role:      admin.Role,
+			Status:    admin.Status,
+			CreatedAt: admin.CreatedAt,
+			UpdatedAt: admin.UpdatedAt,
 		},
 	}
 
@@ -137,16 +121,15 @@ func (h *AdminHandler) GetProfile(c *gin.Context) {
 	}
 
 	resp := types.AdminResp{
-		Id:          admin.Id,
-		Username:    admin.Username,
-		Email:       admin.Email,
-		Nickname:    admin.Nickname,
-		Avatar:      admin.Avatar,
-		Role:        admin.Role,
-		Status:      admin.Status,
-		LastLoginAt: admin.LastLoginAt,
-		CreatedAt:   admin.CreatedAt,
-		UpdatedAt:   admin.UpdatedAt,
+		Id:        admin.Id,
+		Username:  admin.Username,
+		Email:     admin.Email,
+		Nickname:  admin.Nickname,
+		Avatar:    admin.Avatar,
+		Role:      admin.Role,
+		Status:    admin.Status,
+		CreatedAt: admin.CreatedAt,
+		UpdatedAt: admin.UpdatedAt,
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
@@ -362,15 +345,14 @@ func (h *AdminHandler) ListUsers(c *gin.Context) {
 	var userList []types.UserResp
 	for _, user := range users {
 		userList = append(userList, types.UserResp{
-			Id:          user.Id,
-			Username:    user.Username,
-			Email:       user.Email,
-			Nickname:    user.Nickname,
-			Avatar:      user.Avatar,
-			Status:      user.Status,
-			LastLoginAt: user.LastLoginAt,
-			CreatedAt:   user.CreatedAt,
-			UpdatedAt:   user.UpdatedAt,
+			Id:        user.Id,
+			Username:  user.Username,
+			Email:     user.Email,
+			Nickname:  user.Nickname,
+			Avatar:    user.Avatar,
+			Status:    user.Status,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
 		})
 	}
 
@@ -952,16 +934,15 @@ func (h *AdminHandler) ListAdmins(c *gin.Context) {
 	var adminList []types.AdminResp
 	for _, admin := range admins {
 		adminList = append(adminList, types.AdminResp{
-			Id:          admin.Id,
-			Username:    admin.Username,
-			Email:       admin.Email,
-			Nickname:    admin.Nickname,
-			Avatar:      admin.Avatar,
-			Role:        admin.Role,
-			Status:      admin.Status,
-			LastLoginAt: admin.LastLoginAt,
-			CreatedAt:   admin.CreatedAt,
-			UpdatedAt:   admin.UpdatedAt,
+			Id:        admin.Id,
+			Username:  admin.Username,
+			Email:     admin.Email,
+			Nickname:  admin.Nickname,
+			Avatar:    admin.Avatar,
+			Role:      admin.Role,
+			Status:    admin.Status,
+			CreatedAt: admin.CreatedAt,
+			UpdatedAt: admin.UpdatedAt,
 		})
 	}
 

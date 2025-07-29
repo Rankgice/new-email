@@ -64,10 +64,8 @@ type AdminLoginReq struct {
 
 // AdminLoginResp 管理员登录响应
 type AdminLoginResp struct {
-	Token        string    `json:"token"`        // 访问令牌
-	RefreshToken string    `json:"refreshToken"` // 刷新令牌
-	ExpiresAt    time.Time `json:"expiresAt"`    // 过期时间
-	Admin        AdminResp `json:"admin"`        // 管理员信息
+	Token string    `json:"token"` // 访问令牌
+	Admin AdminResp `json:"admin"` // 管理员信息
 }
 
 // AdminStatsResp 管理员统计响应

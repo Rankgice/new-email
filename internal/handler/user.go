@@ -84,18 +84,14 @@ func (h *UserHandler) Register(c *gin.Context) {
 func (h *UserHandler) Login(c *gin.Context) {
 	var req types.UserLoginReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
-	// 查找用户（支持用户名或邮箱登录）
-	var user *model.User
-	var err error
-
 	// 先尝试用户名查找
-	user, err = h.svcCtx.UserModel.GetByUsername(req.Username)
+	user, err := h.svcCtx.UserModel.GetByUsername(req.Username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 
@@ -103,66 +99,50 @@ func (h *UserHandler) Login(c *gin.Context) {
 	if user == nil {
 		user, err = h.svcCtx.UserModel.GetByEmail(req.Username)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 			return
 		}
 	}
 
 	if user == nil {
-		c.JSON(http.StatusUnauthorized, result.ErrorUserNotFound)
+		c.JSON(http.StatusOK, result.ErrorUserNotFound)
 		return
 	}
 
 	// 检查用户状态
 	if user.Status != 1 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUserDisabled)
+		c.JSON(http.StatusOK, result.ErrorUserDisabled)
 		return
 	}
 
 	// 验证密码
 	if valid, err := auth.VerifyPassword(req.Password, user.Password); err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("密码验证失败"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("密码验证失败"))
 		return
 	} else if !valid {
-		c.JSON(http.StatusUnauthorized, result.ErrorPasswordWrong)
+		c.JSON(http.StatusOK, result.ErrorPasswordWrong)
 		return
 	}
 
 	// 生成JWT token
 	token, err := auth.GenerateToken(user.Id, user.Username, false, "", h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.ExpireHours)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("生成token失败"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("生成token失败"))
 		return
-	}
-
-	// 生成刷新token
-	refreshToken, err := auth.GenerateToken(user.Id, user.Username, false, "", h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.RefreshExpireHours)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("生成刷新token失败"))
-		return
-	}
-
-	// 更新最后登录时间
-	if err := h.svcCtx.UserModel.UpdateLastLogin(user.Id); err != nil {
-		// 记录日志但不影响登录
-		// log.Printf("更新用户最后登录时间失败: %v", err)
 	}
 
 	// 返回登录信息
 	resp := types.UserLoginResp{
-		Token:        token,
-		RefreshToken: refreshToken,
-		ExpiresAt:    time.Now().Add(time.Duration(h.svcCtx.Config.JWT.ExpireHours) * time.Hour),
+		Token: token,
 		User: types.UserResp{
-			Id:          user.Id,
-			Username:    user.Username,
-			Email:       user.Email,
-			Nickname:    user.Nickname,
-			Avatar:      user.Avatar,
-			Status:      user.Status,
-			LastLoginAt: user.LastLoginAt,
-			CreatedAt:   user.CreatedAt,
-			UpdatedAt:   user.UpdatedAt,
+			Id:        user.Id,
+			Username:  user.Username,
+			Email:     user.Email,
+			Nickname:  user.Nickname,
+			Avatar:    user.Avatar,
+			Status:    user.Status,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
 		},
 	}
 
@@ -189,15 +169,14 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	}
 
 	resp := types.UserResp{
-		Id:          user.Id,
-		Username:    user.Username,
-		Email:       user.Email,
-		Nickname:    user.Nickname,
-		Avatar:      user.Avatar,
-		Status:      user.Status,
-		LastLoginAt: user.LastLoginAt,
-		CreatedAt:   user.CreatedAt,
-		UpdatedAt:   user.UpdatedAt,
+		Id:        user.Id,
+		Username:  user.Username,
+		Email:     user.Email,
+		Nickname:  user.Nickname,
+		Avatar:    user.Avatar,
+		Status:    user.Status,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
@@ -345,15 +324,14 @@ func (h *UserHandler) List(c *gin.Context) {
 	var userList []types.UserResp
 	for _, user := range users {
 		userList = append(userList, types.UserResp{
-			Id:          user.Id,
-			Username:    user.Username,
-			Email:       user.Email,
-			Nickname:    user.Nickname,
-			Avatar:      user.Avatar,
-			Status:      user.Status,
-			LastLoginAt: user.LastLoginAt,
-			CreatedAt:   user.CreatedAt,
-			UpdatedAt:   user.UpdatedAt,
+			Id:        user.Id,
+			Username:  user.Username,
+			Email:     user.Email,
+			Nickname:  user.Nickname,
+			Avatar:    user.Avatar,
+			Status:    user.Status,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
 		})
 	}
 
@@ -389,15 +367,14 @@ func (h *UserHandler) GetById(c *gin.Context) {
 	}
 
 	resp := types.UserResp{
-		Id:          user.Id,
-		Username:    user.Username,
-		Email:       user.Email,
-		Nickname:    user.Nickname,
-		Avatar:      user.Avatar,
-		Status:      user.Status,
-		LastLoginAt: user.LastLoginAt,
-		CreatedAt:   user.CreatedAt,
-		UpdatedAt:   user.UpdatedAt,
+		Id:        user.Id,
+		Username:  user.Username,
+		Email:     user.Email,
+		Nickname:  user.Nickname,
+		Avatar:    user.Avatar,
+		Status:    user.Status,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
@@ -852,15 +829,14 @@ func (h *UserHandler) Search(c *gin.Context) {
 	var userList []types.UserResp
 	for _, user := range users {
 		userList = append(userList, types.UserResp{
-			Id:          user.Id,
-			Username:    user.Username,
-			Email:       user.Email,
-			Nickname:    user.Nickname,
-			Avatar:      user.Avatar,
-			Status:      user.Status,
-			LastLoginAt: user.LastLoginAt,
-			CreatedAt:   user.CreatedAt,
-			UpdatedAt:   user.UpdatedAt,
+			Id:        user.Id,
+			Username:  user.Username,
+			Email:     user.Email,
+			Nickname:  user.Nickname,
+			Avatar:    user.Avatar,
+			Status:    user.Status,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
 		})
 	}
 

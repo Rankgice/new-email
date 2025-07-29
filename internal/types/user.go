@@ -26,10 +26,8 @@ type UserLoginReq struct {
 
 // UserLoginResp 用户登录响应
 type UserLoginResp struct {
-	Token        string    `json:"token"`        // 访问令牌
-	RefreshToken string    `json:"refreshToken"` // 刷新令牌
-	ExpiresAt    time.Time `json:"expiresAt"`    // 过期时间
-	User         UserResp  `json:"user"`         // 用户信息
+	Token string   `json:"token"` // 访问令牌
+	User  UserResp `json:"user"`  // 用户信息
 }
 
 // UserBatchCreateReq 批量创建用户请求
