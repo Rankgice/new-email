@@ -30,7 +30,7 @@ func NewMailboxHandler(svcCtx *svc.ServiceContext) *MailboxHandler {
 func (h *MailboxHandler) List(c *gin.Context) {
 	var req types.MailboxListReq
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
@@ -45,7 +45,7 @@ func (h *MailboxHandler) List(c *gin.Context) {
 	// 获取当前用户ID
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (h *MailboxHandler) List(c *gin.Context) {
 	// 查询邮箱列表
 	mailboxes, total, err := h.svcCtx.MailboxModel.List(params)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 
@@ -123,23 +123,23 @@ func (h *MailboxHandler) List(c *gin.Context) {
 func (h *MailboxHandler) Create(c *gin.Context) {
 	var req types.MailboxCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
 	// 获取当前用户ID
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
 	// 检查邮箱是否已存在
 	if exists, err := h.svcCtx.MailboxModel.CheckEmailExists(req.Email); err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	} else if exists {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱已存在"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱已存在"))
 		return
 	}
 
@@ -147,15 +147,15 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 	if req.Type == "self" && req.DomainId > 0 {
 		domain, err := h.svcCtx.DomainModel.GetById(req.DomainId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 			return
 		}
 		if domain == nil {
-			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("域名不存在"))
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("域名不存在"))
 			return
 		}
 		if domain.Status != 1 {
-			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("域名未启用"))
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("域名未启用"))
 			return
 		}
 	}
@@ -163,7 +163,7 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 	// 加密邮箱密码
 	encryptedPassword, err := auth.HashPassword(req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("密码加密失败"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("密码加密失败"))
 		return
 	}
 
@@ -186,7 +186,7 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.svcCtx.MailboxModel.Create(mailbox); err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorAdd.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorAdd.AddError(err))
 		return
 	}
 
@@ -231,41 +231,41 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 func (h *MailboxHandler) Update(c *gin.Context) {
 	var req types.MailboxUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
 	// 获取当前用户ID
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
 	// 检查邮箱是否存在
 	mailbox, err := h.svcCtx.MailboxModel.GetById(req.Id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 	if mailbox == nil {
-		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("邮箱不存在"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱不存在"))
 		return
 	}
 
 	// 检查权限（只能更新自己的邮箱）
 	if mailbox.UserId != currentUserId {
-		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限操作此邮箱"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无权限操作此邮箱"))
 		return
 	}
 
 	// 检查邮箱地址是否已被其他邮箱使用
 	if req.Email != "" && req.Email != mailbox.Email {
 		if exists, err := h.svcCtx.MailboxModel.CheckEmailExists(req.Email); err != nil {
-			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 			return
 		} else if exists {
-			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱地址已被其他邮箱使用"))
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱地址已被其他邮箱使用"))
 			return
 		}
 	}
@@ -274,15 +274,15 @@ func (h *MailboxHandler) Update(c *gin.Context) {
 	if req.Type == "self" && req.DomainId > 0 && req.DomainId != mailbox.DomainId {
 		domain, err := h.svcCtx.DomainModel.GetById(req.DomainId)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 			return
 		}
 		if domain == nil {
-			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("域名不存在"))
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("域名不存在"))
 			return
 		}
 		if domain.Status != 1 {
-			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("域名未启用"))
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("域名未启用"))
 			return
 		}
 	}
@@ -299,7 +299,7 @@ func (h *MailboxHandler) Update(c *gin.Context) {
 		// 加密新密码
 		encryptedPassword, err := auth.HashPassword(req.Password)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("密码加密失败"))
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("密码加密失败"))
 			return
 		}
 		updateData["password"] = encryptedPassword
@@ -329,7 +329,7 @@ func (h *MailboxHandler) Update(c *gin.Context) {
 
 	// 更新邮箱信息
 	if err := h.svcCtx.MailboxModel.MapUpdate(nil, req.Id, updateData); err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorUpdate.AddError(err))
 		return
 	}
 
@@ -355,7 +355,7 @@ func (h *MailboxHandler) Delete(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮箱ID"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无效的邮箱ID"))
 		return
 	}
 
@@ -364,24 +364,24 @@ func (h *MailboxHandler) Delete(c *gin.Context) {
 	// 获取当前用户ID
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
 	// 检查邮箱是否存在
 	mailbox, err := h.svcCtx.MailboxModel.GetById(mailboxId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 	if mailbox == nil {
-		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("邮箱不存在"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱不存在"))
 		return
 	}
 
 	// 检查权限（只能删除自己的邮箱）
 	if mailbox.UserId != currentUserId {
-		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限操作此邮箱"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无权限操作此邮箱"))
 		return
 	}
 
@@ -390,7 +390,7 @@ func (h *MailboxHandler) Delete(c *gin.Context) {
 
 	// 软删除邮箱
 	if err := h.svcCtx.MailboxModel.Delete(mailbox); err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorDelete.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorDelete.AddError(err))
 		return
 	}
 
@@ -415,31 +415,31 @@ func (h *MailboxHandler) Delete(c *gin.Context) {
 func (h *MailboxHandler) Sync(c *gin.Context) {
 	var req types.MailboxSyncReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
 	// 获取当前用户ID
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
 	// 检查邮箱是否存在
 	mailbox, err := h.svcCtx.MailboxModel.GetById(req.Id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 	if mailbox == nil {
-		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("邮箱不存在"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱不存在"))
 		return
 	}
 
 	// 检查权限（只能同步自己的邮箱）
 	if mailbox.UserId != currentUserId {
-		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限操作此邮箱"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无权限操作此邮箱"))
 		return
 	}
 
@@ -486,7 +486,7 @@ func (h *MailboxHandler) Sync(c *gin.Context) {
 func (h *MailboxHandler) TestConnection(c *gin.Context) {
 	var req types.MailboxTestConnectionReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
 
@@ -515,31 +515,31 @@ func (h *MailboxHandler) GetById(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮箱ID"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无效的邮箱ID"))
 		return
 	}
 
 	// 获取当前用户ID
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
 	mailbox, err := h.svcCtx.MailboxModel.GetById(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 
 	if mailbox == nil {
-		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("邮箱不存在"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱不存在"))
 		return
 	}
 
 	// 检查权限（只能查看自己的邮箱）
 	if mailbox.UserId != currentUserId {
-		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限查看此邮箱"))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无权限查看此邮箱"))
 		return
 	}
 
@@ -571,7 +571,7 @@ func (h *MailboxHandler) GetStats(c *gin.Context) {
 	// 获取当前用户ID
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == 0 {
-		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
@@ -580,7 +580,7 @@ func (h *MailboxHandler) GetStats(c *gin.Context) {
 		UserId: currentUserId,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 
@@ -591,7 +591,7 @@ func (h *MailboxHandler) GetStats(c *gin.Context) {
 		Status: &status,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 
@@ -601,7 +601,7 @@ func (h *MailboxHandler) GetStats(c *gin.Context) {
 		Type:   "self",
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 
@@ -611,7 +611,7 @@ func (h *MailboxHandler) GetStats(c *gin.Context) {
 		Type:   "third",
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
 	}
 
