@@ -36,8 +36,8 @@ type TemplateListReq struct {
 
 // TemplateResp 模板响应
 type TemplateResp struct {
-	Id          uint      `json:"id"`          // 模板ID
-	UserId      uint      `json:"userId"`      // 用户ID
+	Id          int64     `json:"id"`          // 模板ID
+	UserId      int64     `json:"userId"`      // 用户ID
 	Name        string    `json:"name"`        // 模板名称
 	Category    string    `json:"category"`    // 模板分类
 	Subject     string    `json:"subject"`     // 邮件主题

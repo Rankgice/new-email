@@ -252,15 +252,15 @@ func ApiKeyMiddleware(svcCtx *svc.ServiceContext) gin.HandlerFunc {
 }
 
 // GetCurrentUserId 获取当前用户ID
-func GetCurrentUserId(c *gin.Context) uint {
+func GetCurrentUserId(c *gin.Context) int64 {
 	if userId, exists := c.Get("userId"); exists {
-		if id, ok := userId.(uint); ok {
+		if id, ok := userId.(int64); ok {
 			return id
 		}
 		// 尝试从字符串转换
 		if idStr, ok := userId.(string); ok {
-			if id, err := strconv.ParseUint(idStr, 10, 32); err == nil {
-				return uint(id)
+			if id, err := strconv.ParseInt(idStr, 10, 32); err == nil {
+				return id
 			}
 		}
 	}
@@ -268,15 +268,15 @@ func GetCurrentUserId(c *gin.Context) uint {
 }
 
 // GetCurrentAdminId 获取当前管理员ID
-func GetCurrentAdminId(c *gin.Context) uint {
+func GetCurrentAdminId(c *gin.Context) int64 {
 	if adminId, exists := c.Get("adminId"); exists {
-		if id, ok := adminId.(uint); ok {
+		if id, ok := adminId.(int64); ok {
 			return id
 		}
 		// 尝试从字符串转换
 		if idStr, ok := adminId.(string); ok {
-			if id, err := strconv.ParseUint(idStr, 10, 32); err == nil {
-				return uint(id)
+			if id, err := strconv.ParseInt(idStr, 10, 32); err == nil {
+				return id
 			}
 		}
 	}

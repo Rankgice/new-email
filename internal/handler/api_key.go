@@ -185,7 +185,7 @@ func (h *ApiKeyHandler) Create(c *gin.Context) {
 func (h *ApiKeyHandler) Update(c *gin.Context) {
 	// 获取API密钥ID
 	idStr := c.Param("id")
-	apiKeyId, err := strconv.ParseUint(idStr, 10, 32)
+	apiKeyId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的API密钥ID"))
 		return
@@ -205,7 +205,7 @@ func (h *ApiKeyHandler) Update(c *gin.Context) {
 	}
 
 	// 检查API密钥是否存在
-	apiKey, err := h.svcCtx.ApiKeyModel.GetById(uint(apiKeyId))
+	apiKey, err := h.svcCtx.ApiKeyModel.GetById(apiKeyId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -276,7 +276,7 @@ func (h *ApiKeyHandler) Update(c *gin.Context) {
 func (h *ApiKeyHandler) Delete(c *gin.Context) {
 	// 获取API密钥ID
 	idStr := c.Param("id")
-	apiKeyId, err := strconv.ParseUint(idStr, 10, 32)
+	apiKeyId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的API密钥ID"))
 		return
@@ -290,7 +290,7 @@ func (h *ApiKeyHandler) Delete(c *gin.Context) {
 	}
 
 	// 检查API密钥是否存在
-	apiKey, err := h.svcCtx.ApiKeyModel.GetById(uint(apiKeyId))
+	apiKey, err := h.svcCtx.ApiKeyModel.GetById(apiKeyId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -333,7 +333,7 @@ func (h *ApiKeyHandler) Delete(c *gin.Context) {
 func (h *ApiKeyHandler) GetById(c *gin.Context) {
 	// 获取API密钥ID
 	idStr := c.Param("id")
-	apiKeyId, err := strconv.ParseUint(idStr, 10, 32)
+	apiKeyId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的API密钥ID"))
 		return
@@ -347,7 +347,7 @@ func (h *ApiKeyHandler) GetById(c *gin.Context) {
 	}
 
 	// 查询API密钥详情
-	apiKey, err := h.svcCtx.ApiKeyModel.GetById(uint(apiKeyId))
+	apiKey, err := h.svcCtx.ApiKeyModel.GetById(apiKeyId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return

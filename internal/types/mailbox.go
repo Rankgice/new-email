@@ -4,7 +4,7 @@ import "time"
 
 // MailboxCreateReq 创建邮箱请求
 type MailboxCreateReq struct {
-	DomainId    uint   `json:"domainId"`                                 // 域名ID（自建邮箱）
+	DomainId    int64  `json:"domainId"`                                 // 域名ID（自建邮箱）
 	Email       string `json:"email" binding:"required,email"`           // 邮箱地址
 	Password    string `json:"password" binding:"required"`              // 邮箱密码
 	Type        string `json:"type" binding:"required,oneof=self third"` // 邮箱类型：self自建 third第三方
@@ -21,8 +21,8 @@ type MailboxCreateReq struct {
 
 // MailboxUpdateReq 更新邮箱请求
 type MailboxUpdateReq struct {
-	Id          uint   `json:"id" binding:"required"`           // 邮箱ID
-	DomainId    uint   `json:"domainId"`                        // 域名ID（自建邮箱）
+	Id          int64  `json:"id" binding:"required"`           // 邮箱ID
+	DomainId    int64  `json:"domainId"`                        // 域名ID（自建邮箱）
 	Email       string `json:"email" binding:"email"`           // 邮箱地址
 	Password    string `json:"password"`                        // 邮箱密码
 	Type        string `json:"type" binding:"oneof=self third"` // 邮箱类型：self自建 third第三方
@@ -39,8 +39,8 @@ type MailboxUpdateReq struct {
 
 // MailboxListReq 邮箱列表请求
 type MailboxListReq struct {
-	UserId      uint   `json:"userId" form:"userId"`           // 用户ID
-	DomainId    uint   `json:"domainId" form:"domainId"`       // 域名ID
+	UserId      int64  `json:"userId" form:"userId"`           // 用户ID
+	DomainId    int64  `json:"domainId" form:"domainId"`       // 域名ID
 	Email       string `json:"email" form:"email"`             // 邮箱地址（模糊搜索）
 	Type        string `json:"type" form:"type"`               // 邮箱类型
 	Provider    string `json:"provider" form:"provider"`       // 邮箱提供商
@@ -52,9 +52,9 @@ type MailboxListReq struct {
 
 // MailboxResp 邮箱响应
 type MailboxResp struct {
-	Id          uint       `json:"id"`                   // 邮箱ID
-	UserId      uint       `json:"userId"`               // 用户ID
-	DomainId    uint       `json:"domainId"`             // 域名ID
+	Id          int64      `json:"id"`                   // 邮箱ID
+	UserId      int64      `json:"userId"`               // 用户ID
+	DomainId    int64      `json:"domainId"`             // 域名ID
 	Email       string     `json:"email"`                // 邮箱地址
 	Type        string     `json:"type"`                 // 邮箱类型
 	Provider    string     `json:"provider"`             // 邮箱提供商
@@ -94,9 +94,9 @@ type MailboxTestConnectionResp struct {
 
 // MailboxSyncReq 同步邮箱请求
 type MailboxSyncReq struct {
-	Id        uint `json:"id" binding:"required"`    // 邮箱ID
-	ForceSync bool `json:"forceSync"`                // 是否强制同步
-	SyncDays  int  `json:"syncDays" binding:"min=1"` // 同步天数
+	Id        int64 `json:"id" binding:"required"`    // 邮箱ID
+	ForceSync bool  `json:"forceSync"`                // 是否强制同步
+	SyncDays  int   `json:"syncDays" binding:"min=1"` // 同步天数
 }
 
 // MailboxSyncResp 同步邮箱响应
@@ -118,9 +118,9 @@ type MailboxStatsResp struct {
 
 // MailboxConfigReq 邮箱配置请求
 type MailboxConfigReq struct {
-	Id           uint `json:"id" binding:"required"` // 邮箱ID
-	AutoReceive  bool `json:"autoReceive"`           // 是否自动收信
-	SyncInterval int  `json:"syncInterval"`          // 同步间隔（分钟）
+	Id           int64 `json:"id" binding:"required"` // 邮箱ID
+	AutoReceive  bool  `json:"autoReceive"`           // 是否自动收信
+	SyncInterval int   `json:"syncInterval"`          // 同步间隔（分钟）
 }
 
 // MailboxProviderResp 邮箱提供商配置响应

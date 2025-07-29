@@ -9,7 +9,7 @@ type DomainCreateReq struct {
 
 // DomainUpdateReq 更新域名请求
 type DomainUpdateReq struct {
-	Id     uint   `json:"id" binding:"required"`      // 域名ID
+	Id     int64  `json:"id" binding:"required"`      // 域名ID
 	Name   string `json:"name" binding:"required"`    // 域名
 	Status int    `json:"status" binding:"oneof=0 1"` // 状态
 }
@@ -26,10 +26,10 @@ type DomainListReq struct {
 
 // DomainResp 域名响应
 type DomainResp struct {
-	Id          uint      `json:"id"`          // 域名ID
+	Id          int64     `json:"id"`          // 域名ID
 	Name        string    `json:"name"`        // 域名
 	Status      int       `json:"status"`      // 状态
-	DnsVerified bool      `json:"dnsVerified"` // DNS验证状态
+	DnsVerified int       `json:"dnsVerified"` // DNS验证状态
 	DkimRecord  string    `json:"dkimRecord"`  // DKIM记录
 	SpfRecord   string    `json:"spfRecord"`   // SPF记录
 	DmarcRecord string    `json:"dmarcRecord"` // DMARC记录
@@ -39,6 +39,6 @@ type DomainResp struct {
 
 // DomainBatchOperationReq 域名批量操作请求
 type DomainBatchOperationReq struct {
-	Ids       []uint `json:"ids" binding:"required,min=1"`                                    // 域名ID列表
-	Operation string `json:"operation" binding:"required,oneof=enable disable delete verify"` // 操作类型
+	Ids       []int64 `json:"ids" binding:"required,min=1"`                                    // 域名ID列表
+	Operation string  `json:"operation" binding:"required,oneof=enable disable delete verify"` // 操作类型
 }

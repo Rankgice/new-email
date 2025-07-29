@@ -113,7 +113,7 @@ func (h *ApiHandler) ListEmails(c *gin.Context) {
 func (h *ApiHandler) GetEmail(c *gin.Context) {
 	// 获取邮件ID
 	idStr := c.Param("id")
-	emailId, err := strconv.ParseUint(idStr, 10, 32)
+	emailId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮件ID"))
 		return
@@ -128,7 +128,7 @@ func (h *ApiHandler) GetEmail(c *gin.Context) {
 	}
 
 	// 查询邮件详情
-	email, err := h.svcCtx.EmailModel.GetById(uint(emailId))
+	email, err := h.svcCtx.EmailModel.GetById(emailId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -298,7 +298,7 @@ func (h *ApiHandler) ListVerificationCodes(c *gin.Context) {
 func (h *ApiHandler) GetVerificationCode(c *gin.Context) {
 	// 获取验证码ID
 	idStr := c.Param("id")
-	codeId, err := strconv.ParseUint(idStr, 10, 32)
+	codeId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的验证码ID"))
 		return
@@ -313,7 +313,7 @@ func (h *ApiHandler) GetVerificationCode(c *gin.Context) {
 	}
 
 	// 查询验证码详情
-	code, err := h.svcCtx.VerificationCodeModel.GetById(uint(codeId))
+	code, err := h.svcCtx.VerificationCodeModel.GetById(codeId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return

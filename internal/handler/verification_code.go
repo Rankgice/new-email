@@ -109,7 +109,7 @@ func (h *VerificationCodeHandler) List(c *gin.Context) {
 func (h *VerificationCodeHandler) GetById(c *gin.Context) {
 	// 获取验证码ID
 	idStr := c.Param("id")
-	codeId, err := strconv.ParseUint(idStr, 10, 32)
+	codeId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的验证码ID"))
 		return
@@ -123,7 +123,7 @@ func (h *VerificationCodeHandler) GetById(c *gin.Context) {
 	}
 
 	// 查询验证码详情
-	code, err := h.svcCtx.VerificationCodeModel.GetById(uint(codeId))
+	code, err := h.svcCtx.VerificationCodeModel.GetById(codeId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -161,7 +161,7 @@ func (h *VerificationCodeHandler) GetById(c *gin.Context) {
 func (h *VerificationCodeHandler) MarkAsUsed(c *gin.Context) {
 	// 获取验证码ID
 	idStr := c.Param("id")
-	codeId, err := strconv.ParseUint(idStr, 10, 32)
+	codeId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的验证码ID"))
 		return
@@ -175,7 +175,7 @@ func (h *VerificationCodeHandler) MarkAsUsed(c *gin.Context) {
 	}
 
 	// 查询验证码
-	code, err := h.svcCtx.VerificationCodeModel.GetById(uint(codeId))
+	code, err := h.svcCtx.VerificationCodeModel.GetById(codeId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -199,7 +199,7 @@ func (h *VerificationCodeHandler) MarkAsUsed(c *gin.Context) {
 	}
 
 	// 标记为已使用
-	if err := h.svcCtx.VerificationCodeModel.MarkAsUsed(uint(codeId)); err != nil {
+	if err := h.svcCtx.VerificationCodeModel.MarkAsUsed(codeId); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -209,7 +209,7 @@ func (h *VerificationCodeHandler) MarkAsUsed(c *gin.Context) {
 		UserId:     currentUserId,
 		Action:     "mark_verification_code_used",
 		Resource:   "verification_code",
-		ResourceId: uint(codeId),
+		ResourceId: codeId,
 		Method:     "PUT",
 		Path:       c.Request.URL.Path,
 		Ip:         c.ClientIP(),
@@ -287,7 +287,7 @@ func (h *VerificationCodeHandler) GetStatistics(c *gin.Context) {
 func (h *VerificationCodeHandler) MarkUsed(c *gin.Context) {
 	// 获取验证码ID
 	idStr := c.Param("id")
-	codeId, err := strconv.ParseUint(idStr, 10, 32)
+	codeId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的验证码ID"))
 		return
@@ -301,7 +301,7 @@ func (h *VerificationCodeHandler) MarkUsed(c *gin.Context) {
 	}
 
 	// 查询验证码
-	code, err := h.svcCtx.VerificationCodeModel.GetById(uint(codeId))
+	code, err := h.svcCtx.VerificationCodeModel.GetById(codeId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -325,7 +325,7 @@ func (h *VerificationCodeHandler) MarkUsed(c *gin.Context) {
 	}
 
 	// 标记为已使用
-	if err := h.svcCtx.VerificationCodeModel.MarkAsUsed(uint(codeId)); err != nil {
+	if err := h.svcCtx.VerificationCodeModel.MarkAsUsed(codeId); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -335,7 +335,7 @@ func (h *VerificationCodeHandler) MarkUsed(c *gin.Context) {
 		UserId:     currentUserId,
 		Action:     "mark_verification_code_used",
 		Resource:   "verification_code",
-		ResourceId: uint(codeId),
+		ResourceId: codeId,
 		Method:     "PUT",
 		Path:       c.Request.URL.Path,
 		Ip:         c.ClientIP(),

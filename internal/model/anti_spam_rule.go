@@ -7,7 +7,7 @@ import (
 
 // AntiSpamRule 反垃圾规则模型
 type AntiSpamRule struct {
-	Id          uint           `gorm:"primaryKey;autoIncrement" json:"id"`
+	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name        string         `gorm:"size:100;not null" json:"name"`
 	RuleType    string         `gorm:"size:20;not null" json:"rule_type"`
 	Pattern     string         `gorm:"type:text;not null" json:"pattern"`
@@ -43,7 +43,7 @@ func (m *AntiSpamRuleModel) Delete(rule *AntiSpamRule) error {
 }
 
 // GetById 根据ID获取反垃圾规则
-func (m *AntiSpamRuleModel) GetById(id uint) (*AntiSpamRule, error) {
+func (m *AntiSpamRuleModel) GetById(id int64) (*AntiSpamRule, error) {
 	var rule AntiSpamRule
 	if err := m.db.First(&rule, id).Error; err != nil {
 		return nil, err

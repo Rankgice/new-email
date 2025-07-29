@@ -7,9 +7,9 @@ import (
 
 // EmailLog 邮件日志模型
 type EmailLog struct {
-	Id         uint       `gorm:"primaryKey;autoIncrement" json:"id"`
-	MailboxId  uint       `gorm:"not null;index" json:"mailbox_id"`
-	EmailId    uint       `gorm:"index" json:"email_id"`
+	Id         int64      `gorm:"primaryKey;autoIncrement" json:"id"`
+	MailboxId  int64      `gorm:"not null;index" json:"mailbox_id"`
+	EmailId    int64      `gorm:"index" json:"email_id"`
 	Type       string     `gorm:"size:20;not null" json:"type"`
 	Status     string     `gorm:"size:20;not null" json:"status"`
 	Message    string     `gorm:"type:text" json:"message"`
@@ -32,7 +32,7 @@ func (m *EmailLogModel) Create(log *EmailLog) error {
 }
 
 // GetById 根据ID获取邮件日志
-func (m *EmailLogModel) GetById(id uint) (*EmailLog, error) {
+func (m *EmailLogModel) GetById(id int64) (*EmailLog, error) {
 	var log EmailLog
 	if err := m.db.First(&log, id).Error; err != nil {
 		return nil, err
@@ -85,13 +85,13 @@ func (m *EmailLogModel) List(params EmailLogListParams) ([]*EmailLog, int64, err
 }
 
 // GetByMailboxId 根据邮箱ID获取邮件日志
-func (m *EmailLogModel) GetByMailboxId(mailboxId uint) ([]*EmailLog, error) {
+func (m *EmailLogModel) GetByMailboxId(mailboxId int64) ([]*EmailLog, error) {
 	logs, _, err := m.List(EmailLogListParams{MailboxId: mailboxId})
 	return logs, err
 }
 
 // GetByEmailId 根据邮件ID获取邮件日志
-func (m *EmailLogModel) GetByEmailId(emailId uint) ([]*EmailLog, error) {
+func (m *EmailLogModel) GetByEmailId(emailId int64) ([]*EmailLog, error) {
 	logs, _, err := m.List(EmailLogListParams{EmailId: emailId})
 	return logs, err
 }

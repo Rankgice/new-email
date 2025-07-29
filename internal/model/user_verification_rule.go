@@ -7,9 +7,9 @@ import (
 
 // UserVerificationRule 用户验证码规则关联模型
 type UserVerificationRule struct {
-	Id        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserId    uint      `gorm:"not null;index" json:"user_id"`
-	RuleId    uint      `gorm:"not null;index" json:"rule_id"`
+	Id        int64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserId    int64     `gorm:"not null;index" json:"user_id"`
+	RuleId    int64     `gorm:"not null;index" json:"rule_id"`
 	Status    int       `gorm:"default:1" json:"status"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -33,7 +33,7 @@ func (m *UserVerificationRuleModel) Delete(userRule *UserVerificationRule) error
 }
 
 // GetById 根据ID获取用户验证码规则关联
-func (m *UserVerificationRuleModel) GetById(id uint) (*UserVerificationRule, error) {
+func (m *UserVerificationRuleModel) GetById(id int64) (*UserVerificationRule, error) {
 	var userRule UserVerificationRule
 	if err := m.db.First(&userRule, id).Error; err != nil {
 		return nil, err
@@ -80,13 +80,13 @@ func (m *UserVerificationRuleModel) List(params UserVerificationRuleListParams) 
 }
 
 // GetByUserId 根据用户ID获取规则关联列表
-func (m *UserVerificationRuleModel) GetByUserId(userId uint) ([]*UserVerificationRule, error) {
+func (m *UserVerificationRuleModel) GetByUserId(userId int64) ([]*UserVerificationRule, error) {
 	userRules, _, err := m.List(UserVerificationRuleListParams{UserId: userId})
 	return userRules, err
 }
 
 // GetByRuleId 根据规则ID获取用户关联列表
-func (m *UserVerificationRuleModel) GetByRuleId(ruleId uint) ([]*UserVerificationRule, error) {
+func (m *UserVerificationRuleModel) GetByRuleId(ruleId int64) ([]*UserVerificationRule, error) {
 	userRules, _, err := m.List(UserVerificationRuleListParams{RuleId: ruleId})
 	return userRules, err
 }

@@ -4,7 +4,7 @@ import "time"
 
 // VerificationCodeListReq 验证码列表请求
 type VerificationCodeListReq struct {
-	EmailId        *uint     `json:"emailId" form:"emailId"`               // 邮件ID
+	EmailId        *int64    `json:"emailId" form:"emailId"`               // 邮件ID
 	Code           string    `json:"code" form:"code"`                     // 验证码（模糊搜索）
 	Source         string    `json:"source" form:"source"`                 // 来源
 	IsUsed         *bool     `json:"isUsed" form:"isUsed"`                 // 是否已使用
@@ -16,9 +16,9 @@ type VerificationCodeListReq struct {
 
 // VerificationCodeResp 验证码响应
 type VerificationCodeResp struct {
-	Id        uint       `json:"id"`        // 验证码ID
-	UserId    uint       `json:"userId"`    // 用户ID
-	EmailId   uint       `json:"emailId"`   // 邮件ID
+	Id        int64      `json:"id"`        // 验证码ID
+	UserId    int64      `json:"userId"`    // 用户ID
+	EmailId   int64      `json:"emailId"`   // 邮件ID
 	Code      string     `json:"code"`      // 验证码
 	Source    string     `json:"source"`    // 来源
 	IsUsed    bool       `json:"isUsed"`    // 是否已使用

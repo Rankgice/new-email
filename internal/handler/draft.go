@@ -191,7 +191,7 @@ func (h *DraftHandler) Create(c *gin.Context) {
 func (h *DraftHandler) Update(c *gin.Context) {
 	// 获取草稿ID
 	idStr := c.Param("id")
-	draftId, err := strconv.ParseUint(idStr, 10, 32)
+	draftId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的草稿ID"))
 		return
@@ -211,7 +211,7 @@ func (h *DraftHandler) Update(c *gin.Context) {
 	}
 
 	// 检查草稿是否存在
-	draft, err := h.svcCtx.EmailDraftModel.GetById(uint(draftId))
+	draft, err := h.svcCtx.EmailDraftModel.GetById(draftId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -292,7 +292,7 @@ func (h *DraftHandler) Update(c *gin.Context) {
 func (h *DraftHandler) Delete(c *gin.Context) {
 	// 获取草稿ID
 	idStr := c.Param("id")
-	draftId, err := strconv.ParseUint(idStr, 10, 32)
+	draftId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的草稿ID"))
 		return
@@ -306,7 +306,7 @@ func (h *DraftHandler) Delete(c *gin.Context) {
 	}
 
 	// 检查草稿是否存在
-	draft, err := h.svcCtx.EmailDraftModel.GetById(uint(draftId))
+	draft, err := h.svcCtx.EmailDraftModel.GetById(draftId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -349,7 +349,7 @@ func (h *DraftHandler) Delete(c *gin.Context) {
 func (h *DraftHandler) Send(c *gin.Context) {
 	// 获取草稿ID
 	idStr := c.Param("id")
-	draftId, err := strconv.ParseUint(idStr, 10, 32)
+	draftId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的草稿ID"))
 		return
@@ -363,7 +363,7 @@ func (h *DraftHandler) Send(c *gin.Context) {
 	}
 
 	// 检查草稿是否存在
-	draft, err := h.svcCtx.EmailDraftModel.GetById(uint(draftId))
+	draft, err := h.svcCtx.EmailDraftModel.GetById(draftId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -415,7 +415,7 @@ func (h *DraftHandler) Send(c *gin.Context) {
 func (h *DraftHandler) GetById(c *gin.Context) {
 	// 获取草稿ID
 	idStr := c.Param("id")
-	draftId, err := strconv.ParseUint(idStr, 10, 32)
+	draftId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的草稿ID"))
 		return
@@ -429,7 +429,7 @@ func (h *DraftHandler) GetById(c *gin.Context) {
 	}
 
 	// 查询草稿详情
-	draft, err := h.svcCtx.EmailDraftModel.GetById(uint(draftId))
+	draft, err := h.svcCtx.EmailDraftModel.GetById(draftId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return

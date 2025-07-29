@@ -10,8 +10,8 @@ import (
 
 // VerificationRule 验证码规则模型
 type VerificationRule struct {
-	Id          uint           `gorm:"primaryKey;autoIncrement" json:"id"` // 规则ID
-	UserId      uint           `gorm:"index" json:"user_id"`               // 创建人ID，0表示公共规则
+	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"` // 规则ID
+	UserId      int64          `gorm:"index" json:"user_id"`               // 创建人ID，0表示公共规则
 	Name        string         `gorm:"size:100;not null" json:"name"`      // 规则名称
 	Pattern     string         `gorm:"type:text;not null" json:"pattern"`  // 正则表达式
 	Description string         `gorm:"type:text" json:"description"`       // 规则描述
@@ -55,7 +55,7 @@ func (m *VerificationRuleModel) Update(tx *gorm.DB, rule *VerificationRule) erro
 }
 
 // MapUpdate 更新验证码规则（使用map）
-func (m *VerificationRuleModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface{}) error {
+func (m *VerificationRuleModel) MapUpdate(tx *gorm.DB, id int64, data map[string]interface{}) error {
 	db := m.db
 	if tx != nil {
 		db = tx
@@ -78,7 +78,7 @@ func (m *VerificationRuleModel) Delete(rule *VerificationRule) error {
 }
 
 // GetById 根据ID获取验证码规则
-func (m *VerificationRuleModel) GetById(id uint) (*VerificationRule, error) {
+func (m *VerificationRuleModel) GetById(id int64) (*VerificationRule, error) {
 	var rule VerificationRule
 	if err := m.db.First(&rule, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -152,12 +152,12 @@ func (m *VerificationRuleModel) List(params VerificationRuleListParams) ([]*Veri
 }
 
 // BatchDelete 批量删除验证码规则
-func (m *VerificationRuleModel) BatchDelete(ids []uint) error {
+func (m *VerificationRuleModel) BatchDelete(ids []int64) error {
 	return m.db.Where("id IN ?", ids).Delete(&VerificationRule{}).Error
 }
 
 // BatchUpdateStatus 批量更新验证码规则状态
-func (m *VerificationRuleModel) BatchUpdateStatus(ids []uint, status int) error {
+func (m *VerificationRuleModel) BatchUpdateStatus(ids []int64, status int) error {
 	return m.db.Model(&VerificationRule{}).Where("id IN ?", ids).Update("status", status).Error
 }
 
@@ -180,7 +180,7 @@ func (m *VerificationRuleModel) GetGlobalRules() ([]*VerificationRule, error) {
 }
 
 // GetUserRules 获取用户规则
-func (m *VerificationRuleModel) GetUserRules(userId uint) ([]*VerificationRule, error) {
+func (m *VerificationRuleModel) GetUserRules(userId int64) ([]*VerificationRule, error) {
 	var rules []*VerificationRule
 	if err := m.db.Where("user_id = ? AND status = ?", userId, constant.StatusEnabled).Order("priority DESC").Find(&rules).Error; err != nil {
 		return nil, err
@@ -189,7 +189,7 @@ func (m *VerificationRuleModel) GetUserRules(userId uint) ([]*VerificationRule, 
 }
 
 // GetAvailableRules 获取用户可用的规则（全局规则 + 用户规则）
-func (m *VerificationRuleModel) GetAvailableRules(userId uint) ([]*VerificationRule, error) {
+func (m *VerificationRuleModel) GetAvailableRules(userId int64) ([]*VerificationRule, error) {
 	var rules []*VerificationRule
 	if err := m.db.Where("(is_global = ? OR user_id = ?) AND status = ?", true, userId, constant.StatusEnabled).
 		Order("priority DESC").Find(&rules).Error; err != nil {
@@ -217,7 +217,7 @@ func (m *VerificationRuleModel) CountGlobalRules() (int64, error) {
 }
 
 // CountUserRules 统计用户规则数量
-func (m *VerificationRuleModel) CountUserRules(userId uint) (int64, error) {
+func (m *VerificationRuleModel) CountUserRules(userId int64) (int64, error) {
 	var count int64
 	if err := m.db.Model(&VerificationRule{}).Where("user_id = ?", userId).Count(&count).Error; err != nil {
 		return 0, err
@@ -226,7 +226,7 @@ func (m *VerificationRuleModel) CountUserRules(userId uint) (int64, error) {
 }
 
 // CheckNameExists 检查规则名称是否存在
-func (m *VerificationRuleModel) CheckNameExists(name string, userId uint, excludeId ...uint) (bool, error) {
+func (m *VerificationRuleModel) CheckNameExists(name string, userId int64, excludeId ...int64) (bool, error) {
 	var count int64
 	db := m.db.Model(&VerificationRule{}).Where("name = ? AND user_id = ?", name, userId)
 
@@ -242,12 +242,12 @@ func (m *VerificationRuleModel) CheckNameExists(name string, userId uint, exclud
 }
 
 // UpdatePriority 更新规则优先级
-func (m *VerificationRuleModel) UpdatePriority(id uint, priority int) error {
+func (m *VerificationRuleModel) UpdatePriority(id int64, priority int) error {
 	return m.db.Model(&VerificationRule{}).Where("id = ?", id).Update("priority", priority).Error
 }
 
 // GetMaxPriority 获取最大优先级
-func (m *VerificationRuleModel) GetMaxPriority(userId uint) (int, error) {
+func (m *VerificationRuleModel) GetMaxPriority(userId int64) (int, error) {
 	var maxPriority int
 	if err := m.db.Model(&VerificationRule{}).Where("user_id = ?", userId).
 		Select("COALESCE(MAX(priority), 0)").Scan(&maxPriority).Error; err != nil {

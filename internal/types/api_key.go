@@ -30,8 +30,8 @@ type ApiKeyListReq struct {
 
 // ApiKeyResp API密钥响应
 type ApiKeyResp struct {
-	Id          uint       `json:"id"`          // 密钥ID
-	UserId      uint       `json:"userId"`      // 用户ID
+	Id          int64      `json:"id"`          // 密钥ID
+	UserId      int64      `json:"userId"`      // 用户ID
 	Name        string     `json:"name"`        // 密钥名称
 	Key         string     `json:"key"`         // 密钥（已脱敏）
 	Permissions string     `json:"permissions"` // 权限
@@ -44,8 +44,8 @@ type ApiKeyResp struct {
 
 // ApiKeyCreateResp 创建API密钥响应
 type ApiKeyCreateResp struct {
-	Id          uint       `json:"id"`          // 密钥ID
-	UserId      uint       `json:"userId"`      // 用户ID
+	Id          int64      `json:"id"`          // 密钥ID
+	UserId      int64      `json:"userId"`      // 用户ID
 	Name        string     `json:"name"`        // 密钥名称
 	Key         string     `json:"key"`         // 密钥（完整，仅创建时返回）
 	Permissions string     `json:"permissions"` // 权限

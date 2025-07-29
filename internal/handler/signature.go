@@ -165,7 +165,7 @@ func (h *SignatureHandler) Create(c *gin.Context) {
 func (h *SignatureHandler) Update(c *gin.Context) {
 	// 获取签名ID
 	idStr := c.Param("id")
-	signatureId, err := strconv.ParseUint(idStr, 10, 32)
+	signatureId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的签名ID"))
 		return
@@ -185,7 +185,7 @@ func (h *SignatureHandler) Update(c *gin.Context) {
 	}
 
 	// 检查签名是否存在
-	signature, err := h.svcCtx.EmailSignatureModel.GetById(uint(signatureId))
+	signature, err := h.svcCtx.EmailSignatureModel.GetById(signatureId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -253,7 +253,7 @@ func (h *SignatureHandler) Update(c *gin.Context) {
 func (h *SignatureHandler) Delete(c *gin.Context) {
 	// 获取签名ID
 	idStr := c.Param("id")
-	signatureId, err := strconv.ParseUint(idStr, 10, 32)
+	signatureId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的签名ID"))
 		return
@@ -267,7 +267,7 @@ func (h *SignatureHandler) Delete(c *gin.Context) {
 	}
 
 	// 检查签名是否存在
-	signature, err := h.svcCtx.EmailSignatureModel.GetById(uint(signatureId))
+	signature, err := h.svcCtx.EmailSignatureModel.GetById(signatureId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -310,7 +310,7 @@ func (h *SignatureHandler) Delete(c *gin.Context) {
 func (h *SignatureHandler) GetById(c *gin.Context) {
 	// 获取签名ID
 	idStr := c.Param("id")
-	signatureId, err := strconv.ParseUint(idStr, 10, 32)
+	signatureId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的签名ID"))
 		return
@@ -324,7 +324,7 @@ func (h *SignatureHandler) GetById(c *gin.Context) {
 	}
 
 	// 查询签名详情
-	signature, err := h.svcCtx.EmailSignatureModel.GetById(uint(signatureId))
+	signature, err := h.svcCtx.EmailSignatureModel.GetById(signatureId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -359,7 +359,7 @@ func (h *SignatureHandler) GetById(c *gin.Context) {
 func (h *SignatureHandler) SetDefault(c *gin.Context) {
 	// 获取签名ID
 	idStr := c.Param("id")
-	signatureId, err := strconv.ParseUint(idStr, 10, 32)
+	signatureId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的签名ID"))
 		return
@@ -373,7 +373,7 @@ func (h *SignatureHandler) SetDefault(c *gin.Context) {
 	}
 
 	// 检查签名是否存在
-	signature, err := h.svcCtx.EmailSignatureModel.GetById(uint(signatureId))
+	signature, err := h.svcCtx.EmailSignatureModel.GetById(signatureId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return

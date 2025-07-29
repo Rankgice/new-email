@@ -18,12 +18,12 @@ type PageResp struct {
 
 // IdReq ID请求
 type IdReq struct {
-	Id uint `json:"id" form:"id" binding:"required"` // ID
+	Id int64 `json:"id" form:"id" binding:"required"` // ID
 }
 
 // IdsReq 批量ID请求
 type IdsReq struct {
-	Ids []uint `json:"ids" binding:"required,min=1"` // ID列表
+	Ids []int64 `json:"ids" binding:"required,min=1"` // ID列表
 }
 
 // StatusReq 状态请求
@@ -33,8 +33,8 @@ type StatusReq struct {
 
 // BatchStatusReq 批量状态请求
 type BatchStatusReq struct {
-	Ids    []uint `json:"ids" binding:"required,min=1"` // ID列表
-	Status int    `json:"status" binding:"oneof=0 1"`   // 状态：0禁用 1启用
+	Ids    []int64 `json:"ids" binding:"required,min=1"` // ID列表
+	Status int     `json:"status" binding:"oneof=0 1"`   // 状态：0禁用 1启用
 }
 
 // TimeRangeReq 时间范围请求
@@ -195,7 +195,7 @@ type SendCodeResp struct {
 	Success   bool      `json:"success"`   // 是否成功
 	Message   string    `json:"message"`   // 消息
 	ExpiresAt time.Time `json:"expiresAt"` // 过期时间
-	CodeId    uint      `json:"codeId"`    // 验证码ID
+	CodeId    int64     `json:"codeId"`    // 验证码ID
 }
 
 // VerifyCodeReq 验证验证码请求
@@ -203,14 +203,14 @@ type VerifyCodeReq struct {
 	Code   string `json:"code" binding:"required"` // 验证码
 	Type   string `json:"type" binding:"required"` // 验证码类型
 	Target string `json:"target"`                  // 目标（邮箱或手机号）
-	CodeId uint   `json:"codeId"`                  // 验证码ID（可选）
+	CodeId int64  `json:"codeId"`                  // 验证码ID（可选）
 }
 
 // VerifyCodeResp 验证验证码响应
 type VerifyCodeResp struct {
 	Success bool   `json:"success"` // 是否成功
 	Message string `json:"message"` // 消息
-	CodeId  uint   `json:"codeId"`  // 验证码ID
+	CodeId  int64  `json:"codeId"`  // 验证码ID
 }
 
 // SystemInfoResp 系统信息响应

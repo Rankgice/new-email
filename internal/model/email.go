@@ -7,8 +7,8 @@ import (
 
 // Email 邮件模型
 type Email struct {
-	Id          uint           `gorm:"primaryKey;autoIncrement" json:"id"`       // 邮件ID
-	MailboxId   uint           `gorm:"not null;index" json:"mailbox_id"`         // 邮箱ID
+	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`       // 邮件ID
+	MailboxId   int64          `gorm:"not null;index" json:"mailbox_id"`         // 邮箱ID
 	MessageId   string         `gorm:"size:255;index" json:"message_id"`         // 邮件消息ID
 	Subject     string         `gorm:"size:500" json:"subject"`                  // 邮件主题
 	FromEmail   string         `gorm:"size:100;index" json:"from_email"`         // 发件人邮箱
@@ -52,7 +52,7 @@ func (m *EmailModel) Create(email *Email) error {
 }
 
 // GetById 根据ID获取邮件
-func (m *EmailModel) GetById(id uint) (*Email, error) {
+func (m *EmailModel) GetById(id int64) (*Email, error) {
 	var email Email
 	if err := m.db.First(&email, id).Error; err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func (m *EmailModel) Update(email *Email) error {
 }
 
 // MapUpdate 使用map更新邮件
-func (m *EmailModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface{}) error {
+func (m *EmailModel) MapUpdate(tx *gorm.DB, id int64, data map[string]interface{}) error {
 	db := m.db
 	if tx != nil {
 		db = tx
@@ -148,7 +148,7 @@ func (m *EmailModel) Delete(email *Email) error {
 }
 
 // BatchDelete 批量删除邮件
-func (m *EmailModel) BatchDelete(ids []uint) error {
+func (m *EmailModel) BatchDelete(ids []int64) error {
 	return m.db.Where("id IN ?", ids).Delete(&Email{}).Error
 }
 
@@ -186,21 +186,21 @@ func (m *EmailModel) GetStatistics() (map[string]interface{}, error) {
 }
 
 // MarkAsRead 标记邮件为已读
-func (m *EmailModel) MarkAsRead(id uint) error {
+func (m *EmailModel) MarkAsRead(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_read", true).Error
 }
 
 // MarkAsUnread 标记邮件为未读
-func (m *EmailModel) MarkAsUnread(id uint) error {
+func (m *EmailModel) MarkAsUnread(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_read", false).Error
 }
 
 // MarkAsStarred 标记邮件为星标
-func (m *EmailModel) MarkAsStarred(id uint) error {
+func (m *EmailModel) MarkAsStarred(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_starred", true).Error
 }
 
 // UnmarkAsStarred 取消邮件星标
-func (m *EmailModel) UnmarkAsStarred(id uint) error {
+func (m *EmailModel) UnmarkAsStarred(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_starred", false).Error
 }

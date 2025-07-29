@@ -45,7 +45,7 @@ type UserBatchImportReq struct {
 type UserExportReq struct {
 	Format string   `json:"format" form:"format"` // 导出格式：csv, excel
 	Fields []string `json:"fields"`               // 导出字段
-	Ids    []uint   `json:"ids"`                  // 指定用户ID（可选）
+	Ids    []int64  `json:"ids"`                  // 指定用户ID（可选）
 	UserListReq
 }
 
@@ -58,7 +58,7 @@ type UserSearchReq struct {
 
 // UserActivityReq 用户活动记录请求
 type UserActivityReq struct {
-	UserId uint   `json:"userId" form:"userId"` // 用户ID
+	UserId int64  `json:"userId" form:"userId"` // 用户ID
 	Action string `json:"action" form:"action"` // 操作类型
 	TimeRangeReq
 	PageReq
@@ -66,8 +66,8 @@ type UserActivityReq struct {
 
 // UserActivityResp 用户活动记录响应
 type UserActivityResp struct {
-	Id        uint      `json:"id"`        // 记录ID
-	UserId    uint      `json:"userId"`    // 用户ID
+	Id        int64     `json:"id"`        // 记录ID
+	UserId    int64     `json:"userId"`    // 用户ID
 	Action    string    `json:"action"`    // 操作类型
 	Resource  string    `json:"resource"`  // 操作资源
 	IP        string    `json:"ip"`        // IP地址

@@ -7,8 +7,8 @@ import (
 
 // EmailAttachment 邮件附件模型
 type EmailAttachment struct {
-	Id        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
-	EmailId   uint      `gorm:"not null;index" json:"email_id"`
+	Id        int64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	EmailId   int64     `gorm:"not null;index" json:"email_id"`
 	Filename  string    `gorm:"size:255;not null" json:"filename"`
 	FilePath  string    `gorm:"size:500;not null" json:"file_path"`
 	FileSize  int64     `gorm:"not null" json:"file_size"`
@@ -28,7 +28,7 @@ func (m *EmailAttachmentModel) Create(attachment *EmailAttachment) error {
 }
 
 // GetById 根据ID获取邮件附件
-func (m *EmailAttachmentModel) GetById(id uint) (*EmailAttachment, error) {
+func (m *EmailAttachmentModel) GetById(id int64) (*EmailAttachment, error) {
 	var attachment EmailAttachment
 	if err := m.db.First(&attachment, id).Error; err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (m *EmailAttachmentModel) Delete(attachment *EmailAttachment) error {
 }
 
 // GetByEmailId 根据邮件ID获取附件列表
-func (m *EmailAttachmentModel) GetByEmailId(emailId uint) ([]*EmailAttachment, error) {
+func (m *EmailAttachmentModel) GetByEmailId(emailId int64) ([]*EmailAttachment, error) {
 	attachments, _, err := m.List(EmailAttachmentListParams{EmailId: emailId})
 	return attachments, err
 }

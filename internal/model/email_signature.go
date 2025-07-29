@@ -7,8 +7,8 @@ import (
 
 // EmailSignature 邮件签名模型
 type EmailSignature struct {
-	Id        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserId    uint           `gorm:"not null;index" json:"user_id"`
+	Id        int64          `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserId    int64          `gorm:"not null;index" json:"user_id"`
 	Name      string         `gorm:"size:100;not null" json:"name"`
 	Content   string         `gorm:"type:text" json:"content"`
 	IsDefault bool           `gorm:"default:false" json:"is_default"`
@@ -40,7 +40,7 @@ func (m *EmailSignatureModel) Delete(signature *EmailSignature) error {
 }
 
 // GetById 根据ID获取邮件签名
-func (m *EmailSignatureModel) GetById(id uint) (*EmailSignature, error) {
+func (m *EmailSignatureModel) GetById(id int64) (*EmailSignature, error) {
 	var signature EmailSignature
 	if err := m.db.First(&signature, id).Error; err != nil {
 		return nil, err
@@ -102,13 +102,13 @@ func (m *EmailSignatureModel) List(params EmailSignatureListParams) ([]*EmailSig
 }
 
 // GetByUserId 根据用户ID获取签名列表
-func (m *EmailSignatureModel) GetByUserId(userId uint) ([]*EmailSignature, error) {
+func (m *EmailSignatureModel) GetByUserId(userId int64) ([]*EmailSignature, error) {
 	signatures, _, err := m.List(EmailSignatureListParams{UserId: userId})
 	return signatures, err
 }
 
 // GetDefaultSignature 获取默认签名
-func (m *EmailSignatureModel) GetDefaultSignature(userId uint) (*EmailSignature, error) {
+func (m *EmailSignatureModel) GetDefaultSignature(userId int64) (*EmailSignature, error) {
 	isDefault := true
 	signatures, _, err := m.List(EmailSignatureListParams{UserId: userId, IsDefault: &isDefault})
 	if err != nil {
@@ -121,6 +121,6 @@ func (m *EmailSignatureModel) GetDefaultSignature(userId uint) (*EmailSignature,
 }
 
 // ClearDefaultByUserId 清除用户的默认签名
-func (m *EmailSignatureModel) ClearDefaultByUserId(userId uint) error {
+func (m *EmailSignatureModel) ClearDefaultByUserId(userId int64) error {
 	return m.db.Model(&EmailSignature{}).Where("user_id = ?", userId).Update("is_default", false).Error
 }

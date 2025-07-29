@@ -7,9 +7,9 @@ import (
 
 // EmailDraft 草稿邮件模型
 type EmailDraft struct {
-	Id          uint           `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserId      uint           `gorm:"not null;index" json:"user_id"`
-	MailboxId   uint           `gorm:"not null;index" json:"mailbox_id"`
+	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserId      int64          `gorm:"not null;index" json:"user_id"`
+	MailboxId   int64          `gorm:"not null;index" json:"mailbox_id"`
 	Subject     string         `gorm:"size:500" json:"subject"`
 	ToEmails    string         `gorm:"type:text" json:"to_emails"`
 	CcEmails    string         `gorm:"type:text" json:"cc_emails"`
@@ -45,7 +45,7 @@ func (m *EmailDraftModel) Delete(draft *EmailDraft) error {
 }
 
 // GetById 根据ID获取草稿邮件
-func (m *EmailDraftModel) GetById(id uint) (*EmailDraft, error) {
+func (m *EmailDraftModel) GetById(id int64) (*EmailDraft, error) {
 	var draft EmailDraft
 	if err := m.db.First(&draft, id).Error; err != nil {
 		return nil, err
@@ -113,13 +113,13 @@ func (m *EmailDraftModel) List(params EmailDraftListParams) ([]*EmailDraft, int6
 }
 
 // GetByUserId 根据用户ID获取草稿邮件列表
-func (m *EmailDraftModel) GetByUserId(userId uint) ([]*EmailDraft, error) {
+func (m *EmailDraftModel) GetByUserId(userId int64) ([]*EmailDraft, error) {
 	drafts, _, err := m.List(EmailDraftListParams{UserId: userId})
 	return drafts, err
 }
 
 // GetByMailboxId 根据邮箱ID获取草稿邮件列表
-func (m *EmailDraftModel) GetByMailboxId(mailboxId uint) ([]*EmailDraft, error) {
+func (m *EmailDraftModel) GetByMailboxId(mailboxId int64) ([]*EmailDraft, error) {
 	drafts, _, err := m.List(EmailDraftListParams{MailboxId: mailboxId})
 	return drafts, err
 }

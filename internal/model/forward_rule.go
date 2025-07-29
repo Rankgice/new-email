@@ -7,8 +7,8 @@ import (
 
 // ForwardRule 转发规则模型
 type ForwardRule struct {
-	Id             uint           `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserId         uint           `gorm:"not null;index" json:"user_id"`
+	Id             int64          `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserId         int64          `gorm:"not null;index" json:"user_id"`
 	Name           string         `gorm:"size:100;not null" json:"name"`
 	FromPattern    string         `gorm:"size:255" json:"from_pattern"`
 	SubjectPattern string         `gorm:"size:255" json:"subject_pattern"`
@@ -44,7 +44,7 @@ func (m *ForwardRuleModel) Delete(rule *ForwardRule) error {
 }
 
 // GetById 根据ID获取转发规则
-func (m *ForwardRuleModel) GetById(id uint) (*ForwardRule, error) {
+func (m *ForwardRuleModel) GetById(id int64) (*ForwardRule, error) {
 	var rule ForwardRule
 	if err := m.db.First(&rule, id).Error; err != nil {
 		return nil, err
@@ -118,13 +118,13 @@ func (m *ForwardRuleModel) List(params ForwardRuleListParams) ([]*ForwardRule, i
 }
 
 // GetByUserId 根据用户ID获取转发规则列表
-func (m *ForwardRuleModel) GetByUserId(userId uint) ([]*ForwardRule, error) {
+func (m *ForwardRuleModel) GetByUserId(userId int64) ([]*ForwardRule, error) {
 	rules, _, err := m.List(ForwardRuleListParams{UserId: userId})
 	return rules, err
 }
 
 // GetActiveRules 获取活跃的转发规则
-func (m *ForwardRuleModel) GetActiveRules(userId uint) ([]*ForwardRule, error) {
+func (m *ForwardRuleModel) GetActiveRules(userId int64) ([]*ForwardRule, error) {
 	status := 1
 	rules, _, err := m.List(ForwardRuleListParams{UserId: userId, Status: &status})
 	return rules, err

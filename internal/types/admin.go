@@ -15,7 +15,7 @@ type AdminCreateReq struct {
 
 // AdminUpdateReq 更新管理员请求
 type AdminUpdateReq struct {
-	Id       uint   `json:"id" binding:"required"`              // 管理员ID
+	Id       int64  `json:"id" binding:"required"`              // 管理员ID
 	Username string `json:"username" binding:"min=3,max=50"`    // 用户名
 	Email    string `json:"email" binding:"email"`              // 邮箱
 	Nickname string `json:"nickname"`                           // 昵称
@@ -37,7 +37,7 @@ type AdminListReq struct {
 
 // AdminResp 管理员响应
 type AdminResp struct {
-	Id          uint       `json:"id"`                    // 管理员ID
+	Id          int64      `json:"id"`                    // 管理员ID
 	Username    string     `json:"username"`              // 用户名
 	Email       string     `json:"email"`                 // 邮箱
 	Nickname    string     `json:"nickname"`              // 昵称
@@ -78,26 +78,26 @@ type AdminStatsResp struct {
 
 // AdminPermissionReq 管理员权限设置请求
 type AdminPermissionReq struct {
-	AdminId     uint     `json:"adminId" binding:"required"`     // 管理员ID
+	AdminId     int64    `json:"adminId" binding:"required"`     // 管理员ID
 	Permissions []string `json:"permissions" binding:"required"` // 权限列表
 }
 
 // AdminPermissionResp 管理员权限响应
 type AdminPermissionResp struct {
-	AdminId     uint      `json:"adminId"`     // 管理员ID
+	AdminId     int64     `json:"adminId"`     // 管理员ID
 	Permissions []string  `json:"permissions"` // 权限列表
 	UpdatedAt   time.Time `json:"updatedAt"`   // 更新时间
 }
 
 // AdminRoleReq 管理员角色设置请求
 type AdminRoleReq struct {
-	AdminId uint   `json:"adminId" binding:"required"`                  // 管理员ID
+	AdminId int64  `json:"adminId" binding:"required"`                  // 管理员ID
 	Role    string `json:"role" binding:"required,oneof=admin manager"` // 角色
 }
 
 // AdminActivityReq 管理员活动记录请求
 type AdminActivityReq struct {
-	AdminId uint   `json:"adminId" form:"adminId"` // 管理员ID
+	AdminId int64  `json:"adminId" form:"adminId"` // 管理员ID
 	Action  string `json:"action" form:"action"`   // 操作类型
 	TimeRangeReq
 	PageReq
@@ -105,8 +105,8 @@ type AdminActivityReq struct {
 
 // AdminActivityResp 管理员活动记录响应
 type AdminActivityResp struct {
-	Id        uint      `json:"id"`        // 记录ID
-	AdminId   uint      `json:"adminId"`   // 管理员ID
+	Id        int64     `json:"id"`        // 记录ID
+	AdminId   int64     `json:"adminId"`   // 管理员ID
 	Action    string    `json:"action"`    // 操作类型
 	Resource  string    `json:"resource"`  // 操作资源
 	IP        string    `json:"ip"`        // IP地址
@@ -180,15 +180,15 @@ type SystemStatsResp struct {
 
 // AdminBatchOperationReq 批量操作请求
 type AdminBatchOperationReq struct {
-	Ids       []uint `json:"ids" binding:"required,min=1"`                             // ID列表
-	Operation string `json:"operation" binding:"required,oneof=enable disable delete"` // 操作类型
+	Ids       []int64 `json:"ids" binding:"required,min=1"`                             // ID列表
+	Operation string  `json:"operation" binding:"required,oneof=enable disable delete"` // 操作类型
 }
 
 // AdminExportReq 管理员导出请求
 type AdminExportReq struct {
 	Format string   `json:"format" form:"format"` // 导出格式：csv, excel
 	Fields []string `json:"fields"`               // 导出字段
-	Ids    []uint   `json:"ids"`                  // 指定管理员ID（可选）
+	Ids    []int64  `json:"ids"`                  // 指定管理员ID（可选）
 	AdminListReq
 }
 
@@ -224,7 +224,7 @@ type UserListReq struct {
 
 // UserResp 用户响应
 type UserResp struct {
-	Id          uint       `json:"id"`          // 用户ID
+	Id          int64      `json:"id"`          // 用户ID
 	Username    string     `json:"username"`    // 用户名
 	Email       string     `json:"email"`       // 邮箱
 	Nickname    string     `json:"nickname"`    // 昵称
@@ -247,8 +247,8 @@ type UserStatsResp struct {
 
 // UserBatchOperationReq 用户批量操作请求
 type UserBatchOperationReq struct {
-	Ids       []uint `json:"ids" binding:"required,min=1"`                             // 用户ID列表
-	Operation string `json:"operation" binding:"required,oneof=enable disable delete"` // 操作类型
+	Ids       []int64 `json:"ids" binding:"required,min=1"`                             // 用户ID列表
+	Operation string  `json:"operation" binding:"required,oneof=enable disable delete"` // 操作类型
 }
 
 // ImportUsersReq 导入用户请求

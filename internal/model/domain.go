@@ -197,7 +197,7 @@ func (m *DomainModel) CountVerifiedDomains() (int64, error) {
 }
 
 // CheckNameExists 检查域名是否存在
-func (m *DomainModel) CheckNameExists(name string, excludeId ...uint) (bool, error) {
+func (m *DomainModel) CheckNameExists(name string, excludeId ...int64) (bool, error) {
 	var count int64
 	db := m.db.Model(&Domain{}).Where("name = ?", name)
 
@@ -213,22 +213,22 @@ func (m *DomainModel) CheckNameExists(name string, excludeId ...uint) (bool, err
 }
 
 // UpdateDNSVerification 更新DNS验证状态
-func (m *DomainModel) UpdateDNSVerification(id uint, verified bool) error {
+func (m *DomainModel) UpdateDNSVerification(id int64, verified bool) error {
 	return m.db.Model(&Domain{}).Where("id = ?", id).Update("dns_verified", verified).Error
 }
 
 // UpdateDKIMRecord 更新DKIM记录
-func (m *DomainModel) UpdateDKIMRecord(id uint, dkimRecord string) error {
+func (m *DomainModel) UpdateDKIMRecord(id int64, dkimRecord string) error {
 	return m.db.Model(&Domain{}).Where("id = ?", id).Update("dkim_record", dkimRecord).Error
 }
 
 // UpdateSPFRecord 更新SPF记录
-func (m *DomainModel) UpdateSPFRecord(id uint, spfRecord string) error {
+func (m *DomainModel) UpdateSPFRecord(id int64, spfRecord string) error {
 	return m.db.Model(&Domain{}).Where("id = ?", id).Update("spf_record", spfRecord).Error
 }
 
 // UpdateDMARCRecord 更新DMARC记录
-func (m *DomainModel) UpdateDMARCRecord(id uint, dmarcRecord string) error {
+func (m *DomainModel) UpdateDMARCRecord(id int64, dmarcRecord string) error {
 	return m.db.Model(&Domain{}).Where("id = ?", id).Update("dmarc_record", dmarcRecord).Error
 }
 

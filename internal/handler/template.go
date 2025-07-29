@@ -167,7 +167,7 @@ func (h *TemplateHandler) Create(c *gin.Context) {
 func (h *TemplateHandler) Update(c *gin.Context) {
 	// 获取模板ID
 	idStr := c.Param("id")
-	templateId, err := strconv.ParseUint(idStr, 10, 32)
+	templateId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的模板ID"))
 		return
@@ -187,7 +187,7 @@ func (h *TemplateHandler) Update(c *gin.Context) {
 	}
 
 	// 检查模板是否存在
-	template, err := h.svcCtx.EmailTemplateModel.GetById(uint(templateId))
+	template, err := h.svcCtx.EmailTemplateModel.GetById(templateId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -253,7 +253,7 @@ func (h *TemplateHandler) Update(c *gin.Context) {
 func (h *TemplateHandler) Delete(c *gin.Context) {
 	// 获取模板ID
 	idStr := c.Param("id")
-	templateId, err := strconv.ParseUint(idStr, 10, 32)
+	templateId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的模板ID"))
 		return
@@ -267,7 +267,7 @@ func (h *TemplateHandler) Delete(c *gin.Context) {
 	}
 
 	// 检查模板是否存在
-	template, err := h.svcCtx.EmailTemplateModel.GetById(uint(templateId))
+	template, err := h.svcCtx.EmailTemplateModel.GetById(templateId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -310,7 +310,7 @@ func (h *TemplateHandler) Delete(c *gin.Context) {
 func (h *TemplateHandler) GetById(c *gin.Context) {
 	// 获取模板ID
 	idStr := c.Param("id")
-	templateId, err := strconv.ParseUint(idStr, 10, 32)
+	templateId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的模板ID"))
 		return
@@ -324,7 +324,7 @@ func (h *TemplateHandler) GetById(c *gin.Context) {
 	}
 
 	// 查询模板详情
-	template, err := h.svcCtx.EmailTemplateModel.GetById(uint(templateId))
+	template, err := h.svcCtx.EmailTemplateModel.GetById(templateId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -381,7 +381,7 @@ func (h *TemplateHandler) GetCategories(c *gin.Context) {
 func (h *TemplateHandler) Copy(c *gin.Context) {
 	// 获取模板ID
 	idStr := c.Param("id")
-	templateId, err := strconv.ParseUint(idStr, 10, 32)
+	templateId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的模板ID"))
 		return
@@ -401,7 +401,7 @@ func (h *TemplateHandler) Copy(c *gin.Context) {
 	}
 
 	// 查询原模板
-	originalTemplate, err := h.svcCtx.EmailTemplateModel.GetById(uint(templateId))
+	originalTemplate, err := h.svcCtx.EmailTemplateModel.GetById(templateId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return

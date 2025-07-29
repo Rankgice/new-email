@@ -7,8 +7,8 @@ import (
 
 // EmailTemplate 邮件模板模型
 type EmailTemplate struct {
-	Id          uint           `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserId      uint           `gorm:"not null;index" json:"user_id"`
+	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserId      int64          `gorm:"not null;index" json:"user_id"`
 	Name        string         `gorm:"size:100;not null" json:"name"`
 	Subject     string         `gorm:"size:500" json:"subject"`
 	Content     string         `gorm:"type:longtext" json:"content"`
@@ -42,7 +42,7 @@ func (m *EmailTemplateModel) Delete(template *EmailTemplate) error {
 }
 
 // GetById 根据ID获取邮件模板
-func (m *EmailTemplateModel) GetById(id uint) (*EmailTemplate, error) {
+func (m *EmailTemplateModel) GetById(id int64) (*EmailTemplate, error) {
 	var template EmailTemplate
 	if err := m.db.First(&template, id).Error; err != nil {
 		return nil, err
@@ -110,20 +110,20 @@ func (m *EmailTemplateModel) List(params EmailTemplateListParams) ([]*EmailTempl
 }
 
 // GetByUserId 根据用户ID获取模板列表
-func (m *EmailTemplateModel) GetByUserId(userId uint) ([]*EmailTemplate, error) {
+func (m *EmailTemplateModel) GetByUserId(userId int64) ([]*EmailTemplate, error) {
 	templates, _, err := m.List(EmailTemplateListParams{UserId: userId})
 	return templates, err
 }
 
 // GetDefaultTemplates 获取默认模板列表
-func (m *EmailTemplateModel) GetDefaultTemplates(userId uint) ([]*EmailTemplate, error) {
+func (m *EmailTemplateModel) GetDefaultTemplates(userId int64) ([]*EmailTemplate, error) {
 	isDefault := true
 	templates, _, err := m.List(EmailTemplateListParams{UserId: userId, IsDefault: &isDefault})
 	return templates, err
 }
 
 // GetCategoriesByUserId 获取用户的模板分类列表
-func (m *EmailTemplateModel) GetCategoriesByUserId(userId uint) ([]string, error) {
+func (m *EmailTemplateModel) GetCategoriesByUserId(userId int64) ([]string, error) {
 	// 由于EmailTemplate模型中没有Category字段，返回默认分类
 	categories := []string{
 		"通用模板",

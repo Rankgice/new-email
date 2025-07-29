@@ -29,8 +29,8 @@ type SignatureListReq struct {
 
 // SignatureResp 签名响应
 type SignatureResp struct {
-	Id        uint      `json:"id"`        // 签名ID
-	UserId    uint      `json:"userId"`    // 用户ID
+	Id        int64     `json:"id"`        // 签名ID
+	UserId    int64     `json:"userId"`    // 用户ID
 	Name      string    `json:"name"`      // 签名名称
 	Content   string    `json:"content"`   // 签名内容
 	IsDefault bool      `json:"isDefault"` // 是否默认签名

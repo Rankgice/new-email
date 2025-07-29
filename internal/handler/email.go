@@ -113,7 +113,7 @@ func (h *EmailHandler) List(c *gin.Context) {
 func (h *EmailHandler) GetById(c *gin.Context) {
 	// 获取邮件ID
 	idStr := c.Param("id")
-	emailId, err := strconv.ParseUint(idStr, 10, 32)
+	emailId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮件ID"))
 		return
@@ -127,7 +127,7 @@ func (h *EmailHandler) GetById(c *gin.Context) {
 	}
 
 	// 查询邮件详情
-	email, err := h.svcCtx.EmailModel.GetById(uint(emailId))
+	email, err := h.svcCtx.EmailModel.GetById(emailId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -251,7 +251,7 @@ func (h *EmailHandler) Send(c *gin.Context) {
 func (h *EmailHandler) MarkRead(c *gin.Context) {
 	// 获取邮件ID
 	idStr := c.Param("id")
-	emailId, err := strconv.ParseUint(idStr, 10, 32)
+	emailId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮件ID"))
 		return
@@ -265,7 +265,7 @@ func (h *EmailHandler) MarkRead(c *gin.Context) {
 	}
 
 	// 查询邮件
-	email, err := h.svcCtx.EmailModel.GetById(uint(emailId))
+	email, err := h.svcCtx.EmailModel.GetById(emailId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -299,7 +299,7 @@ func (h *EmailHandler) MarkRead(c *gin.Context) {
 		UserId:     currentUserId,
 		Action:     "mark_read_email",
 		Resource:   "email",
-		ResourceId: uint(emailId),
+		ResourceId: emailId,
 		Method:     "PUT",
 		Path:       c.Request.URL.Path,
 		Ip:         c.ClientIP(),
@@ -315,7 +315,7 @@ func (h *EmailHandler) MarkRead(c *gin.Context) {
 func (h *EmailHandler) MarkStar(c *gin.Context) {
 	// 获取邮件ID
 	idStr := c.Param("id")
-	emailId, err := strconv.ParseUint(idStr, 10, 32)
+	emailId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮件ID"))
 		return
@@ -337,7 +337,7 @@ func (h *EmailHandler) MarkStar(c *gin.Context) {
 	}
 
 	// 查询邮件
-	email, err := h.svcCtx.EmailModel.GetById(uint(emailId))
+	email, err := h.svcCtx.EmailModel.GetById(emailId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -362,7 +362,7 @@ func (h *EmailHandler) MarkStar(c *gin.Context) {
 	updateData := map[string]interface{}{
 		"is_starred": req.IsStarred,
 	}
-	if err := h.svcCtx.EmailModel.MapUpdate(nil, uint(emailId), updateData); err != nil {
+	if err := h.svcCtx.EmailModel.MapUpdate(nil, emailId, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -376,7 +376,7 @@ func (h *EmailHandler) MarkStar(c *gin.Context) {
 		UserId:     currentUserId,
 		Action:     action,
 		Resource:   "email",
-		ResourceId: uint(emailId),
+		ResourceId: emailId,
 		Method:     "PUT",
 		Path:       c.Request.URL.Path,
 		Ip:         c.ClientIP(),
@@ -396,7 +396,7 @@ func (h *EmailHandler) MarkStar(c *gin.Context) {
 func (h *EmailHandler) Delete(c *gin.Context) {
 	// 获取邮件ID
 	idStr := c.Param("id")
-	emailId, err := strconv.ParseUint(idStr, 10, 32)
+	emailId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮件ID"))
 		return
@@ -410,7 +410,7 @@ func (h *EmailHandler) Delete(c *gin.Context) {
 	}
 
 	// 查询邮件
-	email, err := h.svcCtx.EmailModel.GetById(uint(emailId))
+	email, err := h.svcCtx.EmailModel.GetById(emailId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -442,7 +442,7 @@ func (h *EmailHandler) Delete(c *gin.Context) {
 		UserId:     currentUserId,
 		Action:     "delete_email",
 		Resource:   "email",
-		ResourceId: uint(emailId),
+		ResourceId: emailId,
 		Method:     "DELETE",
 		Path:       c.Request.URL.Path,
 		Ip:         c.ClientIP(),
@@ -611,7 +611,7 @@ func (h *EmailHandler) BatchOperation(c *gin.Context) {
 }
 
 // batchUpdateEmailStatus 批量更新邮件状态的辅助方法
-func (h *EmailHandler) batchUpdateEmailStatus(emailId uint, userId uint, status int) error {
+func (h *EmailHandler) batchUpdateEmailStatus(emailId int64, userId int64, status int) error {
 	email, err := h.svcCtx.EmailModel.GetById(emailId)
 	if err != nil {
 		return err

@@ -216,13 +216,11 @@ func (h *DomainHandler) Update(c *gin.Context) {
 // Delete 删除域名
 func (h *DomainHandler) Delete(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	domainId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的域名ID"))
 		return
 	}
-
-	domainId := uint(id)
 
 	// 检查域名是否存在
 	domain, err := h.svcCtx.DomainModel.GetById(domainId)
@@ -267,13 +265,11 @@ func (h *DomainHandler) Delete(c *gin.Context) {
 // Verify 验证域名DNS配置
 func (h *DomainHandler) Verify(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	domainId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的域名ID"))
 		return
 	}
-
-	domainId := uint(id)
 
 	// 检查域名是否存在
 	domain, err := h.svcCtx.DomainModel.GetById(domainId)
@@ -332,13 +328,13 @@ func (h *DomainHandler) Verify(c *gin.Context) {
 // GetById 根据ID获取域名信息
 func (h *DomainHandler) GetById(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	id, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的域名ID"))
 		return
 	}
 
-	domain, err := h.svcCtx.DomainModel.GetById(uint(id))
+	domain, err := h.svcCtx.DomainModel.GetById(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return

@@ -4,7 +4,7 @@ import "time"
 
 // DraftCreateReq 创建草稿请求
 type DraftCreateReq struct {
-	MailboxId   uint   `json:"mailboxId"`                             // 邮箱ID
+	MailboxId   int64  `json:"mailboxId"`                             // 邮箱ID
 	Subject     string `json:"subject" binding:"required,max=200"`    // 邮件主题
 	FromEmail   string `json:"fromEmail" binding:"required,email"`    // 发件人邮箱
 	ToEmail     string `json:"toEmail" binding:"required"`            // 收件人邮箱（多个用逗号分隔）
@@ -17,7 +17,7 @@ type DraftCreateReq struct {
 
 // DraftUpdateReq 更新草稿请求
 type DraftUpdateReq struct {
-	MailboxId   uint   `json:"mailboxId"`                             // 邮箱ID
+	MailboxId   int64  `json:"mailboxId"`                             // 邮箱ID
 	Subject     string `json:"subject" binding:"required,max=200"`    // 邮件主题
 	FromEmail   string `json:"fromEmail" binding:"required,email"`    // 发件人邮箱
 	ToEmail     string `json:"toEmail" binding:"required"`            // 收件人邮箱（多个用逗号分隔）
@@ -30,7 +30,7 @@ type DraftUpdateReq struct {
 
 // DraftListReq 草稿列表请求
 type DraftListReq struct {
-	MailboxId      *uint     `json:"mailboxId" form:"mailboxId"`           // 邮箱ID
+	MailboxId      *int64    `json:"mailboxId" form:"mailboxId"`           // 邮箱ID
 	Subject        string    `json:"subject" form:"subject"`               // 邮件主题（模糊搜索）
 	ToEmail        string    `json:"toEmail" form:"toEmail"`               // 收件人邮箱
 	CreatedAtStart time.Time `json:"createdAtStart" form:"createdAtStart"` // 创建时间开始
@@ -40,9 +40,9 @@ type DraftListReq struct {
 
 // DraftResp 草稿响应
 type DraftResp struct {
-	Id          uint      `json:"id"`          // 草稿ID
-	UserId      uint      `json:"userId"`      // 用户ID
-	MailboxId   uint      `json:"mailboxId"`   // 邮箱ID
+	Id          int64     `json:"id"`          // 草稿ID
+	UserId      int64     `json:"userId"`      // 用户ID
+	MailboxId   int64     `json:"mailboxId"`   // 邮箱ID
 	Subject     string    `json:"subject"`     // 邮件主题
 	FromEmail   string    `json:"fromEmail"`   // 发件人邮箱
 	ToEmail     string    `json:"toEmail"`     // 收件人邮箱
@@ -59,6 +59,6 @@ type DraftResp struct {
 type DraftSendResp struct {
 	Success bool      `json:"success"` // 是否成功
 	Message string    `json:"message"` // 消息
-	EmailId uint      `json:"emailId"` // 邮件ID
+	EmailId int64     `json:"emailId"` // 邮件ID
 	SentAt  time.Time `json:"sentAt"`  // 发送时间
 }

@@ -350,13 +350,13 @@ func (h *UserHandler) List(c *gin.Context) {
 // GetById 根据ID获取用户信息（管理员功能）
 func (h *UserHandler) GetById(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	id, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
 		return
 	}
 
-	user, err := h.svcCtx.UserModel.GetById(uint(id))
+	user, err := h.svcCtx.UserModel.GetById(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -464,7 +464,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 func (h *UserHandler) Update(c *gin.Context) {
 	// 获取用户ID
 	userIdStr := c.Param("id")
-	userId, err := strconv.ParseUint(userIdStr, 10, 32)
+	userId, err := strconv.ParseInt(userIdStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
 		return
@@ -477,7 +477,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 
 	// 检查用户是否存在
-	user, err := h.svcCtx.UserModel.GetById(uint(userId))
+	user, err := h.svcCtx.UserModel.GetById(userId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -500,7 +500,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 
 	// 检查邮箱是否已被其他用户使用
 	if req.Email != "" && req.Email != user.Email {
-		if exists, err := h.svcCtx.UserModel.CheckEmailExists(req.Email, uint(userId)); err != nil {
+		if exists, err := h.svcCtx.UserModel.CheckEmailExists(req.Email, userId); err != nil {
 			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 			return
 		} else if exists {
@@ -526,7 +526,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 	updateData["status"] = req.Status
 
 	// 更新用户信息
-	if err := h.svcCtx.UserModel.MapUpdate(nil, uint(userId), updateData); err != nil {
+	if err := h.svcCtx.UserModel.MapUpdate(nil, userId, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
@@ -538,7 +538,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 			UserId:     currentUserId,
 			Action:     "update_user",
 			Resource:   "user",
-			ResourceId: uint(userId),
+			ResourceId: userId,
 			Method:     "PUT",
 			Path:       c.Request.URL.Path,
 			Ip:         c.ClientIP(),
@@ -554,13 +554,11 @@ func (h *UserHandler) Update(c *gin.Context) {
 // Delete 删除用户（管理员功能）
 func (h *UserHandler) Delete(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	userId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
 		return
 	}
-
-	userId := uint(id)
 
 	// 检查用户是否存在
 	user, err := h.svcCtx.UserModel.GetById(userId)
@@ -608,13 +606,11 @@ func (h *UserHandler) Delete(c *gin.Context) {
 // ResetPassword 重置用户密码（管理员功能）
 func (h *UserHandler) ResetPassword(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	userId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
 		return
 	}
-
-	userId := uint(id)
 
 	// 检查用户是否存在
 	user, err := h.svcCtx.UserModel.GetById(userId)
@@ -669,13 +665,11 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 // ToggleStatus 切换用户状态（管理员功能）
 func (h *UserHandler) ToggleStatus(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	userId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
 		return
 	}
-
-	userId := uint(id)
 
 	// 检查用户是否存在
 	user, err := h.svcCtx.UserModel.GetById(userId)

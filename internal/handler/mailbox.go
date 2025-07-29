@@ -353,13 +353,13 @@ func (h *MailboxHandler) Update(c *gin.Context) {
 // Delete 删除邮箱
 func (h *MailboxHandler) Delete(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	id, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮箱ID"))
 		return
 	}
 
-	mailboxId := uint(id)
+	mailboxId := int64(id)
 
 	// 获取当前用户ID
 	currentUserId := middleware.GetCurrentUserId(c)
@@ -513,7 +513,7 @@ func (h *MailboxHandler) TestConnection(c *gin.Context) {
 // GetById 根据ID获取邮箱信息
 func (h *MailboxHandler) GetById(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	id, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的邮箱ID"))
 		return
@@ -526,7 +526,7 @@ func (h *MailboxHandler) GetById(c *gin.Context) {
 		return
 	}
 
-	mailbox, err := h.svcCtx.MailboxModel.GetById(uint(id))
+	mailbox, err := h.svcCtx.MailboxModel.GetById(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return

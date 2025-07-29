@@ -160,7 +160,7 @@ func (h *RuleHandler) CreateVerificationRule(c *gin.Context) {
 func (h *RuleHandler) UpdateVerificationRule(c *gin.Context) {
 	// 获取规则ID
 	idStr := c.Param("id")
-	ruleId, err := strconv.ParseUint(idStr, 10, 32)
+	ruleId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的规则ID"))
 		return
@@ -180,7 +180,7 @@ func (h *RuleHandler) UpdateVerificationRule(c *gin.Context) {
 	}
 
 	// 检查规则是否存在
-	rule, err := h.svcCtx.VerificationRuleModel.GetById(uint(ruleId))
+	rule, err := h.svcCtx.VerificationRuleModel.GetById(ruleId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -237,7 +237,7 @@ func (h *RuleHandler) UpdateVerificationRule(c *gin.Context) {
 func (h *RuleHandler) DeleteVerificationRule(c *gin.Context) {
 	// 获取规则ID
 	idStr := c.Param("id")
-	ruleId, err := strconv.ParseUint(idStr, 10, 32)
+	ruleId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的规则ID"))
 		return
@@ -251,7 +251,7 @@ func (h *RuleHandler) DeleteVerificationRule(c *gin.Context) {
 	}
 
 	// 检查规则是否存在
-	rule, err := h.svcCtx.VerificationRuleModel.GetById(uint(ruleId))
+	rule, err := h.svcCtx.VerificationRuleModel.GetById(ruleId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -428,7 +428,7 @@ func (h *RuleHandler) CreateForwardRule(c *gin.Context) {
 func (h *RuleHandler) UpdateForwardRule(c *gin.Context) {
 	// 获取规则ID
 	idStr := c.Param("id")
-	ruleId, err := strconv.ParseUint(idStr, 10, 32)
+	ruleId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的规则ID"))
 		return
@@ -448,7 +448,7 @@ func (h *RuleHandler) UpdateForwardRule(c *gin.Context) {
 	}
 
 	// 检查规则是否存在
-	rule, err := h.svcCtx.ForwardRuleModel.GetById(uint(ruleId))
+	rule, err := h.svcCtx.ForwardRuleModel.GetById(ruleId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -514,7 +514,7 @@ func (h *RuleHandler) UpdateForwardRule(c *gin.Context) {
 func (h *RuleHandler) DeleteForwardRule(c *gin.Context) {
 	// 获取规则ID
 	idStr := c.Param("id")
-	ruleId, err := strconv.ParseUint(idStr, 10, 32)
+	ruleId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的规则ID"))
 		return
@@ -528,7 +528,7 @@ func (h *RuleHandler) DeleteForwardRule(c *gin.Context) {
 	}
 
 	// 检查规则是否存在
-	rule, err := h.svcCtx.ForwardRuleModel.GetById(uint(ruleId))
+	rule, err := h.svcCtx.ForwardRuleModel.GetById(ruleId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -710,7 +710,7 @@ func (h *RuleHandler) CreateAntiSpamRule(c *gin.Context) {
 func (h *RuleHandler) UpdateAntiSpamRule(c *gin.Context) {
 	// 获取规则ID
 	idStr := c.Param("id")
-	ruleId, err := strconv.ParseUint(idStr, 10, 32)
+	ruleId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的规则ID"))
 		return
@@ -732,7 +732,7 @@ func (h *RuleHandler) UpdateAntiSpamRule(c *gin.Context) {
 	currentUserId := middleware.GetCurrentUserId(c)
 
 	// 检查规则是否存在
-	rule, err := h.svcCtx.AntiSpamRuleModel.GetById(uint(ruleId))
+	rule, err := h.svcCtx.AntiSpamRuleModel.GetById(ruleId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -793,7 +793,7 @@ func (h *RuleHandler) UpdateAntiSpamRule(c *gin.Context) {
 func (h *RuleHandler) DeleteAntiSpamRule(c *gin.Context) {
 	// 获取规则ID
 	idStr := c.Param("id")
-	ruleId, err := strconv.ParseUint(idStr, 10, 32)
+	ruleId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的规则ID"))
 		return
@@ -809,7 +809,7 @@ func (h *RuleHandler) DeleteAntiSpamRule(c *gin.Context) {
 	currentUserId := middleware.GetCurrentUserId(c)
 
 	// 检查规则是否存在
-	rule, err := h.svcCtx.AntiSpamRuleModel.GetById(uint(ruleId))
+	rule, err := h.svcCtx.AntiSpamRuleModel.GetById(ruleId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return

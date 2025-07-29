@@ -10,8 +10,8 @@ import (
 
 // ApiKey API密钥模型
 type ApiKey struct {
-	Id          uint           `gorm:"primaryKey;autoIncrement" json:"id"`      // 密钥ID
-	UserId      uint           `gorm:"not null;index" json:"user_id"`           // 用户ID
+	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`      // 密钥ID
+	UserId      int64          `gorm:"not null;index" json:"user_id"`           // 用户ID
 	Name        string         `gorm:"size:100;not null" json:"name"`           // 密钥名称
 	Key         string         `gorm:"uniqueIndex;size:64;not null" json:"key"` // API密钥
 	Secret      string         `gorm:"size:128;not null" json:"-"`              // 密钥秘钥（加密存储）
@@ -56,7 +56,7 @@ func (m *ApiKeyModel) Update(tx *gorm.DB, apiKey *ApiKey) error {
 }
 
 // MapUpdate 更新API密钥（使用map）
-func (m *ApiKeyModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface{}) error {
+func (m *ApiKeyModel) MapUpdate(tx *gorm.DB, id int64, data map[string]interface{}) error {
 	db := m.db
 	if tx != nil {
 		db = tx
@@ -79,7 +79,7 @@ func (m *ApiKeyModel) Delete(apiKey *ApiKey) error {
 }
 
 // GetById 根据ID获取API密钥
-func (m *ApiKeyModel) GetById(id uint) (*ApiKey, error) {
+func (m *ApiKeyModel) GetById(id int64) (*ApiKey, error) {
 	var apiKey ApiKey
 	if err := m.db.First(&apiKey, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -156,18 +156,18 @@ func (m *ApiKeyModel) List(params ApiKeyListParams) ([]*ApiKey, int64, error) {
 }
 
 // GetByUserId 根据用户ID获取API密钥列表 (使用List方法替代)
-func (m *ApiKeyModel) GetByUserId(userId uint) ([]*ApiKey, error) {
+func (m *ApiKeyModel) GetByUserId(userId int64) ([]*ApiKey, error) {
 	apiKeys, _, err := m.List(ApiKeyListParams{UserId: userId})
 	return apiKeys, err
 }
 
 // UpdateLastUsed 更新最后使用时间
-func (m *ApiKeyModel) UpdateLastUsed(id uint) error {
+func (m *ApiKeyModel) UpdateLastUsed(id int64) error {
 	return m.db.Model(&ApiKey{}).Where("id = ?", id).Update("last_used_at", time.Now()).Error
 }
 
 // CheckKeyExists 检查密钥是否存在
-func (m *ApiKeyModel) CheckKeyExists(key string, excludeId ...uint) (bool, error) {
+func (m *ApiKeyModel) CheckKeyExists(key string, excludeId ...int64) (bool, error) {
 	var count int64
 	db := m.db.Model(&ApiKey{}).Where("key = ?", key)
 
@@ -183,12 +183,12 @@ func (m *ApiKeyModel) CheckKeyExists(key string, excludeId ...uint) (bool, error
 }
 
 // BatchDelete 批量删除API密钥
-func (m *ApiKeyModel) BatchDelete(ids []uint) error {
+func (m *ApiKeyModel) BatchDelete(ids []int64) error {
 	return m.db.Where("id IN ?", ids).Delete(&ApiKey{}).Error
 }
 
 // BatchUpdateStatus 批量更新API密钥状态
-func (m *ApiKeyModel) BatchUpdateStatus(ids []uint, status int) error {
+func (m *ApiKeyModel) BatchUpdateStatus(ids []int64, status int) error {
 	return m.db.Model(&ApiKey{}).Where("id IN ?", ids).Update("status", status).Error
 }
 
@@ -209,7 +209,7 @@ func (m *ApiKeyModel) CountKeys() (int64, error) {
 }
 
 // CountUserKeys 统计用户API密钥数量
-func (m *ApiKeyModel) CountUserKeys(userId uint) (int64, error) {
+func (m *ApiKeyModel) CountUserKeys(userId int64) (int64, error) {
 	var count int64
 	if err := m.db.Model(&ApiKey{}).Where("user_id = ?", userId).Count(&count).Error; err != nil {
 		return 0, err

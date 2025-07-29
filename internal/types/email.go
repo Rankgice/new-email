@@ -4,7 +4,7 @@ import "time"
 
 // EmailCreateReq 创建邮件请求
 type EmailCreateReq struct {
-	MailboxId   uint   `json:"mailboxId" binding:"required"`          // 邮箱ID
+	MailboxId   int64  `json:"mailboxId" binding:"required"`          // 邮箱ID
 	Subject     string `json:"subject" binding:"required,max=200"`    // 邮件主题
 	FromEmail   string `json:"fromEmail" binding:"required,email"`    // 发件人邮箱
 	ToEmail     string `json:"toEmail" binding:"required"`            // 收件人邮箱（多个用逗号分隔）
@@ -31,7 +31,7 @@ type EmailUpdateReq struct {
 
 // EmailListReq 邮件列表请求
 type EmailListReq struct {
-	MailboxId      *uint     `json:"mailboxId" form:"mailboxId"`           // 邮箱ID
+	MailboxId      *int64    `json:"mailboxId" form:"mailboxId"`           // 邮箱ID
 	Subject        string    `json:"subject" form:"subject"`               // 邮件主题（模糊搜索）
 	FromEmail      string    `json:"fromEmail" form:"fromEmail"`           // 发件人邮箱
 	ToEmail        string    `json:"toEmail" form:"toEmail"`               // 收件人邮箱
@@ -44,8 +44,8 @@ type EmailListReq struct {
 
 // EmailResp 邮件响应
 type EmailResp struct {
-	Id          uint      `json:"id"`          // 邮件ID
-	MailboxId   uint      `json:"mailboxId"`   // 邮箱ID
+	Id          int64     `json:"id"`          // 邮件ID
+	MailboxId   int64     `json:"mailboxId"`   // 邮箱ID
 	Subject     string    `json:"subject"`     // 邮件主题
 	FromEmail   string    `json:"fromEmail"`   // 发件人邮箱
 	ToEmail     string    `json:"toEmail"`     // 收件人邮箱
@@ -62,7 +62,7 @@ type EmailResp struct {
 
 // EmailSendReq 发送邮件请求
 type EmailSendReq struct {
-	MailboxId   uint   `json:"mailboxId"`                             // 邮箱ID
+	MailboxId   int64  `json:"mailboxId"`                             // 邮箱ID
 	Subject     string `json:"subject" binding:"required,max=200"`    // 邮件主题
 	FromEmail   string `json:"fromEmail" binding:"required,email"`    // 发件人邮箱
 	ToEmail     string `json:"toEmail" binding:"required"`            // 收件人邮箱（多个用逗号分隔）
@@ -77,21 +77,21 @@ type EmailSendReq struct {
 type EmailSendResp struct {
 	Success bool      `json:"success"` // 是否成功
 	Message string    `json:"message"` // 消息
-	EmailId uint      `json:"emailId"` // 邮件ID
+	EmailId int64     `json:"emailId"` // 邮件ID
 	SentAt  time.Time `json:"sentAt"`  // 发送时间
 }
 
 // EmailBatchOperationReq 邮件批量操作请求
 type EmailBatchOperationReq struct {
-	Ids       []uint `json:"ids" binding:"required,min=1"`                                    // 邮件ID列表
-	Operation string `json:"operation" binding:"required,oneof=read unread delete move copy"` // 操作类型
-	TargetId  uint   `json:"targetId"`                                                        // 目标ID（移动或复制时使用）
+	Ids       []int64 `json:"ids" binding:"required,min=1"`                                    // 邮件ID列表
+	Operation string  `json:"operation" binding:"required,oneof=read unread delete move copy"` // 操作类型
+	TargetId  int64   `json:"targetId"`                                                        // 目标ID（移动或复制时使用）
 }
 
 // EmailSearchReq 邮件搜索请求
 type EmailSearchReq struct {
 	Keyword        string    `json:"keyword" form:"keyword" binding:"required,min=1"` // 搜索关键词
-	MailboxId      *uint     `json:"mailboxId" form:"mailboxId"`                      // 邮箱ID
+	MailboxId      *int64    `json:"mailboxId" form:"mailboxId"`                      // 邮箱ID
 	SearchIn       string    `json:"searchIn" form:"searchIn"`                        // 搜索范围：subject, content, from, to, all
 	CreatedAtStart time.Time `json:"createdAtStart" form:"createdAtStart"`            // 创建时间开始
 	CreatedAtEnd   time.Time `json:"createdAtEnd" form:"createdAtEnd"`                // 创建时间结束

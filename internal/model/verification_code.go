@@ -8,9 +8,9 @@ import (
 
 // VerificationCode 验证码记录模型
 type VerificationCode struct {
-	Id          uint       `gorm:"primaryKey;autoIncrement" json:"id"`
-	EmailId     uint       `gorm:"not null;index" json:"email_id"`
-	RuleId      uint       `gorm:"not null;index" json:"rule_id"`
+	Id          int64      `gorm:"primaryKey;autoIncrement" json:"id"`
+	EmailId     int64      `gorm:"not null;index" json:"email_id"`
+	RuleId      int64      `gorm:"not null;index" json:"rule_id"`
 	Code        string     `gorm:"size:50;not null" json:"code"`
 	Source      string     `gorm:"size:100" json:"source"`
 	ExtractedAt time.Time  `json:"extracted_at"`
@@ -38,7 +38,7 @@ func (m *VerificationCodeModel) Update(code *VerificationCode) error {
 }
 
 // GetById 根据ID获取验证码记录
-func (m *VerificationCodeModel) GetById(id uint) (*VerificationCode, error) {
+func (m *VerificationCodeModel) GetById(id int64) (*VerificationCode, error) {
 	var code VerificationCode
 	if err := m.db.First(&code, id).Error; err != nil {
 		return nil, err
@@ -91,13 +91,13 @@ func (m *VerificationCodeModel) List(params VerificationCodeListParams) ([]*Veri
 }
 
 // GetByEmailId 根据邮件ID获取验证码记录
-func (m *VerificationCodeModel) GetByEmailId(emailId uint) ([]*VerificationCode, error) {
+func (m *VerificationCodeModel) GetByEmailId(emailId int64) ([]*VerificationCode, error) {
 	codes, _, err := m.List(VerificationCodeListParams{EmailId: emailId})
 	return codes, err
 }
 
 // GetByRuleId 根据规则ID获取验证码记录
-func (m *VerificationCodeModel) GetByRuleId(ruleId uint) ([]*VerificationCode, error) {
+func (m *VerificationCodeModel) GetByRuleId(ruleId int64) ([]*VerificationCode, error) {
 	codes, _, err := m.List(VerificationCodeListParams{RuleId: ruleId})
 	return codes, err
 }
@@ -110,7 +110,7 @@ func (m *VerificationCodeModel) GetUnusedCodes() ([]*VerificationCode, error) {
 }
 
 // MarkAsUsed 标记验证码为已使用
-func (m *VerificationCodeModel) MarkAsUsed(id uint) error {
+func (m *VerificationCodeModel) MarkAsUsed(id int64) error {
 	now := time.Now()
 	return m.db.Model(&VerificationCode{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"is_used": true,
@@ -132,7 +132,7 @@ func (m *VerificationCodeModel) GetLatestByTargetAndType(target, codeType string
 }
 
 // MarkAsExpired 标记验证码为已过期
-func (m *VerificationCodeModel) MarkAsExpired(id uint) error {
+func (m *VerificationCodeModel) MarkAsExpired(id int64) error {
 	return m.db.Model(&VerificationCode{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"is_used": true, // 过期的验证码也标记为已使用
 		"used_at": time.Now(),

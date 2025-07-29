@@ -35,7 +35,7 @@ type VerificationRuleListReq struct {
 
 // VerificationRuleResp 验证码规则响应
 type VerificationRuleResp struct {
-	Id          uint      `json:"id"`          // 规则ID
+	Id          int64     `json:"id"`          // 规则ID
 	Name        string    `json:"name"`        // 规则名称
 	Source      string    `json:"source"`      // 来源
 	Pattern     string    `json:"pattern"`     // 匹配模式
@@ -81,8 +81,8 @@ type ForwardRuleListReq struct {
 
 // ForwardRuleResp 转发规则响应
 type ForwardRuleResp struct {
-	Id          uint      `json:"id"`          // 规则ID
-	UserId      uint      `json:"userId"`      // 用户ID
+	Id          int64     `json:"id"`          // 规则ID
+	UserId      int64     `json:"userId"`      // 用户ID
 	Name        string    `json:"name"`        // 规则名称
 	FromPattern string    `json:"fromPattern"` // 发件人匹配模式
 	ToEmail     string    `json:"toEmail"`     // 转发目标邮箱
@@ -129,7 +129,7 @@ type AntiSpamRuleListReq struct {
 
 // AntiSpamRuleResp 反垃圾规则响应
 type AntiSpamRuleResp struct {
-	Id          uint      `json:"id"`          // 规则ID
+	Id          int64     `json:"id"`          // 规则ID
 	Name        string    `json:"name"`        // 规则名称
 	Type        string    `json:"type"`        // 规则类型
 	Pattern     string    `json:"pattern"`     // 匹配模式

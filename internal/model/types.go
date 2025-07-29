@@ -48,8 +48,8 @@ type DomainListParams struct {
 type MailboxListParams struct {
 	BaseListParams
 	BaseTimeRangeParams
-	UserId      uint   `json:"userId" form:"userId"`           // 用户ID
-	DomainId    uint   `json:"domainId" form:"domainId"`       // 域名ID
+	UserId      int64  `json:"userId" form:"userId"`           // 用户ID
+	DomainId    int64  `json:"domainId" form:"domainId"`       // 域名ID
 	Email       string `json:"email" form:"email"`             // 邮箱地址
 	Type        string `json:"type" form:"type"`               // 邮箱类型
 	Provider    string `json:"provider" form:"provider"`       // 邮箱提供商
@@ -61,7 +61,7 @@ type MailboxListParams struct {
 type EmailListParams struct {
 	BaseListParams
 	BaseTimeRangeParams
-	MailboxId   uint   `json:"mailboxId" form:"mailboxId"`     // 邮箱ID
+	MailboxId   int64  `json:"mailboxId" form:"mailboxId"`     // 邮箱ID
 	MessageId   string `json:"messageId" form:"messageId"`     // 消息ID
 	Subject     string `json:"subject" form:"subject"`         // 主题
 	FromEmail   string `json:"fromEmail" form:"fromEmail"`     // 发件人
@@ -75,7 +75,7 @@ type EmailListParams struct {
 // EmailAttachmentListParams 邮件附件列表查询参数
 type EmailAttachmentListParams struct {
 	BaseListParams
-	EmailId  uint   `json:"emailId" form:"emailId"`   // 邮件ID
+	EmailId  int64  `json:"emailId" form:"emailId"`   // 邮件ID
 	Filename string `json:"filename" form:"filename"` // 文件名
 	MimeType string `json:"mimeType" form:"mimeType"` // MIME类型
 }
@@ -84,7 +84,7 @@ type EmailAttachmentListParams struct {
 type EmailTemplateListParams struct {
 	BaseListParams
 	BaseTimeRangeParams
-	UserId      uint   `json:"userId" form:"userId"`           // 用户ID
+	UserId      int64  `json:"userId" form:"userId"`           // 用户ID
 	Name        string `json:"name" form:"name"`               // 模板名称
 	Subject     string `json:"subject" form:"subject"`         // 主题
 	ContentType string `json:"contentType" form:"contentType"` // 内容类型
@@ -96,7 +96,7 @@ type EmailTemplateListParams struct {
 type EmailSignatureListParams struct {
 	BaseListParams
 	BaseTimeRangeParams
-	UserId    uint   `json:"userId" form:"userId"`       // 用户ID
+	UserId    int64  `json:"userId" form:"userId"`       // 用户ID
 	Name      string `json:"name" form:"name"`           // 签名名称
 	IsDefault *bool  `json:"isDefault" form:"isDefault"` // 是否默认
 	Status    *int   `json:"status" form:"status"`       // 状态
@@ -106,7 +106,7 @@ type EmailSignatureListParams struct {
 type VerificationRuleListParams struct {
 	BaseListParams
 	BaseTimeRangeParams
-	UserId      uint   `json:"userId" form:"userId"`           // 用户ID
+	UserId      int64  `json:"userId" form:"userId"`           // 用户ID
 	Name        string `json:"name" form:"name"`               // 规则名称
 	Pattern     string `json:"pattern" form:"pattern"`         // 匹配模式
 	Source      string `json:"source" form:"source"`           // 来源
@@ -118,16 +118,16 @@ type VerificationRuleListParams struct {
 // UserVerificationRuleListParams 用户验证码规则关联列表查询参数
 type UserVerificationRuleListParams struct {
 	BaseListParams
-	UserId uint `json:"userId" form:"userId"` // 用户ID
-	RuleId uint `json:"ruleId" form:"ruleId"` // 规则ID
-	Status *int `json:"status" form:"status"` // 状态
+	UserId int64 `json:"userId" form:"userId"` // 用户ID
+	RuleId int64 `json:"ruleId" form:"ruleId"` // 规则ID
+	Status *int  `json:"status" form:"status"` // 状态
 }
 
 // ForwardRuleListParams 转发规则列表查询参数
 type ForwardRuleListParams struct {
 	BaseListParams
 	BaseTimeRangeParams
-	UserId         uint   `json:"userId" form:"userId"`                 // 用户ID
+	UserId         int64  `json:"userId" form:"userId"`                 // 用户ID
 	Name           string `json:"name" form:"name"`                     // 规则名称
 	FromPattern    string `json:"fromPattern" form:"fromPattern"`       // 发件人模式
 	SubjectPattern string `json:"subjectPattern" form:"subjectPattern"` // 主题模式
@@ -153,10 +153,10 @@ type AntiSpamRuleListParams struct {
 // OperationLogListParams 操作日志列表查询参数
 type OperationLogListParams struct {
 	BaseListParams
-	UserId     uint   `json:"userId" form:"userId"`         // 用户ID
+	UserId     int64  `json:"userId" form:"userId"`         // 用户ID
 	Action     string `json:"action" form:"action"`         // 操作
 	Resource   string `json:"resource" form:"resource"`     // 资源
-	ResourceId uint   `json:"resourceId" form:"resourceId"` // 资源ID
+	ResourceId int64  `json:"resourceId" form:"resourceId"` // 资源ID
 	Method     string `json:"method" form:"method"`         // 请求方法
 	Path       string `json:"path" form:"path"`             // 请求路径
 	Ip         string `json:"ip" form:"ip"`                 // IP地址
@@ -166,8 +166,8 @@ type OperationLogListParams struct {
 // EmailLogListParams 邮件日志列表查询参数
 type EmailLogListParams struct {
 	BaseListParams
-	MailboxId uint   `json:"mailboxId" form:"mailboxId"` // 邮箱ID
-	EmailId   uint   `json:"emailId" form:"emailId"`     // 邮件ID
+	MailboxId int64  `json:"mailboxId" form:"mailboxId"` // 邮箱ID
+	EmailId   int64  `json:"emailId" form:"emailId"`     // 邮件ID
 	Type      string `json:"type" form:"type"`           // 类型
 	Status    string `json:"status" form:"status"`       // 状态
 	ErrorCode string `json:"errorCode" form:"errorCode"` // 错误码
@@ -177,7 +177,7 @@ type EmailLogListParams struct {
 type ApiKeyListParams struct {
 	BaseListParams
 	BaseTimeRangeParams
-	UserId      uint   `json:"userId" form:"userId"`           // 用户ID
+	UserId      int64  `json:"userId" form:"userId"`           // 用户ID
 	Name        string `json:"name" form:"name"`               // 密钥名称
 	Permissions string `json:"permissions" form:"permissions"` // 权限
 	Status      *int   `json:"status" form:"status"`           // 状态
@@ -186,8 +186,8 @@ type ApiKeyListParams struct {
 // VerificationCodeListParams 验证码记录列表查询参数
 type VerificationCodeListParams struct {
 	BaseListParams
-	EmailId uint   `json:"emailId" form:"emailId"` // 邮件ID
-	RuleId  uint   `json:"ruleId" form:"ruleId"`   // 规则ID
+	EmailId int64  `json:"emailId" form:"emailId"` // 邮件ID
+	RuleId  int64  `json:"ruleId" form:"ruleId"`   // 规则ID
 	Code    string `json:"code" form:"code"`       // 验证码
 	Source  string `json:"source" form:"source"`   // 来源
 	IsUsed  *bool  `json:"isUsed" form:"isUsed"`   // 是否已使用
@@ -197,8 +197,8 @@ type VerificationCodeListParams struct {
 type EmailDraftListParams struct {
 	BaseListParams
 	BaseTimeRangeParams
-	UserId      uint   `json:"userId" form:"userId"`           // 用户ID
-	MailboxId   uint   `json:"mailboxId" form:"mailboxId"`     // 邮箱ID
+	UserId      int64  `json:"userId" form:"userId"`           // 用户ID
+	MailboxId   int64  `json:"mailboxId" form:"mailboxId"`     // 邮箱ID
 	Subject     string `json:"subject" form:"subject"`         // 主题
 	ToEmails    string `json:"toEmails" form:"toEmails"`       // 收件人
 	ContentType string `json:"contentType" form:"contentType"` // 内容类型

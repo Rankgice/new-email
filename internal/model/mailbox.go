@@ -8,9 +8,9 @@ import (
 
 // Mailbox 邮箱模型
 type Mailbox struct {
-	Id           uint           `gorm:"primaryKey;autoIncrement" json:"id"`         // 邮箱ID
-	UserId       uint           `gorm:"not null;index" json:"user_id"`              // 用户ID
-	DomainId     uint           `gorm:"index" json:"domain_id"`                     // 域名ID（自建邮箱关联域名）
+	Id           int64          `gorm:"primaryKey;autoIncrement" json:"id"`         // 邮箱ID
+	UserId       int64          `gorm:"not null;index" json:"user_id"`              // 用户ID
+	DomainId     int64          `gorm:"index" json:"domain_id"`                     // 域名ID（自建邮箱关联域名）
 	Email        string         `gorm:"uniqueIndex;size:100;not null" json:"email"` // 邮箱地址
 	Password     string         `gorm:"size:255;not null" json:"-"`                 // 邮箱密码（加密存储）
 	Type         string         `gorm:"size:20;not null" json:"type"`               // 邮箱类型：self自建 third第三方
@@ -54,7 +54,7 @@ func (m *MailboxModel) Create(mailbox *Mailbox) error {
 }
 
 // GetById 根据ID获取邮箱
-func (m *MailboxModel) GetById(id uint) (*Mailbox, error) {
+func (m *MailboxModel) GetById(id int64) (*Mailbox, error) {
 	var mailbox Mailbox
 	if err := m.db.First(&mailbox, id).Error; err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (m *MailboxModel) Delete(mailbox *Mailbox) error {
 }
 
 // MapUpdate 根据条件更新邮箱
-func (m *MailboxModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface{}) error {
+func (m *MailboxModel) MapUpdate(tx *gorm.DB, id int64, data map[string]interface{}) error {
 	db := m.db
 	if tx != nil {
 		db = tx
@@ -144,7 +144,7 @@ func (m *MailboxModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface
 }
 
 // CheckEmailExists 检查邮箱是否存在
-func (m *MailboxModel) CheckEmailExists(email string, excludeIds ...uint) (bool, error) {
+func (m *MailboxModel) CheckEmailExists(email string, excludeIds ...int64) (bool, error) {
 	var count int64
 	db := m.db.Model(&Mailbox{}).Where("email = ?", email)
 
@@ -160,7 +160,7 @@ func (m *MailboxModel) CheckEmailExists(email string, excludeIds ...uint) (bool,
 }
 
 // GetByUserId 根据用户ID获取邮箱列表
-func (m *MailboxModel) GetByUserId(userId uint) ([]*Mailbox, error) {
+func (m *MailboxModel) GetByUserId(userId int64) ([]*Mailbox, error) {
 	mailboxes, _, err := m.List(MailboxListParams{UserId: userId})
 	return mailboxes, err
 }
@@ -178,7 +178,7 @@ func (m *MailboxModel) GetByEmail(email string) (*Mailbox, error) {
 }
 
 // GetActiveMailboxes 获取活跃邮箱列表
-func (m *MailboxModel) GetActiveMailboxes(userId uint) ([]*Mailbox, error) {
+func (m *MailboxModel) GetActiveMailboxes(userId int64) ([]*Mailbox, error) {
 	status := constant.StatusEnabled
 	mailboxes, _, err := m.List(MailboxListParams{UserId: userId, Status: &status})
 	return mailboxes, err

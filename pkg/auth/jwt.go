@@ -9,7 +9,7 @@ import (
 
 // Claims 统一JWT声明结构体
 type Claims struct {
-	UserId   uint   `json:"userId"`   // 用户ID，当isAdmin=true时代表adminId
+	UserId   int64  `json:"userId"`   // 用户ID，当isAdmin=true时代表adminId
 	Username string `json:"username"` // 用户名
 	IsAdmin  bool   `json:"isAdmin"`  // 是否为管理员
 	Role     string `json:"role"`     // 角色（仅管理员使用）
@@ -17,7 +17,7 @@ type Claims struct {
 }
 
 // GenerateToken 生成统一Token
-func GenerateToken(userId uint, username string, isAdmin bool, role string, secret string, expireHours int) (string, error) {
+func GenerateToken(userId int64, username string, isAdmin bool, role string, secret string, expireHours int) (string, error) {
 	subject := "user"
 	if isAdmin {
 		subject = "admin"

@@ -458,7 +458,7 @@ func (h *AdminHandler) CreateUser(c *gin.Context) {
 func (h *AdminHandler) UpdateUser(c *gin.Context) {
 	// 获取用户ID
 	idStr := c.Param("id")
-	userId, err := strconv.ParseUint(idStr, 10, 32)
+	userId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
 		return
@@ -477,7 +477,7 @@ func (h *AdminHandler) UpdateUser(c *gin.Context) {
 	}
 
 	// 检查用户是否存在
-	user, err := h.svcCtx.UserModel.GetById(uint(userId))
+	user, err := h.svcCtx.UserModel.GetById(userId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -567,7 +567,7 @@ func (h *AdminHandler) UpdateUser(c *gin.Context) {
 func (h *AdminHandler) DeleteUser(c *gin.Context) {
 	// 获取用户ID
 	idStr := c.Param("id")
-	userId, err := strconv.ParseUint(idStr, 10, 32)
+	userId, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的用户ID"))
 		return
@@ -580,7 +580,7 @@ func (h *AdminHandler) DeleteUser(c *gin.Context) {
 	}
 
 	// 检查用户是否存在
-	user, err := h.svcCtx.UserModel.GetById(uint(userId))
+	user, err := h.svcCtx.UserModel.GetById(userId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -603,7 +603,7 @@ func (h *AdminHandler) DeleteUser(c *gin.Context) {
 			UserId:     currentAdminId,
 			Action:     "delete_user",
 			Resource:   "user",
-			ResourceId: uint(userId),
+			ResourceId: userId,
 			Method:     "DELETE",
 			Path:       c.Request.URL.Path,
 			Ip:         c.ClientIP(),
@@ -1128,13 +1128,13 @@ func (h *AdminHandler) UpdateAdmin(c *gin.Context) {
 // DeleteAdmin 删除管理员
 func (h *AdminHandler) DeleteAdmin(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	id, err := strconv.ParseInt(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("无效的管理员ID"))
 		return
 	}
 
-	adminId := uint(id)
+	adminId := id
 
 	// 检查管理员是否存在
 	admin, err := h.svcCtx.AdminModel.GetById(adminId)
