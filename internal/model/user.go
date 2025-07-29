@@ -9,7 +9,7 @@ import (
 
 // User 用户模型
 type User struct {
-	Id        uint           `gorm:"primaryKey;autoIncrement" json:"id"`           // 用户ID
+	Id        int64          `gorm:"primaryKey;autoIncrement" json:"id"`           // 用户ID
 	Username  string         `gorm:"uniqueIndex;size:50;not null" json:"username"` // 用户名
 	Email     string         `gorm:"uniqueIndex;size:100;not null" json:"email"`   // 邮箱地址
 	Password  string         `gorm:"size:255;not null" json:"-"`                   // 密码（加密存储）
@@ -53,7 +53,7 @@ func (m *UserModel) Update(tx *gorm.DB, user *User) error {
 }
 
 // MapUpdate 更新用户（使用map）
-func (m *UserModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface{}) error {
+func (m *UserModel) MapUpdate(tx *gorm.DB, id int64, data map[string]interface{}) error {
 	db := m.db
 	if tx != nil {
 		db = tx
@@ -76,7 +76,7 @@ func (m *UserModel) Delete(user *User) error {
 }
 
 // GetById 根据ID获取用户
-func (m *UserModel) GetById(id uint) (*User, error) {
+func (m *UserModel) GetById(id int64) (*User, error) {
 	var user User
 	if err := m.db.First(&user, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -162,17 +162,17 @@ func (m *UserModel) List(params UserListParams) ([]*User, int64, error) {
 }
 
 // BatchDelete 批量删除用户
-func (m *UserModel) BatchDelete(ids []uint) error {
+func (m *UserModel) BatchDelete(ids []int64) error {
 	return m.db.Where("id IN ?", ids).Delete(&User{}).Error
 }
 
 // BatchUpdateStatus 批量更新用户状态
-func (m *UserModel) BatchUpdateStatus(ids []uint, status int) error {
+func (m *UserModel) BatchUpdateStatus(ids []int64, status int) error {
 	return m.db.Model(&User{}).Where("id IN ?", ids).Update("status", status).Error
 }
 
 // CheckUsernameExists 检查用户名是否存在
-func (m *UserModel) CheckUsernameExists(username string, excludeId ...uint) (bool, error) {
+func (m *UserModel) CheckUsernameExists(username string, excludeId ...int64) (bool, error) {
 	var count int64
 	db := m.db.Model(&User{}).Where("username = ?", username)
 
@@ -188,7 +188,7 @@ func (m *UserModel) CheckUsernameExists(username string, excludeId ...uint) (boo
 }
 
 // CheckEmailExists 检查邮箱是否存在
-func (m *UserModel) CheckEmailExists(email string, excludeId ...uint) (bool, error) {
+func (m *UserModel) CheckEmailExists(email string, excludeId ...int64) (bool, error) {
 	var count int64
 	db := m.db.Model(&User{}).Where("email = ?", email)
 

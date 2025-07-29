@@ -10,10 +10,10 @@ import (
 
 // Domain 域名模型
 type Domain struct {
-	Id          uint           `gorm:"primaryKey;autoIncrement" json:"id"`        // 域名ID
+	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`        // 域名ID
 	Name        string         `gorm:"uniqueIndex;size:100;not null" json:"name"` // 域名
 	Status      int            `gorm:"default:1" json:"status"`                   // 状态：1启用 2禁用
-	DnsVerified bool           `gorm:"default:false" json:"dns_verified"`         // DNS验证状态
+	DnsVerified int            `gorm:"default:1" json:"dns_verified"`             // DNS验证状态：1未验证 2已验证
 	DkimRecord  string         `gorm:"type:text" json:"dkim_record"`              // DKIM记录
 	SpfRecord   string         `gorm:"type:text" json:"spf_record"`               // SPF记录
 	DmarcRecord string         `gorm:"type:text" json:"dmarc_record"`             // DMARC记录
@@ -54,7 +54,7 @@ func (m *DomainModel) Update(tx *gorm.DB, domain *Domain) error {
 }
 
 // MapUpdate 更新域名（使用map）
-func (m *DomainModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface{}) error {
+func (m *DomainModel) MapUpdate(tx *gorm.DB, id int64, data map[string]interface{}) error {
 	db := m.db
 	if tx != nil {
 		db = tx
@@ -77,7 +77,7 @@ func (m *DomainModel) Delete(domain *Domain) error {
 }
 
 // GetById 根据ID获取域名
-func (m *DomainModel) GetById(id uint) (*Domain, error) {
+func (m *DomainModel) GetById(id int64) (*Domain, error) {
 	var domain Domain
 	if err := m.db.First(&domain, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -151,12 +151,12 @@ func (m *DomainModel) List(params DomainListParams) ([]*Domain, int64, error) {
 }
 
 // BatchDelete 批量删除域名
-func (m *DomainModel) BatchDelete(ids []uint) error {
+func (m *DomainModel) BatchDelete(ids []int64) error {
 	return m.db.Where("id IN ?", ids).Delete(&Domain{}).Error
 }
 
 // BatchUpdateStatus 批量更新域名状态
-func (m *DomainModel) BatchUpdateStatus(ids []uint, status int) error {
+func (m *DomainModel) BatchUpdateStatus(ids []int64, status int) error {
 	return m.db.Model(&Domain{}).Where("id IN ?", ids).Update("status", status).Error
 }
 
@@ -172,7 +172,7 @@ func (m *DomainModel) GetActiveDomains() ([]*Domain, error) {
 // GetVerifiedDomains 获取已验证域名
 func (m *DomainModel) GetVerifiedDomains() ([]*Domain, error) {
 	var domains []*Domain
-	if err := m.db.Where("status = ? AND dns_verified = ?", constant.StatusEnabled, true).Find(&domains).Error; err != nil {
+	if err := m.db.Where("status = ? AND dns_verified = ?", constant.StatusEnabled, constant.VerifyStatusVerified).Find(&domains).Error; err != nil {
 		return nil, err
 	}
 	return domains, nil
@@ -190,7 +190,7 @@ func (m *DomainModel) CountDomains() (int64, error) {
 // CountVerifiedDomains 统计已验证域名数量
 func (m *DomainModel) CountVerifiedDomains() (int64, error) {
 	var count int64
-	if err := m.db.Model(&Domain{}).Where("dns_verified = ?", true).Count(&count).Error; err != nil {
+	if err := m.db.Model(&Domain{}).Where("dns_verified = ?", constant.VerifyStatusVerified).Count(&count).Error; err != nil {
 		return 0, err
 	}
 	return count, nil
@@ -242,7 +242,7 @@ func (m *DomainModel) GetStatistics() (map[string]interface{}, error) {
 	}
 
 	// 已验证域名数
-	if err := m.db.Model(&Domain{}).Where("dns_verified = ?", true).Count(&verified).Error; err != nil {
+	if err := m.db.Model(&Domain{}).Where("dns_verified = ?", constant.VerifyStatusVerified).Count(&verified).Error; err != nil {
 		return nil, err
 	}
 

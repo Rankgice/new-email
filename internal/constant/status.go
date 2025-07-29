@@ -13,6 +13,25 @@ const (
 	UserStatusLocked   = 3 // 锁定
 )
 
+// 布尔类型枚举（替代bool类型）
+const (
+	BoolFalse = 1 // 否/假
+	BoolTrue  = 2 // 是/真
+)
+
+// 邮件状态
+const (
+	EmailStatusDraft = 1 // 草稿
+	EmailStatusSent  = 2 // 已发送
+	EmailStatusRead  = 3 // 已读
+)
+
+// 验证状态
+const (
+	VerifyStatusUnverified = 1 // 未验证
+	VerifyStatusVerified   = 2 // 已验证
+)
+
 // 管理员角色
 const (
 	AdminRoleSuper   = "admin"   // 超级管理员

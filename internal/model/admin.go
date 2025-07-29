@@ -9,7 +9,7 @@ import (
 
 // Admin 管理员模型
 type Admin struct {
-	Id        uint           `gorm:"primaryKey;autoIncrement" json:"id"`           // 管理员ID
+	Id        int64          `gorm:"primaryKey;autoIncrement" json:"id"`           // 管理员ID
 	Username  string         `gorm:"uniqueIndex;size:50;not null" json:"username"` // 管理员用户名
 	Email     string         `gorm:"uniqueIndex;size:100;not null" json:"email"`   // 管理员邮箱
 	Password  string         `gorm:"size:255;not null" json:"-"`                   // 密码（加密存储）
@@ -54,7 +54,7 @@ func (m *AdminModel) Update(tx *gorm.DB, admin *Admin) error {
 }
 
 // MapUpdate 更新管理员（使用map）
-func (m *AdminModel) MapUpdate(tx *gorm.DB, id uint, data map[string]interface{}) error {
+func (m *AdminModel) MapUpdate(tx *gorm.DB, id int64, data map[string]interface{}) error {
 	db := m.db
 	if tx != nil {
 		db = tx
@@ -77,7 +77,7 @@ func (m *AdminModel) Delete(admin *Admin) error {
 }
 
 // GetById 根据ID获取管理员
-func (m *AdminModel) GetById(id uint) (*Admin, error) {
+func (m *AdminModel) GetById(id int64) (*Admin, error) {
 	var admin Admin
 	if err := m.db.First(&admin, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -166,17 +166,17 @@ func (m *AdminModel) List(params AdminListParams) ([]*Admin, int64, error) {
 }
 
 // BatchDelete 批量删除管理员
-func (m *AdminModel) BatchDelete(ids []uint) error {
+func (m *AdminModel) BatchDelete(ids []int64) error {
 	return m.db.Where("id IN ?", ids).Delete(&Admin{}).Error
 }
 
 // BatchUpdateStatus 批量更新管理员状态
-func (m *AdminModel) BatchUpdateStatus(ids []uint, status int) error {
+func (m *AdminModel) BatchUpdateStatus(ids []int64, status int) error {
 	return m.db.Model(&Admin{}).Where("id IN ?", ids).Update("status", status).Error
 }
 
 // CheckUsernameExists 检查用户名是否存在
-func (m *AdminModel) CheckUsernameExists(username string, excludeId ...uint) (bool, error) {
+func (m *AdminModel) CheckUsernameExists(username string, excludeId ...int64) (bool, error) {
 	var count int64
 	db := m.db.Model(&Admin{}).Where("username = ?", username)
 
@@ -192,7 +192,7 @@ func (m *AdminModel) CheckUsernameExists(username string, excludeId ...uint) (bo
 }
 
 // CheckEmailExists 检查邮箱是否存在
-func (m *AdminModel) CheckEmailExists(email string, excludeId ...uint) (bool, error) {
+func (m *AdminModel) CheckEmailExists(email string, excludeId ...int64) (bool, error) {
 	var count int64
 	db := m.db.Model(&Admin{}).Where("email = ?", email)
 
