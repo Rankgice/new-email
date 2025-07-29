@@ -242,3 +242,121 @@ export interface UserEvent {
   userId: string
   data?: any
 }
+
+// 邮箱管理相关类型
+export interface Mailbox {
+  id: number
+  userId: number
+  domainId: number
+  email: string
+  type: 'self' | 'third'
+  provider: string
+  imapHost: string
+  imapPort: number
+  imapSsl: boolean
+  smtpHost: string
+  smtpPort: number
+  smtpSsl: boolean
+  autoReceive: boolean
+  status: number
+  lastSyncAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MailboxCreateRequest {
+  domainId?: number
+  email: string
+  password: string
+  type: 'self' | 'third'
+  provider?: string
+  imapHost?: string
+  imapPort?: number
+  imapSsl?: boolean
+  smtpHost?: string
+  smtpPort?: number
+  smtpSsl?: boolean
+  autoReceive?: boolean
+  status?: number
+}
+
+export interface MailboxUpdateRequest {
+  id: number
+  domainId?: number
+  email?: string
+  password?: string
+  type?: 'self' | 'third'
+  provider?: string
+  imapHost?: string
+  imapPort?: number
+  imapSsl?: boolean
+  smtpHost?: string
+  smtpPort?: number
+  smtpSsl?: boolean
+  autoReceive?: boolean
+  status?: number
+}
+
+export interface MailboxListRequest {
+  userId?: number
+  domainId?: number
+  email?: string
+  type?: string
+  provider?: string
+  status?: number
+  autoReceive?: boolean
+  page?: number
+  pageSize?: number
+  startTime?: string
+  endTime?: string
+}
+
+export interface MailboxProvider {
+  provider: string
+  imapHost: string
+  imapPort: number
+  imapSsl: boolean
+  smtpHost: string
+  smtpPort: number
+  smtpSsl: boolean
+}
+
+export interface MailboxTestConnectionRequest {
+  email: string
+  password: string
+  imapHost: string
+  imapPort: number
+  imapSsl: boolean
+  smtpHost: string
+  smtpPort: number
+  smtpSsl: boolean
+}
+
+export interface MailboxTestConnectionResponse {
+  imapSuccess: boolean
+  smtpSuccess: boolean
+  imapError: string
+  smtpError: string
+  message: string
+}
+
+export interface MailboxSyncRequest {
+  id: number
+  forceSync?: boolean
+  syncDays?: number
+}
+
+export interface MailboxSyncResponse {
+  success: boolean
+  message: string
+  syncCount: number
+  errorCount: number
+  lastSyncAt: string
+}
+
+export interface MailboxStats {
+  totalMailboxes: number
+  activeMailboxes: number
+  selfMailboxes: number
+  thirdMailboxes: number
+}

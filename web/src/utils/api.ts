@@ -1,4 +1,20 @@
-import type { ApiResponse, User, Email, EmailListParams, PaginatedResponse } from '@/types'
+import type {
+  ApiResponse,
+  User,
+  Email,
+  EmailListParams,
+  PaginatedResponse,
+  Mailbox,
+  MailboxCreateRequest,
+  MailboxUpdateRequest,
+  MailboxListRequest,
+  MailboxProvider,
+  MailboxTestConnectionRequest,
+  MailboxTestConnectionResponse,
+  MailboxSyncRequest,
+  MailboxSyncResponse,
+  MailboxStats
+} from '@/types'
 
 // API 基础配置
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
@@ -380,6 +396,45 @@ export const apiKeyApi = {
     }),
 }
 
+// 邮箱管理 API
+export const mailboxApi = {
+  // 获取邮箱列表
+  list: (params?: MailboxListRequest) =>
+    apiClient.get<PaginatedResponse<Mailbox>>('/mailbox/list', { params }),
+
+  // 创建邮箱
+  create: (data: MailboxCreateRequest) =>
+    apiClient.post<Mailbox>('/mailbox/create', data),
+
+  // 更新邮箱
+  update: (data: MailboxUpdateRequest) =>
+    apiClient.put<Mailbox>(`/mailbox/update`, data),
+
+  // 删除邮箱
+  delete: (id: number) =>
+    apiClient.delete(`/mailbox/delete/${id}`),
+
+  // 获取邮箱详情
+  getById: (id: number) =>
+    apiClient.get<Mailbox>(`/mailbox/${id}`),
+
+  // 测试邮箱连接
+  testConnection: (data: MailboxTestConnectionRequest) =>
+    apiClient.post<MailboxTestConnectionResponse>('/mailbox/test-connection', data),
+
+  // 同步邮箱
+  sync: (data: MailboxSyncRequest) =>
+    apiClient.post<MailboxSyncResponse>('/mailbox/sync', data),
+
+  // 获取邮箱统计
+  getStats: () =>
+    apiClient.get<MailboxStats>('/mailbox/stats'),
+
+  // 获取邮箱提供商配置
+  getProviders: () =>
+    apiClient.get<MailboxProvider[]>('/mailbox/providers'),
+}
+
 // 导出统一的 API 对象
 export const api = {
   ...authApi,
@@ -389,6 +444,9 @@ export const api = {
 
   // API Key 接口
   apiKey: apiKeyApi,
+
+  // 邮箱管理接口
+  mailbox: mailboxApi,
 
   // 通用方法
   get: apiClient.get.bind(apiClient),

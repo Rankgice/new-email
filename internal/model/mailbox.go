@@ -144,16 +144,9 @@ func (m *MailboxModel) MapUpdate(tx *gorm.DB, id int64, data map[string]interfac
 }
 
 // CheckEmailExists 检查邮箱是否存在
-func (m *MailboxModel) CheckEmailExists(email string, excludeIds ...int64) (bool, error) {
+func (m *MailboxModel) CheckEmailExists(email string) (bool, error) {
 	var count int64
-	db := m.db.Model(&Mailbox{}).Where("email = ?", email)
-
-	// 排除指定的ID
-	if len(excludeIds) > 0 {
-		db = db.Where("id NOT IN ?", excludeIds)
-	}
-
-	if err := db.Count(&count).Error; err != nil {
+	if err := m.db.Model(&Mailbox{}).Where("email = ?", email).Count(&count).Error; err != nil {
 		return false, err
 	}
 	return count > 0, nil

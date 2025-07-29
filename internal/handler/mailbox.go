@@ -159,20 +159,12 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 			return
 		}
 	}
-
-	// 加密邮箱密码
-	encryptedPassword, err := auth.HashPassword(req.Password)
-	if err != nil {
-		c.JSON(http.StatusOK, result.ErrorSimpleResult("密码加密失败"))
-		return
-	}
-
 	// 创建邮箱
 	mailbox := &model.Mailbox{
 		UserId:      currentUserId,
 		DomainId:    req.DomainId,
 		Email:       req.Email,
-		Password:    encryptedPassword,
+		Password:    req.Password,
 		Type:        req.Type,
 		Provider:    req.Provider,
 		ImapHost:    req.ImapHost,
@@ -204,27 +196,7 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 	}
 	h.svcCtx.OperationLogModel.Create(log)
 
-	resp := types.MailboxResp{
-		Id:          mailbox.Id,
-		UserId:      mailbox.UserId,
-		DomainId:    mailbox.DomainId,
-		Email:       mailbox.Email,
-		Type:        mailbox.Type,
-		Provider:    mailbox.Provider,
-		ImapHost:    mailbox.ImapHost,
-		ImapPort:    mailbox.ImapPort,
-		ImapSsl:     mailbox.ImapSsl,
-		SmtpHost:    mailbox.SmtpHost,
-		SmtpPort:    mailbox.SmtpPort,
-		SmtpSsl:     mailbox.SmtpSsl,
-		AutoReceive: mailbox.AutoReceive,
-		Status:      mailbox.Status,
-		LastSyncAt:  mailbox.LastSyncAt,
-		CreatedAt:   mailbox.CreatedAt,
-		UpdatedAt:   mailbox.UpdatedAt,
-	}
-
-	c.JSON(http.StatusOK, result.SuccessResult(resp))
+	c.JSON(http.StatusOK, result.SimpleResult("创建成功"))
 }
 
 // Update 更新邮箱
