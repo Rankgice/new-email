@@ -1,16 +1,16 @@
 <template>
   <div class="min-h-screen flex items-center justify-center relative overflow-hidden">
     <!-- 动态背景 -->
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-background-primary to-secondary-900/20" />
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-background-primary to-secondary-900/20 pointer-events-none z-0" />
 
     <!-- 忘记密码卡片 -->
-    <div class="relative z-10 w-full max-w-md px-6">
+    <div class="relative z-50 w-full max-w-md px-6">
       <GlassCard
         :level="3"
         :hover="false"
         padding="lg"
         border
-        class="animate-scale-in"
+        class="animate-scale-in relative z-50"
       >
         <!-- 标题区域 -->
         <div class="text-center mb-8">

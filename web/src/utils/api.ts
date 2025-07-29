@@ -122,7 +122,7 @@ const apiClient = new ApiClient(API_BASE_URL)
 // 认证相关 API
 export const authApi = {
   // 用户登录
-  login: (credentials: { email: string; password: string }) =>
+  login: (credentials: { username: string; password: string }) =>
     apiClient.post<{ user: User; token: string }>('/public/user/login', credentials),
 
   // 用户注册

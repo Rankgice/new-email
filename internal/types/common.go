@@ -22,6 +22,12 @@ type TimeRangeReq struct {
 	EndTime   time.Time `json:"endTime" form:"endTime"`     // 结束时间
 }
 
+// ChangePasswordReq 修改密码请求
+type ChangePasswordReq struct {
+	OldPassword string `json:"oldPassword" binding:"required"` // 旧密码
+	NewPassword string `json:"newPassword" binding:"required"` // 新密码
+}
+
 // UploadResp 上传响应
 type UploadResp struct {
 	Url      string `json:"url"`      // 文件URL

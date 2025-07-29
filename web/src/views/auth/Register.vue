@@ -1,13 +1,13 @@
 <template>
   <div class="min-h-screen flex items-center justify-center relative overflow-hidden">
     <!-- 动态背景 -->
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-background-primary to-secondary-900/20">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-background-primary to-secondary-900/20 pointer-events-none z-0">
       <!-- 浮动粒子效果 -->
-      <div class="absolute inset-0">
+      <div class="absolute inset-0 pointer-events-none z-0">
         <div
           v-for="i in 20"
           :key="i"
-          class="absolute w-2 h-2 bg-primary-500/20 rounded-full animate-float"
+          class="absolute w-2 h-2 bg-primary-500/20 rounded-full animate-float pointer-events-none"
           :style="{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
@@ -19,13 +19,13 @@
     </div>
 
     <!-- 注册卡片 -->
-    <div class="relative z-10 w-full max-w-md px-6">
+    <div class="relative z-50 w-full max-w-md px-6">
       <GlassCard
         :level="3"
         :hover="false"
         padding="lg"
         border
-        class="animate-scale-in"
+        class="animate-scale-in relative z-50"
       >
         <!-- 标题区域 -->
         <div class="text-center mb-8">
@@ -104,17 +104,18 @@
           />
 
           <!-- 服务条款 -->
-          <div class="flex items-start">
+          <div class="flex items-start relative z-50" style="pointer-events: auto !important;">
             <input
               v-model="form.agreeToTerms"
               type="checkbox"
-              class="mt-1 w-4 h-4 text-primary-600 bg-glass-light border-glass-border rounded focus:ring-primary-500 focus:ring-2"
+              class="mt-1 w-4 h-4 text-primary-600 bg-glass-light border-glass-border rounded focus:ring-primary-500 focus:ring-2 relative z-50"
+              style="pointer-events: auto !important; position: relative; z-index: 9999;"
             />
-            <label class="ml-2 text-sm text-text-secondary">
+            <label class="ml-2 text-sm text-text-secondary relative z-50" style="pointer-events: auto !important;">
               我已阅读并同意
-              <a href="#" class="text-primary-400 hover:text-primary-300">服务条款</a>
+              <a href="#" class="text-primary-400 hover:text-primary-300 relative z-50" style="pointer-events: auto !important;">服务条款</a>
               和
-              <a href="#" class="text-primary-400 hover:text-primary-300">隐私政策</a>
+              <a href="#" class="text-primary-400 hover:text-primary-300 relative z-50" style="pointer-events: auto !important;">隐私政策</a>
             </label>
           </div>
 
@@ -125,10 +126,11 @@
             size="lg"
             :loading="isLoading"
             :disabled="!form.agreeToTerms"
-            class="w-full"
+            class="w-full relative z-50"
+            style="pointer-events: auto !important; position: relative; z-index: 9999;"
           >
             <span v-if="!isLoading">🚀 创建账户</span>
-            <span v-else>创建中...</span>
+            <span v-else">创建中...</span>
           </Button>
         </form>
 
@@ -143,21 +145,23 @@
         </div>
 
         <!-- 登录链接 -->
-        <div class="text-center">
+        <div class="text-center relative z-50">
           <p class="text-text-secondary">
             已有账户？
-            <router-link
-              to="/auth/login"
-              class="text-primary-400 hover:text-primary-300 font-medium transition-colors duration-200"
+            <button
+              type="button"
+              class="text-primary-400 hover:text-primary-300 font-medium transition-colors duration-200 cursor-pointer bg-transparent border-none underline relative z-50"
+              @click="handleLoginClick"
+              style="pointer-events: auto !important; position: relative; z-index: 9999;"
             >
               立即登录
-            </router-link>
+            </button>
           </p>
         </div>
       </GlassCard>
 
       <!-- 主题切换器 -->
-      <div class="mt-6 flex justify-center">
+      <div class="mt-6 flex justify-center relative z-50">
         <ThemeSelector />
       </div>
     </div>
@@ -296,6 +300,12 @@ const handleRegister = async () => {
     isLoading.value = false
   }
 }
+
+// 处理登录链接点击
+const handleLoginClick = () => {
+  console.log('登录链接被点击')
+  router.push('/auth/login')
+}
 </script>
 
 <style scoped>
@@ -313,5 +323,6 @@ const handleRegister = async () => {
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+  pointer-events: none; /* 确保浮动粒子不会阻止点击事件 */
 }
 </style>

@@ -1,13 +1,13 @@
 <template>
   <div class="min-h-screen flex items-center justify-center relative overflow-hidden">
     <!-- 动态背景 -->
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-background-primary to-secondary-900/20">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-background-primary to-secondary-900/20 pointer-events-none z-0">
       <!-- 浮动粒子效果 -->
-      <div class="absolute inset-0">
+      <div class="absolute inset-0 pointer-events-none z-0">
         <div
           v-for="i in 20"
           :key="i"
-          class="absolute w-2 h-2 bg-primary-500/20 rounded-full animate-float"
+          class="absolute w-2 h-2 bg-primary-500/20 rounded-full animate-float pointer-events-none"
           :style="{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
@@ -19,13 +19,13 @@
     </div>
 
     <!-- 登录卡片 -->
-    <div class="relative z-10 w-full max-w-md px-6">
+    <div class="relative z-50 w-full max-w-md px-6">
       <GlassCard
         :level="3"
         :hover="false"
         padding="lg"
         border
-        class="animate-scale-in"
+        class="animate-scale-in relative z-50"
       >
         <!-- 标题区域 -->
         <div class="text-center mb-8">
@@ -44,16 +44,16 @@
 
         <!-- 登录表单 -->
         <form @submit.prevent="handleLogin" class="space-y-6">
-          <!-- 邮箱输入 -->
+          <!-- 用户名输入 -->
           <Input
-            v-model="form.email"
-            type="email"
-            label="邮箱地址"
-            placeholder="请输入您的邮箱"
+            v-model="form.username"
+            type="text"
+            label="用户名"
+            placeholder="请输入您的用户名或邮箱"
             :left-icon="AtSymbolIcon"
-            :error="errors.email"
+            :error="errors.username"
             required
-            autocomplete="email"
+            autocomplete="username"
           />
 
           <!-- 密码输入 -->
@@ -111,21 +111,23 @@
         </div>
 
         <!-- 注册链接 -->
-        <div class="text-center">
+        <div class="text-center relative z-50">
           <p class="text-text-secondary">
             还没有账户？
-            <router-link
-              to="/auth/register"
-              class="text-primary-400 hover:text-primary-300 font-medium transition-colors duration-200"
+            <button
+              type="button"
+              class="text-primary-400 hover:text-primary-300 font-medium transition-colors duration-200 cursor-pointer bg-transparent border-none underline relative z-50"
+              @click="handleRegisterClick"
+              style="pointer-events: auto !important; position: relative; z-index: 9999;"
             >
               立即注册
-            </router-link>
+            </button>
           </p>
         </div>
       </GlassCard>
 
       <!-- 主题切换器 -->
-      <div class="mt-6 flex justify-center">
+      <div class="mt-6 flex justify-center relative z-50">
         <ThemeSelector />
       </div>
     </div>
@@ -153,14 +155,14 @@ const { showNotification } = useNotification()
 
 // 表单数据
 const form = reactive({
-  email: '',
+  username: '',
   password: '',
   rememberMe: false
 })
 
 // 表单错误
 const errors = reactive({
-  email: '',
+  username: '',
   password: ''
 })
 
@@ -169,16 +171,16 @@ const isLoading = ref(false)
 
 // 验证表单
 const validateForm = () => {
-  errors.email = ''
+  errors.username = ''
   errors.password = ''
 
-  if (!form.email) {
-    errors.email = '请输入邮箱地址'
+  if (!form.username) {
+    errors.username = '请输入用户名或邮箱'
     return false
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    errors.email = '请输入有效的邮箱地址'
+  if (form.username.length < 3) {
+    errors.username = '用户名长度至少3位'
     return false
   }
 
@@ -203,7 +205,7 @@ const handleLogin = async () => {
 
   try {
     const result = await authStore.login({
-      email: form.email,
+      username: form.username,
       password: form.password
     })
 
@@ -235,6 +237,12 @@ const handleLogin = async () => {
     isLoading.value = false
   }
 }
+
+// 处理注册链接点击
+const handleRegisterClick = () => {
+  console.log('注册链接被点击')
+  router.push('/auth/register')
+}
 </script>
 
 <style scoped>
@@ -252,5 +260,6 @@ const handleLogin = async () => {
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+  pointer-events: none; /* 确保浮动粒子不会阻止点击事件 */
 }
 </style>
