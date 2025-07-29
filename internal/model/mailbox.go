@@ -2,6 +2,7 @@ package model
 
 import (
 	"gorm.io/gorm"
+	"new-email/internal/constant"
 	"time"
 )
 
@@ -22,7 +23,7 @@ type Mailbox struct {
 	SmtpSsl      bool           `gorm:"default:true" json:"smtp_ssl"`               // SMTP是否使用SSL
 	ClientId     string         `gorm:"size:255" json:"client_id"`                  // OAuth客户端ID
 	RefreshToken string         `gorm:"size:500" json:"refresh_token"`              // OAuth刷新令牌
-	Status       int            `gorm:"default:1" json:"status"`                    // 状态：1启用 0禁用
+	Status       int            `gorm:"default:1" json:"status"`                    // 状态：1启用 2禁用
 	AutoReceive  bool           `gorm:"default:true" json:"auto_receive"`           // 是否自动收信
 	LastSyncAt   *time.Time     `json:"last_sync_at"`                               // 最后同步时间
 	CreatedAt    time.Time      `json:"created_at"`                                 // 创建时间
@@ -178,7 +179,7 @@ func (m *MailboxModel) GetByEmail(email string) (*Mailbox, error) {
 
 // GetActiveMailboxes 获取活跃邮箱列表
 func (m *MailboxModel) GetActiveMailboxes(userId uint) ([]*Mailbox, error) {
-	status := 1
+	status := constant.StatusEnabled
 	mailboxes, _, err := m.List(MailboxListParams{UserId: userId, Status: &status})
 	return mailboxes, err
 }
@@ -193,7 +194,7 @@ func (m *MailboxModel) GetStatistics() (map[string]interface{}, error) {
 	}
 
 	// 活跃邮箱数
-	if err := m.db.Model(&Mailbox{}).Where("status = ?", 1).Count(&active).Error; err != nil {
+	if err := m.db.Model(&Mailbox{}).Where("status = ?", constant.StatusEnabled).Count(&active).Error; err != nil {
 		return nil, err
 	}
 

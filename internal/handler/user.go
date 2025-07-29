@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"new-email/internal/constant"
 	"new-email/internal/middleware"
 	"new-email/internal/model"
 	"new-email/internal/result"
@@ -695,9 +696,9 @@ func (h *UserHandler) ToggleStatus(c *gin.Context) {
 	}
 
 	// 切换状态
-	newStatus := 1
-	if user.Status == 1 {
-		newStatus = 0
+	newStatus := constant.StatusEnabled
+	if user.Status == constant.StatusEnabled {
+		newStatus = constant.StatusDisabled
 	}
 
 	if err := h.svcCtx.UserModel.MapUpdate(nil, userId, map[string]interface{}{
@@ -709,7 +710,7 @@ func (h *UserHandler) ToggleStatus(c *gin.Context) {
 
 	// 记录操作日志
 	action := "enable_user"
-	if newStatus == 0 {
+	if newStatus == constant.StatusDisabled {
 		action = "disable_user"
 	}
 
@@ -729,7 +730,7 @@ func (h *UserHandler) ToggleStatus(c *gin.Context) {
 	}
 
 	statusText := "启用"
-	if newStatus == 0 {
+	if newStatus == constant.StatusDisabled {
 		statusText = "禁用"
 	}
 

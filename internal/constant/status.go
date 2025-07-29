@@ -3,14 +3,14 @@ package constant
 // 通用状态常量
 const (
 	StatusEnabled  = 1 // 启用
-	StatusDisabled = 0 // 禁用
+	StatusDisabled = 2 // 禁用
 )
 
 // 用户状态
 const (
 	UserStatusActive   = 1 // 激活
-	UserStatusInactive = 0 // 未激活
-	UserStatusLocked   = 2 // 锁定
+	UserStatusInactive = 2 // 未激活
+	UserStatusLocked   = 3 // 锁定
 )
 
 // 管理员角色

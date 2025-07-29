@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"new-email/internal/constant"
 	"new-email/internal/middleware"
 	"new-email/internal/model"
 	"new-email/internal/result"
@@ -110,7 +111,7 @@ func (h *DomainHandler) Create(c *gin.Context) {
 	// 创建域名
 	domain := &model.Domain{
 		Name:   req.Name,
-		Status: 1, // 默认启用
+		Status: constant.StatusEnabled, // 默认启用
 	}
 
 	if err := h.svcCtx.DomainModel.Create(domain); err != nil {
@@ -391,7 +392,7 @@ func (h *DomainHandler) BatchOperation(c *gin.Context) {
 	switch req.Operation {
 	case "enable":
 		// 批量启用
-		err := h.svcCtx.DomainModel.BatchUpdateStatus(req.Ids, 1)
+		err := h.svcCtx.DomainModel.BatchUpdateStatus(req.Ids, constant.StatusEnabled)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 			return
@@ -400,7 +401,7 @@ func (h *DomainHandler) BatchOperation(c *gin.Context) {
 
 	case "disable":
 		// 批量禁用
-		err := h.svcCtx.DomainModel.BatchUpdateStatus(req.Ids, 0)
+		err := h.svcCtx.DomainModel.BatchUpdateStatus(req.Ids, constant.StatusDisabled)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 			return

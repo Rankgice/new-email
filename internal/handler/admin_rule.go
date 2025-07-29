@@ -115,7 +115,7 @@ func (h *AdminRuleHandler) CreateGlobalVerificationRule(c *gin.Context) {
 
 	// 创建全局验证码规则
 	rule := &model.VerificationRule{
-		UserId:      0, // 全局规则不属于特定用户
+		UserId:      0, // 全局规则不属于特定用户（0在这里是合理的，表示无用户）
 		Name:        req.Name,
 		Pattern:     req.Pattern,
 		Description: req.Description,

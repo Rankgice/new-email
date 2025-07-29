@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"new-email/internal/constant"
 	"time"
 
 	"gorm.io/gorm"
@@ -15,7 +16,7 @@ type VerificationRule struct {
 	Pattern     string         `gorm:"type:text;not null" json:"pattern"`  // 正则表达式
 	Description string         `gorm:"type:text" json:"description"`       // 规则描述
 	IsGlobal    bool           `gorm:"default:false" json:"is_global"`     // 是否全局规则
-	Status      int            `gorm:"default:1" json:"status"`            // 状态：1启用 0禁用
+	Status      int            `gorm:"default:1" json:"status"`            // 状态：1启用 2禁用
 	Priority    int            `gorm:"default:0" json:"priority"`          // 优先级，数字越大优先级越高
 	CreatedAt   time.Time      `json:"created_at"`                         // 创建时间
 	UpdatedAt   time.Time      `json:"updated_at"`                         // 更新时间
@@ -163,7 +164,7 @@ func (m *VerificationRuleModel) BatchUpdateStatus(ids []uint, status int) error 
 // GetActiveRules 获取活跃规则
 func (m *VerificationRuleModel) GetActiveRules() ([]*VerificationRule, error) {
 	var rules []*VerificationRule
-	if err := m.db.Where("status = ?", 1).Order("priority DESC").Find(&rules).Error; err != nil {
+	if err := m.db.Where("status = ?", constant.StatusEnabled).Order("priority DESC").Find(&rules).Error; err != nil {
 		return nil, err
 	}
 	return rules, nil
@@ -172,7 +173,7 @@ func (m *VerificationRuleModel) GetActiveRules() ([]*VerificationRule, error) {
 // GetGlobalRules 获取全局规则
 func (m *VerificationRuleModel) GetGlobalRules() ([]*VerificationRule, error) {
 	var rules []*VerificationRule
-	if err := m.db.Where("is_global = ? AND status = ?", true, 1).Order("priority DESC").Find(&rules).Error; err != nil {
+	if err := m.db.Where("is_global = ? AND status = ?", true, constant.StatusEnabled).Order("priority DESC").Find(&rules).Error; err != nil {
 		return nil, err
 	}
 	return rules, nil
@@ -181,7 +182,7 @@ func (m *VerificationRuleModel) GetGlobalRules() ([]*VerificationRule, error) {
 // GetUserRules 获取用户规则
 func (m *VerificationRuleModel) GetUserRules(userId uint) ([]*VerificationRule, error) {
 	var rules []*VerificationRule
-	if err := m.db.Where("user_id = ? AND status = ?", userId, 1).Order("priority DESC").Find(&rules).Error; err != nil {
+	if err := m.db.Where("user_id = ? AND status = ?", userId, constant.StatusEnabled).Order("priority DESC").Find(&rules).Error; err != nil {
 		return nil, err
 	}
 	return rules, nil
@@ -190,7 +191,7 @@ func (m *VerificationRuleModel) GetUserRules(userId uint) ([]*VerificationRule, 
 // GetAvailableRules 获取用户可用的规则（全局规则 + 用户规则）
 func (m *VerificationRuleModel) GetAvailableRules(userId uint) ([]*VerificationRule, error) {
 	var rules []*VerificationRule
-	if err := m.db.Where("(is_global = ? OR user_id = ?) AND status = ?", true, userId, 1).
+	if err := m.db.Where("(is_global = ? OR user_id = ?) AND status = ?", true, userId, constant.StatusEnabled).
 		Order("priority DESC").Find(&rules).Error; err != nil {
 		return nil, err
 	}

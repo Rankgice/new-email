@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"new-email/internal/constant"
 	"time"
 
 	"gorm.io/gorm"
@@ -11,7 +12,7 @@ import (
 type Domain struct {
 	Id          uint           `gorm:"primaryKey;autoIncrement" json:"id"`        // 域名ID
 	Name        string         `gorm:"uniqueIndex;size:100;not null" json:"name"` // 域名
-	Status      int            `gorm:"default:1" json:"status"`                   // 状态：1启用 0禁用
+	Status      int            `gorm:"default:1" json:"status"`                   // 状态：1启用 2禁用
 	DnsVerified bool           `gorm:"default:false" json:"dns_verified"`         // DNS验证状态
 	DkimRecord  string         `gorm:"type:text" json:"dkim_record"`              // DKIM记录
 	SpfRecord   string         `gorm:"type:text" json:"spf_record"`               // SPF记录
@@ -162,7 +163,7 @@ func (m *DomainModel) BatchUpdateStatus(ids []uint, status int) error {
 // GetActiveDomains 获取活跃域名
 func (m *DomainModel) GetActiveDomains() ([]*Domain, error) {
 	var domains []*Domain
-	if err := m.db.Where("status = ?", 1).Find(&domains).Error; err != nil {
+	if err := m.db.Where("status = ?", constant.StatusEnabled).Find(&domains).Error; err != nil {
 		return nil, err
 	}
 	return domains, nil
@@ -171,7 +172,7 @@ func (m *DomainModel) GetActiveDomains() ([]*Domain, error) {
 // GetVerifiedDomains 获取已验证域名
 func (m *DomainModel) GetVerifiedDomains() ([]*Domain, error) {
 	var domains []*Domain
-	if err := m.db.Where("status = ? AND dns_verified = ?", 1, true).Find(&domains).Error; err != nil {
+	if err := m.db.Where("status = ? AND dns_verified = ?", constant.StatusEnabled, true).Find(&domains).Error; err != nil {
 		return nil, err
 	}
 	return domains, nil
@@ -246,7 +247,7 @@ func (m *DomainModel) GetStatistics() (map[string]interface{}, error) {
 	}
 
 	// 活跃域名数
-	if err := m.db.Model(&Domain{}).Where("status = ?", 1).Count(&active).Error; err != nil {
+	if err := m.db.Model(&Domain{}).Where("status = ?", constant.StatusEnabled).Count(&active).Error; err != nil {
 		return nil, err
 	}
 

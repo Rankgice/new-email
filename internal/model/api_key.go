@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"new-email/internal/constant"
 	"time"
 
 	"gorm.io/gorm"
@@ -15,7 +16,7 @@ type ApiKey struct {
 	Key         string         `gorm:"uniqueIndex;size:64;not null" json:"key"` // API密钥
 	Secret      string         `gorm:"size:128;not null" json:"-"`              // 密钥秘钥（加密存储）
 	Permissions string         `gorm:"type:text" json:"permissions"`            // 权限列表（JSON格式）
-	Status      int            `gorm:"default:1" json:"status"`                 // 状态：1启用 0禁用
+	Status      int            `gorm:"default:1" json:"status"`                 // 状态：1启用 2禁用
 	LastUsedAt  *time.Time     `json:"last_used_at"`                            // 最后使用时间
 	ExpiresAt   *time.Time     `json:"expires_at"`                              // 过期时间
 	CreatedAt   time.Time      `json:"created_at"`                              // 创建时间
@@ -193,7 +194,7 @@ func (m *ApiKeyModel) BatchUpdateStatus(ids []uint, status int) error {
 
 // GetActiveKeys 获取活跃API密钥 (使用List方法替代)
 func (m *ApiKeyModel) GetActiveKeys() ([]*ApiKey, error) {
-	status := 1
+	status := constant.StatusEnabled
 	apiKeys, _, err := m.List(ApiKeyListParams{Status: &status})
 	return apiKeys, err
 }

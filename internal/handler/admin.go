@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"new-email/internal/constant"
 	"new-email/internal/middleware"
 	"new-email/internal/model"
 	"new-email/internal/result"
@@ -662,7 +663,7 @@ func (h *AdminHandler) BatchOperationUsers(c *gin.Context) {
 				continue
 			}
 
-			user.Status = 1
+			user.Status = constant.StatusEnabled
 			if err := h.svcCtx.UserModel.Update(nil, user); err != nil {
 				errors = append(errors, fmt.Sprintf("用户ID %d: %v", id, err))
 				failCount++

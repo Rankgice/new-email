@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"net/http"
+	"new-email/internal/constant"
 	"new-email/internal/result"
 	"new-email/internal/svc"
 	"new-email/pkg/auth"
@@ -37,7 +38,7 @@ func AuthMiddleware(svcCtx *svc.ServiceContext) gin.HandlerFunc {
 			return
 		}
 
-		if user.Status != 1 {
+		if user.Status != constant.StatusEnabled {
 			c.JSON(http.StatusUnauthorized, result.ErrorUserDisabled)
 			c.Abort()
 			return
@@ -81,7 +82,7 @@ func AdminAuthMiddleware(svcCtx *svc.ServiceContext) gin.HandlerFunc {
 			return
 		}
 
-		if admin.Status != 1 {
+		if admin.Status != constant.StatusEnabled {
 			c.JSON(http.StatusUnauthorized, result.ErrorUserDisabled)
 			c.Abort()
 			return
