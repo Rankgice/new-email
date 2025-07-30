@@ -7,7 +7,6 @@ import (
 	"new-email/internal/result"
 	"new-email/internal/svc"
 	"new-email/internal/types"
-	"new-email/pkg/auth"
 	"strconv"
 	"time"
 
@@ -268,13 +267,7 @@ func (h *MailboxHandler) Update(c *gin.Context) {
 		updateData["email"] = req.Email
 	}
 	if req.Password != "" {
-		// 加密新密码
-		encryptedPassword, err := auth.HashPassword(req.Password)
-		if err != nil {
-			c.JSON(http.StatusOK, result.ErrorSimpleResult("密码加密失败"))
-			return
-		}
-		updateData["password"] = encryptedPassword
+		updateData["password"] = req.Password
 	}
 	if req.Type != "" {
 		updateData["type"] = req.Type
