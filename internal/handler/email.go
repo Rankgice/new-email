@@ -186,27 +186,13 @@ func (h *EmailHandler) Send(c *gin.Context) {
 		return
 	}
 
-	// 检查邮箱是否属于当前用户
-	if req.MailboxId > 0 {
-		mailbox, err := h.svcCtx.MailboxModel.GetById(req.MailboxId)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
-			return
-		}
-		if mailbox == nil || mailbox.UserId != currentUserId {
-			c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限使用此邮箱"))
-			return
-		}
-	}
-
-	// 获取邮箱配置信息
 	mailbox, err := h.svcCtx.MailboxModel.GetById(req.MailboxId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
 	}
-	if mailbox == nil {
-		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("邮箱不存在"))
+	if mailbox == nil || mailbox.UserId != currentUserId { // 检查邮箱是否属于当前用户
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限使用此邮箱"))
 		return
 	}
 
