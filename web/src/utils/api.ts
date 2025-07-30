@@ -400,39 +400,39 @@ export const apiKeyApi = {
 export const mailboxApi = {
   // 获取邮箱列表
   list: (params?: MailboxListRequest) =>
-    apiClient.get<PaginatedResponse<Mailbox>>('/mailbox/list', { params }),
+    apiClient.get<PaginatedResponse<Mailbox>>('/user/mailboxes', { params }),
 
   // 创建邮箱
   create: (data: MailboxCreateRequest) =>
-    apiClient.post<Mailbox>('/mailbox/create', data),
+    apiClient.post<Mailbox>('/user/mailboxes', data),
 
   // 更新邮箱
   update: (data: MailboxUpdateRequest) =>
-    apiClient.put<Mailbox>(`/mailbox/update`, data),
+    apiClient.put<Mailbox>(`/user/mailboxes/${data.id}`, data),
 
   // 删除邮箱
   delete: (id: number) =>
-    apiClient.delete(`/mailbox/delete/${id}`),
+    apiClient.delete(`/user/mailboxes/${id}`),
 
   // 获取邮箱详情
   getById: (id: number) =>
-    apiClient.get<Mailbox>(`/mailbox/${id}`),
+    apiClient.get<Mailbox>(`/user/mailboxes/${id}`),
 
   // 测试邮箱连接
   testConnection: (data: MailboxTestConnectionRequest) =>
-    apiClient.post<MailboxTestConnectionResponse>('/mailbox/test-connection', data),
+    apiClient.post<MailboxTestConnectionResponse>('/user/mailboxes/test-connection', data),
 
   // 同步邮箱
   sync: (data: MailboxSyncRequest) =>
-    apiClient.post<MailboxSyncResponse>('/mailbox/sync', data),
+    apiClient.post<MailboxSyncResponse>(`/user/mailboxes/${data.id}/sync`),
 
   // 获取邮箱统计
   getStats: () =>
-    apiClient.get<MailboxStats>('/mailbox/stats'),
+    apiClient.get<MailboxStats>('/user/mailboxes/stats'),
 
   // 获取邮箱提供商配置
   getProviders: () =>
-    apiClient.get<MailboxProvider[]>('/mailbox/providers'),
+    apiClient.get<MailboxProvider[]>('/user/mailboxes/providers'),
 }
 
 // 导出统一的 API 对象

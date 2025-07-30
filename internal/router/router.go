@@ -19,25 +19,44 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 	r.StaticFile("/", "./web/dist/index.html")
 	r.StaticFile("/favicon.ico", "./web/dist/favicon.ico")
 
+	// 创建handler实例
+	healthHandler := handler.NewHealthHandler(svcCtx)
+	userHandler := handler.NewUserHandler(svcCtx)
+	adminHandler := handler.NewAdminHandler(svcCtx)
+	commonHandler := handler.NewCommonHandler(svcCtx)
+	mailboxHandler := handler.NewMailboxHandler(svcCtx)
+	emailHandler := handler.NewEmailHandler(svcCtx)
+	draftHandler := handler.NewDraftHandler(svcCtx)
+	templateHandler := handler.NewTemplateHandler(svcCtx)
+	signatureHandler := handler.NewSignatureHandler(svcCtx)
+	ruleHandler := handler.NewRuleHandler(svcCtx)
+	verificationCodeHandler := handler.NewVerificationCodeHandler(svcCtx)
+	apiKeyHandler := handler.NewApiKeyHandler(svcCtx)
+	logHandler := handler.NewLogHandler(svcCtx)
+	domainHandler := handler.NewDomainHandler(svcCtx)
+	adminRuleHandler := handler.NewAdminRuleHandler(svcCtx)
+	adminLogHandler := handler.NewAdminLogHandler(svcCtx)
+	apiHandler := handler.NewApiHandler(svcCtx)
+
 	// API路由组
 	api := r.Group("/api")
 	{
 		// 健康检查
-		api.GET("/health", handler.NewHealthHandler(svcCtx).Health)
+		api.GET("/health", healthHandler.Health)
 
 		// 公共API（无需认证）
 		public := api.Group("/public")
 		{
 			// 用户注册登录
-			public.POST("/user/register", handler.NewUserHandler(svcCtx).Register)
-			public.POST("/user/login", handler.NewUserHandler(svcCtx).Login)
+			public.POST("/user/register", userHandler.Register)
+			public.POST("/user/login", userHandler.Login)
 
 			// 管理员登录
-			public.POST("/admin/login", handler.NewAdminHandler(svcCtx).Login)
+			public.POST("/admin/login", adminHandler.Login)
 
 			// 验证码相关
-			public.POST("/send-code", handler.NewCommonHandler(svcCtx).SendCode)
-			public.POST("/verify-code", handler.NewCommonHandler(svcCtx).VerifyCode)
+			public.POST("/send-code", commonHandler.SendCode)
+			public.POST("/verify-code", commonHandler.VerifyCode)
 		}
 
 		// 用户API（需要用户认证）
@@ -45,59 +64,62 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 		user.Use(middleware.AuthMiddleware(svcCtx))
 		{
 			// 用户信息
-			user.GET("/profile", handler.NewUserHandler(svcCtx).GetProfile)
-			user.PUT("/profile", handler.NewUserHandler(svcCtx).UpdateProfile)
-			user.POST("/change-password", handler.NewUserHandler(svcCtx).ChangePassword)
+			user.GET("/profile", userHandler.GetProfile)
+			user.PUT("/profile", userHandler.UpdateProfile)
+			user.POST("/change-password", userHandler.ChangePassword)
 
 			// 邮箱管理
 			mailbox := user.Group("/mailboxes")
 			{
-				mailbox.GET("", handler.NewMailboxHandler(svcCtx).List)
-				mailbox.POST("", handler.NewMailboxHandler(svcCtx).Create)
-				mailbox.PUT("/:id", handler.NewMailboxHandler(svcCtx).Update)
-				mailbox.DELETE("/:id", handler.NewMailboxHandler(svcCtx).Delete)
-				mailbox.POST("/:id/sync", handler.NewMailboxHandler(svcCtx).Sync)
-				mailbox.POST("/:id/test", handler.NewMailboxHandler(svcCtx).TestConnection)
+				mailbox.GET("", mailboxHandler.List)
+				mailbox.POST("", mailboxHandler.Create)
+				mailbox.PUT("/:id", mailboxHandler.Update)
+				mailbox.DELETE("/:id", mailboxHandler.Delete)
+				mailbox.GET("/stats", mailboxHandler.GetStats)
+				mailbox.GET("/providers", mailboxHandler.GetProviders)
+				mailbox.POST("/test-connection", mailboxHandler.TestConnection)
+				mailbox.GET("/:id", mailboxHandler.GetById)
+				mailbox.POST("/:id/sync", mailboxHandler.Sync)
 			}
 
 			// 邮件管理
 			email := user.Group("/emails")
 			{
-				email.GET("", handler.NewEmailHandler(svcCtx).List)
-				email.GET("/:id", handler.NewEmailHandler(svcCtx).GetById)
-				email.POST("/send", handler.NewEmailHandler(svcCtx).Send)
-				email.PUT("/:id/read", handler.NewEmailHandler(svcCtx).MarkRead)
-				email.PUT("/:id/star", handler.NewEmailHandler(svcCtx).MarkStar)
-				email.DELETE("/:id", handler.NewEmailHandler(svcCtx).Delete)
-				email.POST("/batch", handler.NewEmailHandler(svcCtx).BatchOperation)
+				email.GET("", emailHandler.List)
+				email.GET("/:id", emailHandler.GetById)
+				email.POST("/send", emailHandler.Send)
+				email.PUT("/:id/read", emailHandler.MarkRead)
+				email.PUT("/:id/star", emailHandler.MarkStar)
+				email.DELETE("/:id", emailHandler.Delete)
+				email.POST("/batch", emailHandler.BatchOperation)
 			}
 
 			// 草稿管理
 			draft := user.Group("/drafts")
 			{
-				draft.GET("", handler.NewDraftHandler(svcCtx).List)
-				draft.POST("", handler.NewDraftHandler(svcCtx).Create)
-				draft.PUT("/:id", handler.NewDraftHandler(svcCtx).Update)
-				draft.DELETE("/:id", handler.NewDraftHandler(svcCtx).Delete)
-				draft.POST("/:id/send", handler.NewDraftHandler(svcCtx).Send)
+				draft.GET("", draftHandler.List)
+				draft.POST("", draftHandler.Create)
+				draft.PUT("/:id", draftHandler.Update)
+				draft.DELETE("/:id", draftHandler.Delete)
+				draft.POST("/:id/send", draftHandler.Send)
 			}
 
 			// 邮件模板
 			template := user.Group("/templates")
 			{
-				template.GET("", handler.NewTemplateHandler(svcCtx).List)
-				template.POST("", handler.NewTemplateHandler(svcCtx).Create)
-				template.PUT("/:id", handler.NewTemplateHandler(svcCtx).Update)
-				template.DELETE("/:id", handler.NewTemplateHandler(svcCtx).Delete)
+				template.GET("", templateHandler.List)
+				template.POST("", templateHandler.Create)
+				template.PUT("/:id", templateHandler.Update)
+				template.DELETE("/:id", templateHandler.Delete)
 			}
 
 			// 邮件签名
 			signature := user.Group("/signatures")
 			{
-				signature.GET("", handler.NewSignatureHandler(svcCtx).List)
-				signature.POST("", handler.NewSignatureHandler(svcCtx).Create)
-				signature.PUT("/:id", handler.NewSignatureHandler(svcCtx).Update)
-				signature.DELETE("/:id", handler.NewSignatureHandler(svcCtx).Delete)
+				signature.GET("", signatureHandler.List)
+				signature.POST("", signatureHandler.Create)
+				signature.PUT("/:id", signatureHandler.Update)
+				signature.DELETE("/:id", signatureHandler.Delete)
 			}
 
 			// 规则管理
@@ -106,44 +128,44 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 				// 验证码规则
 				verification := rules.Group("/verification")
 				{
-					verification.GET("", handler.NewRuleHandler(svcCtx).ListVerificationRules)
-					verification.POST("", handler.NewRuleHandler(svcCtx).CreateVerificationRule)
-					verification.PUT("/:id", handler.NewRuleHandler(svcCtx).UpdateVerificationRule)
-					verification.DELETE("/:id", handler.NewRuleHandler(svcCtx).DeleteVerificationRule)
+					verification.GET("", ruleHandler.ListVerificationRules)
+					verification.POST("", ruleHandler.CreateVerificationRule)
+					verification.PUT("/:id", ruleHandler.UpdateVerificationRule)
+					verification.DELETE("/:id", ruleHandler.DeleteVerificationRule)
 				}
 
 				// 转发规则
 				forward := rules.Group("/forward")
 				{
-					forward.GET("", handler.NewRuleHandler(svcCtx).ListForwardRules)
-					forward.POST("", handler.NewRuleHandler(svcCtx).CreateForwardRule)
-					forward.PUT("/:id", handler.NewRuleHandler(svcCtx).UpdateForwardRule)
-					forward.DELETE("/:id", handler.NewRuleHandler(svcCtx).DeleteForwardRule)
+					forward.GET("", ruleHandler.ListForwardRules)
+					forward.POST("", ruleHandler.CreateForwardRule)
+					forward.PUT("/:id", ruleHandler.UpdateForwardRule)
+					forward.DELETE("/:id", ruleHandler.DeleteForwardRule)
 				}
 			}
 
 			// 验证码记录
 			codes := user.Group("/verification-codes")
 			{
-				codes.GET("", handler.NewVerificationCodeHandler(svcCtx).List)
-				codes.GET("/:id", handler.NewVerificationCodeHandler(svcCtx).GetById)
-				codes.PUT("/:id/used", handler.NewVerificationCodeHandler(svcCtx).MarkUsed)
+				codes.GET("", verificationCodeHandler.List)
+				codes.GET("/:id", verificationCodeHandler.GetById)
+				codes.PUT("/:id/used", verificationCodeHandler.MarkUsed)
 			}
 
 			// API密钥管理
 			apiKeys := user.Group("/api-keys")
 			{
-				apiKeys.GET("", handler.NewApiKeyHandler(svcCtx).List)
-				apiKeys.POST("", handler.NewApiKeyHandler(svcCtx).Create)
-				apiKeys.PUT("/:id", handler.NewApiKeyHandler(svcCtx).Update)
-				apiKeys.DELETE("/:id", handler.NewApiKeyHandler(svcCtx).Delete)
+				apiKeys.GET("", apiKeyHandler.List)
+				apiKeys.POST("", apiKeyHandler.Create)
+				apiKeys.PUT("/:id", apiKeyHandler.Update)
+				apiKeys.DELETE("/:id", apiKeyHandler.Delete)
 			}
 
 			// 日志查询
 			logs := user.Group("/logs")
 			{
-				logs.GET("/operation", handler.NewLogHandler(svcCtx).ListOperationLogs)
-				logs.GET("/email", handler.NewLogHandler(svcCtx).ListEmailLogs)
+				logs.GET("/operation", logHandler.ListOperationLogs)
+				logs.GET("/email", logHandler.ListEmailLogs)
 			}
 		}
 
@@ -152,45 +174,45 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 		admin.Use(middleware.AdminAuthMiddleware(svcCtx))
 		{
 			// 管理员信息
-			admin.GET("/profile", handler.NewAdminHandler(svcCtx).GetProfile)
-			admin.PUT("/profile", handler.NewAdminHandler(svcCtx).UpdateProfile)
-			admin.POST("/change-password", handler.NewAdminHandler(svcCtx).ChangePassword)
+			admin.GET("/profile", adminHandler.GetProfile)
+			admin.PUT("/profile", adminHandler.UpdateProfile)
+			admin.POST("/change-password", adminHandler.ChangePassword)
 
 			// 仪表板
-			admin.GET("/dashboard", handler.NewAdminHandler(svcCtx).Dashboard)
+			admin.GET("/dashboard", adminHandler.Dashboard)
 
 			// 用户管理
 			users := admin.Group("/users")
 			{
-				users.GET("", handler.NewAdminHandler(svcCtx).ListUsers)
-				users.POST("", handler.NewAdminHandler(svcCtx).CreateUser)
-				users.PUT("/:id", handler.NewAdminHandler(svcCtx).UpdateUser)
-				users.DELETE("/:id", handler.NewAdminHandler(svcCtx).DeleteUser)
-				users.POST("/batch", handler.NewAdminHandler(svcCtx).BatchOperationUsers)
-				users.POST("/import", handler.NewAdminHandler(svcCtx).ImportUsers)
-				users.GET("/export", handler.NewAdminHandler(svcCtx).ExportUsers)
+				users.GET("", adminHandler.ListUsers)
+				users.POST("", adminHandler.CreateUser)
+				users.PUT("/:id", adminHandler.UpdateUser)
+				users.DELETE("/:id", adminHandler.DeleteUser)
+				users.POST("/batch", adminHandler.BatchOperationUsers)
+				users.POST("/import", adminHandler.ImportUsers)
+				users.GET("/export", adminHandler.ExportUsers)
 			}
 
 			// 管理员管理（仅超级管理员）
 			admins := admin.Group("/admins")
 			admins.Use(middleware.SuperAdminMiddleware())
 			{
-				admins.GET("", handler.NewAdminHandler(svcCtx).ListAdmins)
-				admins.POST("", handler.NewAdminHandler(svcCtx).CreateAdmin)
-				admins.PUT("/:id", handler.NewAdminHandler(svcCtx).UpdateAdmin)
-				admins.DELETE("/:id", handler.NewAdminHandler(svcCtx).DeleteAdmin)
-				admins.POST("/batch", handler.NewAdminHandler(svcCtx).BatchOperationAdmins)
+				admins.GET("", adminHandler.ListAdmins)
+				admins.POST("", adminHandler.CreateAdmin)
+				admins.PUT("/:id", adminHandler.UpdateAdmin)
+				admins.DELETE("/:id", adminHandler.DeleteAdmin)
+				admins.POST("/batch", adminHandler.BatchOperationAdmins)
 			}
 
 			// 域名管理
 			domains := admin.Group("/domains")
 			{
-				domains.GET("", handler.NewDomainHandler(svcCtx).List)
-				domains.POST("", handler.NewDomainHandler(svcCtx).Create)
-				domains.PUT("/:id", handler.NewDomainHandler(svcCtx).Update)
-				domains.DELETE("/:id", handler.NewDomainHandler(svcCtx).Delete)
-				domains.POST("/:id/verify", handler.NewDomainHandler(svcCtx).Verify)
-				domains.POST("/batch", handler.NewDomainHandler(svcCtx).BatchOperation)
+				domains.GET("", domainHandler.List)
+				domains.POST("", domainHandler.Create)
+				domains.PUT("/:id", domainHandler.Update)
+				domains.DELETE("/:id", domainHandler.Delete)
+				domains.POST("/:id/verify", domainHandler.Verify)
+				domains.POST("/batch", domainHandler.BatchOperation)
 			}
 
 			// 全局规则管理
@@ -199,35 +221,35 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 				// 全局验证码规则
 				verification := globalRules.Group("/verification")
 				{
-					verification.GET("", handler.NewAdminRuleHandler(svcCtx).ListGlobalVerificationRules)
-					verification.POST("", handler.NewAdminRuleHandler(svcCtx).CreateGlobalVerificationRule)
-					verification.PUT("/:id", handler.NewAdminRuleHandler(svcCtx).UpdateGlobalVerificationRule)
-					verification.DELETE("/:id", handler.NewAdminRuleHandler(svcCtx).DeleteGlobalVerificationRule)
+					verification.GET("", adminRuleHandler.ListGlobalVerificationRules)
+					verification.POST("", adminRuleHandler.CreateGlobalVerificationRule)
+					verification.PUT("/:id", adminRuleHandler.UpdateGlobalVerificationRule)
+					verification.DELETE("/:id", adminRuleHandler.DeleteGlobalVerificationRule)
 				}
 
 				// 全局反垃圾规则
 				antiSpam := globalRules.Group("/anti-spam")
 				{
-					antiSpam.GET("", handler.NewAdminRuleHandler(svcCtx).ListAntiSpamRules)
-					antiSpam.POST("", handler.NewAdminRuleHandler(svcCtx).CreateAntiSpamRule)
-					antiSpam.PUT("/:id", handler.NewAdminRuleHandler(svcCtx).UpdateAntiSpamRule)
-					antiSpam.DELETE("/:id", handler.NewAdminRuleHandler(svcCtx).DeleteAntiSpamRule)
+					antiSpam.GET("", adminRuleHandler.ListAntiSpamRules)
+					antiSpam.POST("", adminRuleHandler.CreateAntiSpamRule)
+					antiSpam.PUT("/:id", adminRuleHandler.UpdateAntiSpamRule)
+					antiSpam.DELETE("/:id", adminRuleHandler.DeleteAntiSpamRule)
 				}
 			}
 
 			// 系统日志
 			systemLogs := admin.Group("/logs")
 			{
-				systemLogs.GET("/operation", handler.NewAdminLogHandler(svcCtx).ListOperationLogs)
-				systemLogs.GET("/email", handler.NewAdminLogHandler(svcCtx).ListEmailLogs)
-				systemLogs.GET("/system", handler.NewAdminLogHandler(svcCtx).ListSystemLogs)
+				systemLogs.GET("/operation", adminLogHandler.ListOperationLogs)
+				systemLogs.GET("/email", adminLogHandler.ListEmailLogs)
+				systemLogs.GET("/system", adminLogHandler.ListSystemLogs)
 			}
 
 			// 系统设置
 			settings := admin.Group("/settings")
 			{
-				settings.GET("", handler.NewAdminHandler(svcCtx).GetSystemSettings)
-				settings.PUT("", handler.NewAdminHandler(svcCtx).UpdateSystemSettings)
+				settings.GET("", adminHandler.GetSystemSettings)
+				settings.PUT("", adminHandler.UpdateSystemSettings)
 			}
 		}
 
@@ -236,13 +258,13 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 		apiAccess.Use(middleware.ApiKeyMiddleware(svcCtx))
 		{
 			// 邮件API
-			apiAccess.GET("/emails", handler.NewApiHandler(svcCtx).ListEmails)
-			apiAccess.GET("/emails/:id", handler.NewApiHandler(svcCtx).GetEmail)
-			apiAccess.POST("/emails/send", handler.NewApiHandler(svcCtx).SendEmail)
+			apiAccess.GET("/emails", apiHandler.ListEmails)
+			apiAccess.GET("/emails/:id", apiHandler.GetEmail)
+			apiAccess.POST("/emails/send", apiHandler.SendEmail)
 
 			// 验证码API
-			apiAccess.GET("/verification-codes", handler.NewApiHandler(svcCtx).ListVerificationCodes)
-			apiAccess.GET("/verification-codes/:id", handler.NewApiHandler(svcCtx).GetVerificationCode)
+			apiAccess.GET("/verification-codes", apiHandler.ListVerificationCodes)
+			apiAccess.GET("/verification-codes/:id", apiHandler.GetVerificationCode)
 		}
 	}
 

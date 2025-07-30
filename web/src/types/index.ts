@@ -246,22 +246,22 @@ export interface UserEvent {
 // 邮箱管理相关类型
 export interface Mailbox {
   id: number
-  userId: number
-  domainId: number
+  user_id: number
+  domain_id: number
   email: string
   type: 'self' | 'third'
   provider: string
-  imapHost: string
-  imapPort: number
-  imapSsl: boolean
-  smtpHost: string
-  smtpPort: number
-  smtpSsl: boolean
-  autoReceive: boolean
+  imap_host: string
+  imap_port: number
+  imap_ssl: boolean
+  smtp_host: string
+  smtp_port: number
+  smtp_ssl: boolean
+  auto_receive: boolean
   status: number
-  lastSyncAt?: string
-  createdAt: string
-  updatedAt: string
+  last_sync_at?: string
+  created_at: string
+  updated_at: string
 }
 
 export interface MailboxCreateRequest {

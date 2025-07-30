@@ -40,13 +40,110 @@
           <!-- 设置内容 -->
           <div class="lg:col-span-3">
             <GlassCard padding="lg" class="h-full">
-              <div class="text-center py-20">
+              <!-- 个人资料 -->
+              <div v-if="activeTab === 'profile'" class="space-y-6">
+                <div class="text-center py-20">
+                  <UserIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
+                  <h2 class="text-xl font-medium text-text-primary mb-2">
+                    个人资料
+                  </h2>
+                  <p class="text-text-secondary">
+                    此功能正在开发中...
+                  </p>
+                </div>
+              </div>
+
+              <!-- 邮箱管理 -->
+              <div v-else-if="activeTab === 'email'" class="space-y-6">
+                <MailboxManagement />
+              </div>
+
+              <!-- 安全设置 -->
+              <div v-else-if="activeTab === 'security'" class="space-y-6">
+                <div class="text-center py-20">
+                  <LockClosedIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
+                  <h2 class="text-xl font-medium text-text-primary mb-2">
+                    安全设置
+                  </h2>
+                  <p class="text-text-secondary">
+                    此功能正在开发中...
+                  </p>
+                </div>
+              </div>
+
+              <!-- 通知设置 -->
+              <div v-else-if="activeTab === 'notifications'" class="space-y-6">
+                <div class="text-center py-20">
+                  <BellIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
+                  <h2 class="text-xl font-medium text-text-primary mb-2">
+                    通知设置
+                  </h2>
+                  <p class="text-text-secondary">
+                    此功能正在开发中...
+                  </p>
+                </div>
+              </div>
+
+              <!-- 邮件过滤 -->
+              <div v-else-if="activeTab === 'filters'" class="space-y-6">
+                <div class="text-center py-20">
+                  <FunnelIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
+                  <h2 class="text-xl font-medium text-text-primary mb-2">
+                    邮件过滤
+                  </h2>
+                  <p class="text-text-secondary">
+                    此功能正在开发中...
+                  </p>
+                </div>
+              </div>
+
+              <!-- 邮件签名 -->
+              <div v-else-if="activeTab === 'signature'" class="space-y-6">
+                <div class="text-center py-20">
+                  <PencilIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
+                  <h2 class="text-xl font-medium text-text-primary mb-2">
+                    邮件签名
+                  </h2>
+                  <p class="text-text-secondary">
+                    此功能正在开发中...
+                  </p>
+                </div>
+              </div>
+
+              <!-- API密钥 -->
+              <div v-else-if="activeTab === 'api'" class="space-y-6">
+                <div class="text-center py-20">
+                  <KeyIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
+                  <h2 class="text-xl font-medium text-text-primary mb-2">
+                    API密钥
+                  </h2>
+                  <p class="text-text-secondary">
+                    此功能正在开发中...
+                  </p>
+                </div>
+              </div>
+
+              <!-- 主题设置 -->
+              <div v-else-if="activeTab === 'theme'" class="space-y-6">
+                <div class="text-center py-20">
+                  <SwatchIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
+                  <h2 class="text-xl font-medium text-text-primary mb-2">
+                    主题设置
+                  </h2>
+                  <p class="text-text-secondary">
+                    此功能正在开发中...
+                  </p>
+                </div>
+              </div>
+
+              <!-- 默认内容 -->
+              <div v-else class="text-center py-20">
                 <CogIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
                 <h2 class="text-xl font-medium text-text-primary mb-2">
                   用户设置
                 </h2>
                 <p class="text-text-secondary">
-                  此页面正在开发中...
+                  请选择左侧菜单项进行设置
                 </p>
               </div>
             </GlassCard>
@@ -61,6 +158,7 @@
 import { ref } from 'vue'
 import GlassCard from '@/components/ui/GlassCard.vue'
 import Button from '@/components/ui/Button.vue'
+import MailboxManagement from '@/components/mailbox/MailboxManagement.vue'
 import {
   ArrowLeftIcon,
   CogIcon,
