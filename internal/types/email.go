@@ -22,6 +22,7 @@ type EmailListReq struct {
 	Subject        string    `json:"subject" form:"subject"`               // 邮件主题（模糊搜索）
 	FromEmail      string    `json:"fromEmail" form:"fromEmail"`           // 发件人邮箱
 	ToEmail        string    `json:"toEmail" form:"toEmail"`               // 收件人邮箱
+	Direction      string    `json:"direction" form:"direction"`           // 邮件方向：sent(已发送), received(已接收)
 	Status         *int      `json:"status" form:"status"`                 // 状态
 	Type           string    `json:"type" form:"type"`                     // 邮件类型
 	CreatedAtStart time.Time `json:"createdAtStart" form:"createdAtStart"` // 创建时间开始

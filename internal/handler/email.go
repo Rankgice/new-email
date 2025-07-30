@@ -72,6 +72,15 @@ func (h *EmailHandler) List(c *gin.Context) {
 		params.MailboxId = *req.MailboxId
 	}
 
+	// 根据direction参数设置邮件类型
+	if req.Direction == "sent" {
+		params.Type = "sent"
+	} else if req.Direction == "received" {
+		params.Type = "inbox"
+	} else if req.Type != "" {
+		params.Type = req.Type
+	}
+
 	// 查询邮件列表
 	emails, total, err := h.svcCtx.EmailModel.List(params)
 	if err != nil {

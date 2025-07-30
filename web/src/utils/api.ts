@@ -185,7 +185,19 @@ export const authApi = {
 export const emailApi = {
   // 获取邮件列表
   getEmails: (params: EmailListParams) =>
-    apiClient.get<PaginatedResponse<Email>>('/user/emails', params),
+    apiClient.get<PaginatedResponse<Email>>('/user/emails', { params }),
+
+  // 获取已发送邮件列表
+  getSentEmails: (params: Omit<EmailListParams, 'direction'>) =>
+    apiClient.get<PaginatedResponse<Email>>('/user/emails', {
+      params: { ...params, direction: 'sent' }
+    }),
+
+  // 获取收件箱邮件列表
+  getInboxEmails: (params: Omit<EmailListParams, 'direction'>) =>
+    apiClient.get<PaginatedResponse<Email>>('/user/emails', {
+      params: { ...params, direction: 'received' }
+    }),
 
   // 获取邮件详情
   getEmail: (id: string) =>

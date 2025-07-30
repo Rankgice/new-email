@@ -30,22 +30,23 @@ export interface UserSettings {
 // 邮件相关类型
 export interface Email {
   id: string
+  mailboxId: number
   subject: string
+  fromEmail: string
+  toEmails: string
+  ccEmail?: string
+  bccEmail?: string
   content: string
-  htmlContent?: string
-  from: EmailAddress
-  to: EmailAddress[]
-  cc?: EmailAddress[]
-  bcc?: EmailAddress[]
+  contentType: 'text' | 'html'
   attachments?: Attachment[]
+  status: number
+  type: 'inbox' | 'sent' | 'draft'
   isRead: boolean
   isStarred: boolean
-  isImportant: boolean
-  folder: EmailFolder
+  isImportant?: boolean
   labels?: string[]
   createdAt: string
   updatedAt: string
-  size: number
 }
 
 export interface EmailAddress {
@@ -105,15 +106,21 @@ export interface PaginatedResponse<T> {
 
 // 邮件列表查询参数
 export interface EmailListParams {
-  folder?: string
-  page?: number
-  pageSize?: number
-  search?: string
+  mailboxId?: number
+  messageId?: string
+  subject?: string
+  fromEmail?: string
+  toEmails?: string
+  direction?: 'sent' | 'received'
   isRead?: boolean
   isStarred?: boolean
-  sortBy?: 'date' | 'subject' | 'from'
-  sortOrder?: 'asc' | 'desc'
-  labels?: string[]
+  contentType?: string
+  page?: number
+  pageSize?: number
+  createdAtStart?: string
+  createdAtEnd?: string
+  updatedAtStart?: string
+  updatedAtEnd?: string
 }
 
 // 主题相关类型

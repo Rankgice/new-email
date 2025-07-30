@@ -21,14 +21,14 @@
         @change="handleSelect"
       />
 
-      <!-- 发件人头像 -->
+      <!-- 发件人/收件人头像 -->
       <div class="flex-shrink-0">
         <div
-          v-if="email.from.name"
+          v-if="getDisplayName()"
           class="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center"
         >
           <span class="text-white font-medium text-sm">
-            {{ getInitials(email.from.name) }}
+            {{ getInitials(getDisplayName()) }}
           </span>
         </div>
         <div
@@ -51,7 +51,10 @@
                   email.isRead ? 'text-text-secondary' : 'text-text-primary'
                 ]"
               >
-                {{ email.from.name || email.from.email }}
+                {{ getDisplayName() }}
+              </p>
+              <p class="text-xs text-text-secondary truncate">
+                {{ getDisplayEmail() }}
               </p>
               <StarIcon
                 v-if="email.isStarred"
@@ -136,6 +139,7 @@ import {
 interface Props {
   email: Email
   selected?: boolean
+  emailType?: 'inbox' | 'sent'
 }
 
 interface Emits {
@@ -146,12 +150,34 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  selected: false
+  selected: false,
+  emailType: 'inbox'
 })
 
 const emit = defineEmits<Emits>()
 
 const isSelected = ref(props.selected)
+
+// 获取显示名称
+const getDisplayName = () => {
+  if (props.emailType === 'sent') {
+    // 已发送邮件显示收件人
+    const firstRecipient = props.email.toEmails?.split(',')[0]?.trim()
+    return firstRecipient?.split('@')[0] || '未知收件人'
+  } else {
+    // 收件箱邮件显示发件人
+    return props.email.fromEmail?.split('@')[0] || '未知发件人'
+  }
+}
+
+// 获取显示邮箱
+const getDisplayEmail = () => {
+  if (props.emailType === 'sent') {
+    return props.email.toEmails?.split(',')[0]?.trim() || ''
+  } else {
+    return props.email.fromEmail || ''
+  }
+}
 
 // 获取姓名首字母
 const getInitials = (name: string) => {
