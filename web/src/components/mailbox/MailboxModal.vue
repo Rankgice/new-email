@@ -55,7 +55,7 @@
         >
           <option value="">请选择提供商</option>
           <option
-            v-for="provider in providers"
+            v-for="provider in (providers || [])"
             :key="provider.provider"
             :value="provider.provider"
           >
@@ -357,7 +357,7 @@ const getProviderLabel = (provider: string) => {
 }
 
 const handleProviderChange = () => {
-  const provider = props.providers.find(p => p.provider === formData.value.provider)
+  const provider = (props.providers || []).find(p => p.provider === formData.value.provider)
   if (provider) {
     formData.value.imapHost = provider.imapHost
     formData.value.imapPort = provider.imapPort

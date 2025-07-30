@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const token = ref<string | null>(null)
   const isLoading = ref(false)
+  const isInitialized = ref(false)
   const redirectPath = ref<string>('/inbox')
 
   // 计算属性
@@ -20,22 +21,27 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   // 初始化认证状态
-  const initAuth = () => {
+  const initAuth = async () => {
     const savedToken = localStorage.getItem('auth_token')
     const savedUser = localStorage.getItem('auth_user')
-    
+
     if (savedToken && savedUser) {
       try {
         token.value = savedToken
         user.value = JSON.parse(savedUser)
-        
+
         // 验证 token 有效性
-        validateToken()
+        const isValid = await validateToken()
+        if (!isValid) {
+          clearAuth()
+        }
       } catch (error) {
         console.error('Failed to parse saved user data:', error)
         clearAuth()
       }
     }
+
+    isInitialized.value = true
   }
 
   // 验证 token 有效性
@@ -137,6 +143,7 @@ export const useAuthStore = defineStore('auth', () => {
   const clearAuth = () => {
     user.value = null
     token.value = null
+    isInitialized.value = true
     localStorage.removeItem('auth_token')
     localStorage.removeItem('auth_user')
   }
@@ -222,13 +229,14 @@ export const useAuthStore = defineStore('auth', () => {
     user: readonly(user),
     token: readonly(token),
     isLoading: readonly(isLoading),
+    isInitialized: readonly(isInitialized),
     redirectPath: readonly(redirectPath),
-    
+
     // 计算属性
     isAuthenticated,
     isAdmin,
     userInitials,
-    
+
     // 方法
     initAuth,
     validateToken,

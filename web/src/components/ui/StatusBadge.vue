@@ -66,4 +66,3 @@ const dotClasses = computed(() => {
   return `${baseClasses} ${colorClasses[statusConfig.value.color as keyof typeof colorClasses]}`
 })
 </script>
-</script>

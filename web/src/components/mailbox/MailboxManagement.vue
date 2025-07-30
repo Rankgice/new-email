@@ -115,7 +115,7 @@
 
     <!-- 邮箱列表 -->
     <div class="space-y-4">
-      <div v-if="loading && mailboxes.length === 0" class="text-center py-12">
+      <div v-if="loading && (mailboxes?.length || 0) === 0" class="text-center py-12">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
         <p class="mt-2 text-text-secondary">加载中...</p>
       </div>
@@ -242,14 +242,14 @@ const pageSize = ref(10)
 const total = ref(0)
 
 // 计算属性
-const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
+const totalPages = computed(() => Math.ceil((total.value || 0) / (pageSize.value || 10)))
 
 const filteredMailboxes = computed(() => {
-  let filtered = mailboxes.value
+  let filtered = mailboxes.value || []
 
   if (searchQuery.value) {
     filtered = filtered.filter(mailbox =>
-      mailbox.email.toLowerCase().includes(searchQuery.value.toLowerCase())
+      mailbox.email?.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
   }
 
@@ -258,7 +258,7 @@ const filteredMailboxes = computed(() => {
   }
 
   if (statusFilter.value) {
-    filtered = filtered.filter(mailbox => mailbox.status.toString() === statusFilter.value)
+    filtered = filtered.filter(mailbox => mailbox.status?.toString() === statusFilter.value)
   }
 
   return filtered

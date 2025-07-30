@@ -34,7 +34,11 @@ const router = createRouter({
     // 根路径重定向
     {
       path: '/',
-      redirect: '/inbox'
+      name: 'Root',
+      redirect: () => {
+        // 这里的重定向逻辑会在路由守卫中处理
+        return '/inbox'
+      }
     },
     
     // 认证相关路由
@@ -238,12 +242,27 @@ const router = createRouter({
 // 路由守卫
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
+
+  // 等待认证状态初始化完成
+  if (!authStore.isInitialized) {
+    await authStore.initAuth()
+  }
+
   // 设置页面标题
   if (to.meta.title) {
     document.title = `${to.meta.title} - 邮件系统`
   }
-  
+
+  // 处理根路径重定向
+  if (to.path === '/') {
+    if (authStore.isAuthenticated) {
+      next('/inbox')
+    } else {
+      next('/auth/login')
+    }
+    return
+  }
+
   // 检查认证状态
   if (to.meta.requiresAuth) {
     if (!authStore.isAuthenticated) {
@@ -252,14 +271,14 @@ router.beforeEach(async (to, from, next) => {
       next('/auth/login')
       return
     }
-    
+
     // 检查管理员权限
     if (to.meta.requiresAdmin && !authStore.isAdmin) {
       next('/inbox')
       return
     }
   }
-  
+
   // 已登录用户访问认证页面，重定向到收件箱
   if (!to.meta.requiresAuth && authStore.isAuthenticated) {
     if (to.path.startsWith('/auth')) {
@@ -267,7 +286,7 @@ router.beforeEach(async (to, from, next) => {
       return
     }
   }
-  
+
   next()
 })
 
