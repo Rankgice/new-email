@@ -74,11 +74,11 @@ func (h *EmailHandler) List(c *gin.Context) {
 
 	// 根据direction参数设置邮件类型
 	if req.Direction == "sent" {
-		params.Type = "sent"
+		params.Direction = "sent"
 	} else if req.Direction == "received" {
-		params.Type = "inbox"
+		params.Direction = "inbox"
 	} else if req.Type != "" {
-		params.Type = req.Type
+		params.Direction = req.Type
 	}
 
 	// 查询邮件列表
