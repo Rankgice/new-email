@@ -70,8 +70,6 @@ func (h *MailboxHandler) List(c *gin.Context) {
 		UserId:      req.UserId,
 		DomainId:    req.DomainId,
 		Email:       req.Email,
-		Type:        req.Type,
-		Provider:    req.Provider,
 		Status:      req.Status,
 		AutoReceive: req.AutoReceive,
 	}
@@ -91,14 +89,6 @@ func (h *MailboxHandler) List(c *gin.Context) {
 			UserId:      mailbox.UserId,
 			DomainId:    mailbox.DomainId,
 			Email:       mailbox.Email,
-			Type:        mailbox.Type,
-			Provider:    mailbox.Provider,
-			ImapHost:    mailbox.ImapHost,
-			ImapPort:    mailbox.ImapPort,
-			ImapSsl:     mailbox.ImapSsl,
-			SmtpHost:    mailbox.SmtpHost,
-			SmtpPort:    mailbox.SmtpPort,
-			SmtpSsl:     mailbox.SmtpSsl,
 			AutoReceive: mailbox.AutoReceive,
 			Status:      mailbox.Status,
 			LastSyncAt:  mailbox.LastSyncAt,
@@ -142,21 +132,19 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// 如果是自建邮箱，检查域名是否存在且属于当前用户
-	if req.Type == "self" && req.DomainId > 0 {
-		domain, err := h.svcCtx.DomainModel.GetById(req.DomainId)
-		if err != nil {
-			c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
-			return
-		}
-		if domain == nil {
-			c.JSON(http.StatusOK, result.ErrorSimpleResult("域名不存在"))
-			return
-		}
-		if domain.Status != 1 {
-			c.JSON(http.StatusOK, result.ErrorSimpleResult("域名未启用"))
-			return
-		}
+	// 检查域名是否存在且属于当前用户
+	domain, err := h.svcCtx.DomainModel.GetById(req.DomainId)
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
+		return
+	}
+	if domain == nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("域名不存在"))
+		return
+	}
+	if domain.Status != 1 {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("域名未启用"))
+		return
 	}
 	// 创建邮箱
 	mailbox := &model.Mailbox{
@@ -164,14 +152,6 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 		DomainId:    req.DomainId,
 		Email:       req.Email,
 		Password:    req.Password,
-		Type:        req.Type,
-		Provider:    req.Provider,
-		ImapHost:    req.ImapHost,
-		ImapPort:    req.ImapPort,
-		ImapSsl:     req.ImapSsl,
-		SmtpHost:    req.SmtpHost,
-		SmtpPort:    req.SmtpPort,
-		SmtpSsl:     req.SmtpSsl,
 		AutoReceive: req.AutoReceive,
 		Status:      req.Status,
 	}
@@ -241,8 +221,8 @@ func (h *MailboxHandler) Update(c *gin.Context) {
 		}
 	}
 
-	// 如果是自建邮箱，检查域名是否存在
-	if req.Type == "self" && req.DomainId > 0 && req.DomainId != mailbox.DomainId {
+	// 如果更新域名，检查域名是否存在
+	if req.DomainId > 0 && req.DomainId != mailbox.DomainId {
 		domain, err := h.svcCtx.DomainModel.GetById(req.DomainId)
 		if err != nil {
 			c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
@@ -267,28 +247,14 @@ func (h *MailboxHandler) Update(c *gin.Context) {
 		updateData["email"] = req.Email
 	}
 	if req.Password != "" {
-		updateData["password"] = req.Password
+		// 加密新密码
+		encryptedPassword, err := auth.HashPassword(req.Password)
+		if err != nil {
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("密码加密失败"))
+			return
+		}
+		updateData["password"] = encryptedPassword
 	}
-	if req.Type != "" {
-		updateData["type"] = req.Type
-	}
-	if req.Provider != "" {
-		updateData["provider"] = req.Provider
-	}
-	if req.ImapHost != "" {
-		updateData["imap_host"] = req.ImapHost
-	}
-	if req.ImapPort > 0 {
-		updateData["imap_port"] = req.ImapPort
-	}
-	updateData["imap_ssl"] = req.ImapSsl
-	if req.SmtpHost != "" {
-		updateData["smtp_host"] = req.SmtpHost
-	}
-	if req.SmtpPort > 0 {
-		updateData["smtp_port"] = req.SmtpPort
-	}
-	updateData["smtp_ssl"] = req.SmtpSsl
 	updateData["auto_receive"] = req.AutoReceive
 	updateData["status"] = req.Status
 

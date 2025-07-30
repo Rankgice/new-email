@@ -8,27 +8,17 @@ import (
 
 // Mailbox 邮箱模型
 type Mailbox struct {
-	Id           int64          `gorm:"primaryKey;autoIncrement" json:"id"`         // 邮箱ID
-	UserId       int64          `gorm:"not null;index" json:"user_id"`              // 用户ID
-	DomainId     int64          `gorm:"index" json:"domain_id"`                     // 域名ID（自建邮箱关联域名）
-	Email        string         `gorm:"uniqueIndex;size:100;not null" json:"email"` // 邮箱地址
-	Password     string         `gorm:"size:255;not null" json:"-"`                 // 邮箱密码（加密存储）
-	Type         string         `gorm:"size:20;not null" json:"type"`               // 邮箱类型：self自建 third第三方
-	Provider     string         `gorm:"size:50" json:"provider"`                    // 邮箱提供商：gmail outlook qq imap
-	ImapHost     string         `gorm:"size:100" json:"imap_host"`                  // IMAP服务器地址
-	ImapPort     int            `gorm:"default:993" json:"imap_port"`               // IMAP端口
-	ImapSsl      bool           `gorm:"default:true" json:"imap_ssl"`               // IMAP是否使用SSL
-	SmtpHost     string         `gorm:"size:100" json:"smtp_host"`                  // SMTP服务器地址
-	SmtpPort     int            `gorm:"default:587" json:"smtp_port"`               // SMTP端口
-	SmtpSsl      bool           `gorm:"default:true" json:"smtp_ssl"`               // SMTP是否使用SSL
-	ClientId     string         `gorm:"size:255" json:"client_id"`                  // OAuth客户端ID
-	RefreshToken string         `gorm:"size:500" json:"refresh_token"`              // OAuth刷新令牌
-	Status       int            `gorm:"default:1" json:"status"`                    // 状态：1启用 2禁用
-	AutoReceive  bool           `gorm:"default:true" json:"auto_receive"`           // 是否自动收信
-	LastSyncAt   *time.Time     `json:"last_sync_at"`                               // 最后同步时间
-	CreatedAt    time.Time      `json:"created_at"`                                 // 创建时间
-	UpdatedAt    time.Time      `json:"updated_at"`                                 // 更新时间
-	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`                             // 软删除时间
+	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`         // 邮箱ID
+	UserId      int64          `gorm:"not null;index" json:"user_id"`              // 用户ID
+	DomainId    int64          `gorm:"not null;index" json:"domain_id"`            // 域名ID（自建邮箱关联域名）
+	Email       string         `gorm:"uniqueIndex;size:100;not null" json:"email"` // 邮箱地址
+	Password    string         `gorm:"size:255;not null" json:"-"`                 // 邮箱密码（加密存储）
+	Status      int            `gorm:"default:1" json:"status"`                    // 状态：1启用 0禁用
+	AutoReceive bool           `gorm:"default:true" json:"auto_receive"`           // 是否自动收信
+	LastSyncAt  *time.Time     `json:"last_sync_at"`                               // 最后同步时间
+	CreatedAt   time.Time      `json:"created_at"`                                 // 创建时间
+	UpdatedAt   time.Time      `json:"updated_at"`                                 // 更新时间
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`                             // 软删除时间
 }
 
 // TableName 指定表名
@@ -78,12 +68,6 @@ func (m *MailboxModel) List(params MailboxListParams) ([]*Mailbox, int64, error)
 	}
 	if params.Email != "" {
 		db = db.Where("email LIKE ?", "%"+params.Email+"%")
-	}
-	if params.Type != "" {
-		db = db.Where("type = ?", params.Type)
-	}
-	if params.Provider != "" {
-		db = db.Where("provider = ?", params.Provider)
 	}
 	if params.Status != nil {
 		db = db.Where("status = ?", *params.Status)
@@ -179,7 +163,7 @@ func (m *MailboxModel) GetActiveMailboxes(userId int64) ([]*Mailbox, error) {
 
 // GetStatistics 获取邮箱统计信息
 func (m *MailboxModel) GetStatistics() (map[string]interface{}, error) {
-	var total, active, self, third int64
+	var total, active int64
 
 	// 总邮箱数
 	if err := m.db.Model(&Mailbox{}).Count(&total).Error; err != nil {
@@ -191,20 +175,8 @@ func (m *MailboxModel) GetStatistics() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	// 自建邮箱数
-	if err := m.db.Model(&Mailbox{}).Where("type = ?", "self").Count(&self).Error; err != nil {
-		return nil, err
-	}
-
-	// 第三方邮箱数
-	if err := m.db.Model(&Mailbox{}).Where("type = ?", "third").Count(&third).Error; err != nil {
-		return nil, err
-	}
-
 	return map[string]interface{}{
 		"total":  total,
 		"active": active,
-		"self":   self,
-		"third":  third,
 	}, nil
 }

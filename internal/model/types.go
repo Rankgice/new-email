@@ -51,8 +51,6 @@ type MailboxListParams struct {
 	UserId      int64  `json:"userId" form:"userId"`           // 用户ID
 	DomainId    int64  `json:"domainId" form:"domainId"`       // 域名ID
 	Email       string `json:"email" form:"email"`             // 邮箱地址
-	Type        string `json:"type" form:"type"`               // 邮箱类型
-	Provider    string `json:"provider" form:"provider"`       // 邮箱提供商
 	Status      *int   `json:"status" form:"status"`           // 状态
 	AutoReceive *bool  `json:"autoReceive" form:"autoReceive"` // 自动收信
 }
