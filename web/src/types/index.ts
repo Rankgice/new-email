@@ -97,11 +97,10 @@ export interface ApiResponse<T = any> {
 }
 
 export interface PaginatedResponse<T> {
-  items: T[]
+  list: T[]
   total: number
   page: number
   pageSize: number
-  totalPages: number
 }
 
 // 邮件列表查询参数
@@ -246,22 +245,22 @@ export interface UserEvent {
 // 邮箱管理相关类型
 export interface Mailbox {
   id: number
-  user_id: number
-  domain_id: number
+  userId: number
+  domainId: number
   email: string
   type: 'self' | 'third'
   provider: string
-  imap_host: string
-  imap_port: number
-  imap_ssl: boolean
-  smtp_host: string
-  smtp_port: number
-  smtp_ssl: boolean
-  auto_receive: boolean
+  imapHost: string
+  imapPort: number
+  imapSsl: boolean
+  smtpHost: string
+  smtpPort: number
+  smtpSsl: boolean
+  autoReceive: boolean
   status: number
-  last_sync_at?: string
-  created_at: string
-  updated_at: string
+  lastSyncAt?: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface MailboxCreateRequest {
@@ -359,4 +358,24 @@ export interface MailboxStats {
   activeMailboxes: number
   selfMailboxes: number
   thirdMailboxes: number
+}
+
+// 邮件发送相关类型
+export interface EmailSendRequest {
+  mailboxId: number
+  subject: string
+  fromEmail: string
+  toEmail: string
+  ccEmail?: string
+  bccEmail?: string
+  content: string
+  contentType: 'text' | 'html'
+  attachments?: string
+}
+
+export interface EmailSendResponse {
+  success: boolean
+  message: string
+  emailId: number
+  sentAt: string
 }

@@ -192,8 +192,8 @@ export const emailApi = {
     apiClient.get<Email>(`/user/emails/${id}`),
 
   // 发送邮件
-  sendEmail: (emailData: any) =>
-    apiClient.post<Email>('/user/emails/send', emailData),
+  sendEmail: (data: EmailSendRequest) =>
+    apiClient.post<EmailSendResponse>('/user/emails/send', data),
 
   // 标记已读/未读
   markAsRead: (id: string, isRead: boolean) =>
@@ -234,6 +234,15 @@ export const emailApi = {
 
   sendDraft: (id: string) =>
     apiClient.post(`/user/drafts/${id}/send`),
+
+  // 获取用户的活跃邮箱列表（用于发件人选择）
+  getActiveMailboxes: () =>
+    apiClient.get<Mailbox[]>('/user/mailboxes', {
+      params: { status: 1, pageSize: 100 }
+    }).then(response => ({
+      ...response,
+      data: response.data?.list || []
+    }))
 }
 
 // 用户相关 API
@@ -434,6 +443,8 @@ export const mailboxApi = {
   getProviders: () =>
     apiClient.get<MailboxProvider[]>('/user/mailboxes/providers'),
 }
+
+
 
 // 导出统一的 API 对象
 export const api = {

@@ -447,14 +447,14 @@ watch(() => props.mailbox, (newMailbox) => {
       email: newMailbox.email,
       password: '', // 密码不回显
       provider: newMailbox.provider,
-      domainId: newMailbox.domain_id,
-      imapHost: newMailbox.imap_host,
-      imapPort: newMailbox.imap_port,
-      imapSsl: newMailbox.imap_ssl,
-      smtpHost: newMailbox.smtp_host,
-      smtpPort: newMailbox.smtp_port,
-      smtpSsl: newMailbox.smtp_ssl,
-      autoReceive: newMailbox.auto_receive,
+      domainId: newMailbox.domainId,
+      imapHost: newMailbox.imapHost,
+      imapPort: newMailbox.imapPort,
+      imapSsl: newMailbox.imapSsl,
+      smtpHost: newMailbox.smtpHost,
+      smtpPort: newMailbox.smtpPort,
+      smtpSsl: newMailbox.smtpSsl,
+      autoReceive: newMailbox.autoReceive,
       status: newMailbox.status
     }
   } else {

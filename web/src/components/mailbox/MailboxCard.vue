@@ -28,9 +28,9 @@
                 <ServerIcon class="w-4 h-4 mr-1" />
                 {{ providerLabel }}
               </span>
-              <span v-if="mailbox.last_sync_at" class="flex items-center">
+              <span v-if="mailbox.lastSyncAt" class="flex items-center">
                 <ClockIcon class="w-4 h-4 mr-1" />
-                {{ formatDate(mailbox.last_sync_at) }}
+                {{ formatDate(mailbox.lastSyncAt) }}
               </span>
             </div>
           </div>
@@ -45,10 +45,10 @@
               IMAP 接收
             </h4>
             <div class="space-y-1 text-xs text-text-secondary">
-              <div>{{ mailbox.imap_host }}:{{ mailbox.imap_port }}</div>
+              <div>{{ mailbox.imapHost }}:{{ mailbox.imapPort }}</div>
               <div class="flex items-center">
                 <ShieldCheckIcon class="w-3 h-3 mr-1" />
-                {{ mailbox.imap_ssl ? 'SSL/TLS' : '无加密' }}
+                {{ mailbox.imapSsl ? 'SSL/TLS' : '无加密' }}
               </div>
             </div>
           </div>
@@ -60,10 +60,10 @@
               SMTP 发送
             </h4>
             <div class="space-y-1 text-xs text-text-secondary">
-              <div>{{ mailbox.smtp_host }}:{{ mailbox.smtp_port }}</div>
+              <div>{{ mailbox.smtpHost }}:{{ mailbox.smtpPort }}</div>
               <div class="flex items-center">
                 <ShieldCheckIcon class="w-3 h-3 mr-1" />
-                {{ mailbox.smtp_ssl ? 'SSL/TLS' : '无加密' }}
+                {{ mailbox.smtpSsl ? 'SSL/TLS' : '无加密' }}
               </div>
             </div>
           </div>
@@ -74,7 +74,7 @@
           <div class="flex items-center">
             <input
               type="checkbox"
-              :checked="mailbox.auto_receive"
+              :checked="mailbox.autoReceive"
               disabled
               class="w-4 h-4 text-primary-600 bg-glass-light border-glass-border rounded focus:ring-primary-500"
             />

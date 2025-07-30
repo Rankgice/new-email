@@ -37,6 +37,27 @@
 
         <!-- 邮件表单 -->
         <div class="flex-1 space-y-4">
+          <!-- 发件人选择 -->
+          <div>
+            <label class="block text-sm font-medium text-text-primary mb-2">
+              发件人
+            </label>
+            <select
+              v-model="form.mailboxId"
+              class="w-full px-3 py-2 bg-glass-light border border-glass-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-text-primary"
+              @change="handleMailboxChange"
+            >
+              <option value="">请选择发件邮箱</option>
+              <option
+                v-for="mailbox in activeMailboxes"
+                :key="mailbox.id"
+                :value="mailbox.id"
+              >
+                {{ mailbox.email }} ({{ getMailboxTypeLabel(mailbox.type) }})
+              </option>
+            </select>
+          </div>
+
           <!-- 收件人 -->
           <Input
             v-model="form.to"
@@ -45,13 +66,21 @@
             :left-icon="UserIcon"
           />
 
-          <!-- 抄送 -->
-          <Input
-            v-model="form.cc"
-            label="抄送"
-            placeholder="输入抄送邮箱地址（可选）"
-            :left-icon="UserGroupIcon"
-          />
+          <!-- 抄送和密送 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              v-model="form.cc"
+              label="抄送"
+              placeholder="输入抄送邮箱地址（可选）"
+              :left-icon="UserGroupIcon"
+            />
+            <Input
+              v-model="form.bcc"
+              label="密送"
+              placeholder="输入密送邮箱地址（可选）"
+              :left-icon="EyeSlashIcon"
+            />
+          </div>
 
           <!-- 主题 -->
           <Input
@@ -98,9 +127,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNotification } from '@/composables/useNotification'
+import type { Mailbox, EmailSendRequest } from '@/types'
+import { emailApi } from '@/utils/api'
 import GlassCard from '@/components/ui/GlassCard.vue'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
@@ -109,47 +140,177 @@ import {
   UserIcon,
   UserGroupIcon,
   ChatBubbleLeftRightIcon,
-  PaperClipIcon
+  PaperClipIcon,
+  EyeSlashIcon
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 const { showNotification } = useNotification()
 
+// 表单数据
 const form = reactive({
+  mailboxId: '',
   to: '',
   cc: '',
+  bcc: '',
   subject: '',
-  content: ''
+  content: '',
+  contentType: 'html' as 'text' | 'html'
 })
 
+// 状态
 const isSending = ref(false)
 const isSavingDraft = ref(false)
+const isLoading = ref(false)
+const activeMailboxes = ref<Mailbox[]>([])
+
+// 计算属性
+const selectedMailbox = computed(() => {
+  return activeMailboxes.value.find(m => m.id.toString() === form.mailboxId)
+})
+
+// 方法
+const loadActiveMailboxes = async () => {
+  isLoading.value = true
+  try {
+    const response = await emailApi.getActiveMailboxes()
+    if (response.success && response.data) {
+      activeMailboxes.value = response.data
+      // 如果只有一个邮箱，自动选择
+      if (activeMailboxes.value.length === 1) {
+        form.mailboxId = activeMailboxes.value[0].id.toString()
+        handleMailboxChange()
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load mailboxes:', error)
+    showNotification({
+      type: 'error',
+      title: '加载失败',
+      message: '无法加载邮箱列表'
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleMailboxChange = () => {
+  // 当选择邮箱时，自动设置发件人邮箱地址
+  if (selectedMailbox.value) {
+    // 这里可以添加其他逻辑，比如加载签名等
+  }
+}
+
+const getMailboxTypeLabel = (type: string) => {
+  const labels: Record<string, string> = {
+    'third': '第三方邮箱',
+    'self': '自建邮箱'
+  }
+  return labels[type] || type
+}
+
+const validateForm = () => {
+  if (!form.mailboxId) {
+    showNotification({
+      type: 'warning',
+      title: '请选择发件邮箱',
+      message: '请先选择一个发件邮箱'
+    })
+    return false
+  }
+
+  if (!form.to.trim()) {
+    showNotification({
+      type: 'warning',
+      title: '请输入收件人',
+      message: '收件人不能为空'
+    })
+    return false
+  }
+
+  if (!form.subject.trim()) {
+    showNotification({
+      type: 'warning',
+      title: '请输入主题',
+      message: '邮件主题不能为空'
+    })
+    return false
+  }
+
+  if (!form.content.trim()) {
+    showNotification({
+      type: 'warning',
+      title: '请输入内容',
+      message: '邮件内容不能为空'
+    })
+    return false
+  }
+
+  return true
+}
 
 const sendEmail = async () => {
+  if (!validateForm()) return
+
   isSending.value = true
-  // TODO: 实现发送邮件逻辑
-  setTimeout(() => {
-    isSending.value = false
+  try {
+    const sendData: EmailSendRequest = {
+      mailboxId: parseInt(form.mailboxId),
+      subject: form.subject,
+      fromEmail: selectedMailbox.value?.email || '',
+      toEmail: form.to,
+      ccEmail: form.cc || undefined,
+      bccEmail: form.bcc || undefined,
+      content: form.content,
+      contentType: form.contentType
+    }
+
+    const response = await emailApi.sendEmail(sendData)
+    if (response.success) {
+      showNotification({
+        type: 'success',
+        title: '邮件已发送',
+        message: '您的邮件已成功发送'
+      })
+      router.push('/inbox')
+    }
+  } catch (error) {
+    console.error('Failed to send email:', error)
     showNotification({
-      type: 'success',
-      title: '邮件已发送',
-      message: '您的邮件已成功发送'
+      type: 'error',
+      title: '发送失败',
+      message: '邮件发送失败，请重试'
     })
-    router.push('/inbox')
-  }, 2000)
+  } finally {
+    isSending.value = false
+  }
 }
 
 const saveDraft = async () => {
   isSavingDraft.value = true
-  // TODO: 实现保存草稿逻辑
-  setTimeout(() => {
-    isSavingDraft.value = false
+  try {
+    // TODO: 实现保存草稿逻辑
+    await new Promise(resolve => setTimeout(resolve, 1000))
     showNotification({
       type: 'success',
       title: '草稿已保存'
     })
-  }, 1000)
+  } catch (error) {
+    console.error('Failed to save draft:', error)
+    showNotification({
+      type: 'error',
+      title: '保存失败',
+      message: '草稿保存失败，请重试'
+    })
+  } finally {
+    isSavingDraft.value = false
+  }
 }
+
+// 生命周期
+onMounted(() => {
+  loadActiveMailboxes()
+})
 </script>
 
 <style scoped>

@@ -6,9 +6,11 @@ import (
 	"new-email/internal/middleware"
 	"new-email/internal/model"
 	"new-email/internal/result"
+	"new-email/internal/service"
 	"new-email/internal/svc"
 	"new-email/internal/types"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -197,12 +199,58 @@ func (h *EmailHandler) Send(c *gin.Context) {
 		}
 	}
 
-	// TODO: 实现实际的邮件发送逻辑
-	// 这里应该：
-	// 1. 验证邮件内容的完整性
-	// 2. 调用邮件发送服务
-	// 3. 创建邮件记录
-	// 4. 返回发送结果
+	// 获取邮箱配置信息
+	mailbox, err := h.svcCtx.MailboxModel.GetById(req.MailboxId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+	if mailbox == nil {
+		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("邮箱不存在"))
+		return
+	}
+
+	// 验证邮件内容的完整性
+	if req.Subject == "" {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮件主题不能为空"))
+		return
+	}
+	if req.ToEmail == "" {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("收件人不能为空"))
+		return
+	}
+	if req.Content == "" {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮件内容不能为空"))
+		return
+	}
+
+	// 调用邮件发送服务
+	smtpConfig := service.SMTPConfig{
+		Host:     mailbox.SmtpHost,
+		Port:     mailbox.SmtpPort,
+		Username: mailbox.Email,
+		Password: mailbox.Password, // TODO: 后续需要实现密码解密
+		UseTLS:   mailbox.SmtpSsl,
+	}
+
+	smtpService := service.NewSMTPService(smtpConfig)
+
+	// 构建邮件消息
+	emailMessage := service.EmailMessage{
+		From:        req.FromEmail,
+		To:          splitEmails(req.ToEmail),
+		Cc:          splitEmails(req.CcEmail),
+		Bcc:         splitEmails(req.BccEmail),
+		Subject:     req.Subject,
+		Body:        req.Content,
+		ContentType: req.ContentType,
+	}
+
+	// 发送邮件
+	if err := smtpService.SendEmail(emailMessage); err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("邮件发送失败: "+err.Error()))
+		return
+	}
 
 	// 创建邮件记录
 	email := &model.Email{
@@ -245,6 +293,26 @@ func (h *EmailHandler) Send(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(sendResp))
+}
+
+// splitEmails 分割邮箱地址字符串
+func splitEmails(emails string) []string {
+	if emails == "" {
+		return []string{}
+	}
+
+	// 分割并清理邮箱地址
+	parts := strings.Split(emails, ",")
+	result := make([]string, 0, len(parts))
+
+	for _, email := range parts {
+		email = strings.TrimSpace(email)
+		if email != "" {
+			result = append(result, email)
+		}
+	}
+
+	return result
 }
 
 // MarkRead 标记已读

@@ -275,7 +275,7 @@ const loadMailboxes = async () => {
 
     const response = await mailboxApi.list(params)
     if (response.success && response.data) {
-      mailboxes.value = response.data.items
+      mailboxes.value = response.data.list
       total.value = response.data.total
     }
   } catch (error) {
