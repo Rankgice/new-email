@@ -183,6 +183,19 @@ func (m *VerificationCodeModel) GetLatestBySource(source string) (*VerificationC
 	return &code, nil
 }
 
+// FindByCode 根据验证码查找记录
+func (m *VerificationCodeModel) FindByCode(code string) (*VerificationCode, error) {
+	var verificationCode VerificationCode
+	if err := m.db.Where("code = ?", code).
+		Order("created_at DESC").First(&verificationCode).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("验证码不存在")
+		}
+		return nil, err
+	}
+	return &verificationCode, nil
+}
+
 // GetStatistics 获取验证码统计信息（别名方法）
 func (m *VerificationCodeModel) GetStatistics() (map[string]interface{}, error) {
 	return m.GetGlobalStatistics()
