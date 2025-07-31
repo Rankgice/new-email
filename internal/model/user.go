@@ -78,6 +78,11 @@ func (m *UserModel) Delete(user *User) error {
 	return m.db.Delete(user).Error
 }
 
+// DeleteById 根据ID删除用户
+func (m *UserModel) DeleteById(userId int64) error {
+	return m.db.Where("id = ?", userId).Delete(&User{}).Error
+}
+
 // GetById 根据ID获取用户
 func (m *UserModel) GetById(id int64) (*User, error) {
 	var user User

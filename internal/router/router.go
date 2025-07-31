@@ -36,8 +36,6 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 	domainHandler := handler.NewDomainHandler(svcCtx)
 	adminRuleHandler := handler.NewAdminRuleHandler(svcCtx)
 	adminLogHandler := handler.NewAdminLogHandler(svcCtx)
-	adminSystemHandler := handler.NewAdminSystemHandler(svcCtx)
-	adminUserHandler := handler.NewAdminUserHandler(svcCtx)
 	apiHandler := handler.NewApiHandler(svcCtx)
 
 	// API路由组
@@ -54,7 +52,7 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 			public.POST("/user/login", userHandler.Login)
 
 			// 管理员登录
-			public.POST("/admin/login", adminSystemHandler.Login)
+			public.POST("/admin/login", adminHandler.Login)
 
 			// 验证码相关
 			public.POST("/send-code", commonHandler.SendCode)
@@ -191,26 +189,21 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 			admin.PUT("/profile", adminHandler.UpdateProfile)
 			admin.POST("/change-password", adminHandler.ChangePassword)
 
-			// 仪表板
-			admin.GET("/dashboard", adminSystemHandler.Dashboard)
-
 			// 系统管理
 			system := admin.Group("/system")
 			{
-				system.GET("/stats", adminSystemHandler.GetSystemStats)
-				system.GET("/settings", adminSystemHandler.GetSystemSettings)
-				system.PUT("/settings", adminSystemHandler.UpdateSystemSettings)
+				system.GET("/settings", adminHandler.GetSystemSettings)
+				system.PUT("/settings", adminHandler.UpdateSystemSettings)
 			}
 
 			// 用户管理
 			users := admin.Group("/users")
 			{
-				users.GET("", adminUserHandler.List)
-				users.GET("/:id", adminUserHandler.GetById)
-				users.POST("", adminUserHandler.Create)
-				users.PUT("/:id", adminUserHandler.Update)
-				users.DELETE("/:id", adminUserHandler.Delete)
-				users.PUT("/:id/password", adminUserHandler.ResetPassword)
+				users.GET("", adminHandler.List)
+				users.GET("/:id", adminHandler.GetById)
+				users.POST("", adminHandler.Create)
+				users.PUT("/:id", adminHandler.Update)
+				users.DELETE("/:id", adminHandler.Delete)
 				users.POST("/batch", adminHandler.BatchOperationUsers)
 				users.POST("/import", adminHandler.ImportUsers)
 				users.GET("/export", adminHandler.ExportUsers)
