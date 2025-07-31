@@ -1,22 +1,29 @@
 <template>
   <div class="h-screen bg-background-primary">
     <div class="container-responsive h-full py-6">
-      <GlassCard padding="lg" class="h-full">
-        <div class="text-center py-20">
-          <UserIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
-          <h2 class="text-xl font-medium text-text-primary mb-2">
-            个人资料
-          </h2>
-          <p class="text-text-secondary">
-            此页面正在开发中...
-          </p>
+      <div class="h-full flex flex-col">
+        <!-- 返回按钮 -->
+        <div class="mb-4">
+          <Button
+            variant="ghost"
+            @click="$router.back()"
+          >
+            <ArrowLeftIcon class="w-4 h-4 mr-2" />
+            返回
+          </Button>
         </div>
-      </GlassCard>
+
+        <!-- 个人资料内容 -->
+        <div class="flex-1">
+          <ProfileSettings />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import GlassCard from '@/components/ui/GlassCard.vue'
-import { UserIcon } from '@heroicons/vue/24/outline'
+import Button from '@/components/ui/Button.vue'
+import ProfileSettings from '@/components/settings/ProfileSettings.vue'
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 </script>

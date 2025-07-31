@@ -20,11 +20,87 @@ export interface UserSettings {
     email: boolean
     desktop: boolean
     mobile: boolean
+    sound: boolean
+    newEmail: boolean
+    importantEmail: boolean
+    securityAlerts: boolean
   }
   privacy: {
     showOnlineStatus: boolean
     allowDirectMessages: boolean
+    showReadReceipts: boolean
   }
+  security: {
+    twoFactorEnabled: boolean
+    sessionTimeout: number
+    loginNotifications: boolean
+  }
+  emailFilters: EmailFilter[]
+}
+
+// 邮件过滤规则
+export interface EmailFilter {
+  id: string
+  name: string
+  enabled: boolean
+  conditions: FilterCondition[]
+  actions: FilterAction[]
+  priority: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface FilterCondition {
+  field: 'from' | 'to' | 'subject' | 'body' | 'attachment'
+  operator: 'contains' | 'equals' | 'startsWith' | 'endsWith' | 'regex'
+  value: string
+  caseSensitive?: boolean
+}
+
+export interface FilterAction {
+  type: 'move' | 'label' | 'delete' | 'markRead' | 'markImportant' | 'forward'
+  value?: string
+}
+
+// API密钥
+export interface ApiKey {
+  id: string
+  name: string
+  key: string
+  permissions: string[]
+  lastUsed?: string
+  expiresAt?: string
+  createdAt: string
+  enabled: boolean
+}
+
+// 用户资料更新请求
+export interface UserProfileUpdateRequest {
+  nickname?: string
+  avatar?: string
+  bio?: string
+  timezone?: string
+  language?: string
+}
+
+// 安全设置更新请求
+export interface SecuritySettingsUpdateRequest {
+  currentPassword: string
+  newPassword?: string
+  twoFactorEnabled?: boolean
+  sessionTimeout?: number
+  loginNotifications?: boolean
+}
+
+// 通知设置更新请求
+export interface NotificationSettingsUpdateRequest {
+  email: boolean
+  desktop: boolean
+  mobile: boolean
+  sound: boolean
+  newEmail: boolean
+  importantEmail: boolean
+  securityAlerts: boolean
 }
 
 // 邮件相关类型

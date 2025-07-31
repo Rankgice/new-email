@@ -42,15 +42,7 @@
             <GlassCard padding="lg" class="h-full">
               <!-- 个人资料 -->
               <div v-if="activeTab === 'profile'" class="space-y-6">
-                <div class="text-center py-20">
-                  <UserIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
-                  <h2 class="text-xl font-medium text-text-primary mb-2">
-                    个人资料
-                  </h2>
-                  <p class="text-text-secondary">
-                    此功能正在开发中...
-                  </p>
-                </div>
+                <ProfileSettings />
               </div>
 
               <!-- 邮箱管理 -->
@@ -60,80 +52,32 @@
 
               <!-- 安全设置 -->
               <div v-else-if="activeTab === 'security'" class="space-y-6">
-                <div class="text-center py-20">
-                  <LockClosedIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
-                  <h2 class="text-xl font-medium text-text-primary mb-2">
-                    安全设置
-                  </h2>
-                  <p class="text-text-secondary">
-                    此功能正在开发中...
-                  </p>
-                </div>
+                <SecuritySettings />
               </div>
 
               <!-- 通知设置 -->
               <div v-else-if="activeTab === 'notifications'" class="space-y-6">
-                <div class="text-center py-20">
-                  <BellIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
-                  <h2 class="text-xl font-medium text-text-primary mb-2">
-                    通知设置
-                  </h2>
-                  <p class="text-text-secondary">
-                    此功能正在开发中...
-                  </p>
-                </div>
+                <NotificationSettings />
               </div>
 
               <!-- 邮件过滤 -->
               <div v-else-if="activeTab === 'filters'" class="space-y-6">
-                <div class="text-center py-20">
-                  <FunnelIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
-                  <h2 class="text-xl font-medium text-text-primary mb-2">
-                    邮件过滤
-                  </h2>
-                  <p class="text-text-secondary">
-                    此功能正在开发中...
-                  </p>
-                </div>
+                <EmailFilterSettings />
               </div>
 
               <!-- 邮件签名 -->
               <div v-else-if="activeTab === 'signature'" class="space-y-6">
-                <div class="text-center py-20">
-                  <PencilIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
-                  <h2 class="text-xl font-medium text-text-primary mb-2">
-                    邮件签名
-                  </h2>
-                  <p class="text-text-secondary">
-                    此功能正在开发中...
-                  </p>
-                </div>
+                <EmailSignatureSettings />
               </div>
 
               <!-- API密钥 -->
               <div v-else-if="activeTab === 'api'" class="space-y-6">
-                <div class="text-center py-20">
-                  <KeyIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
-                  <h2 class="text-xl font-medium text-text-primary mb-2">
-                    API密钥
-                  </h2>
-                  <p class="text-text-secondary">
-                    此功能正在开发中...
-                  </p>
-                </div>
+                <ApiKeySettings />
               </div>
 
               <!-- 主题设置 -->
               <div v-else-if="activeTab === 'theme'" class="space-y-6">
-                <div class="text-center py-20">
-                  <SwatchIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
-                  <h2 class="text-xl font-medium text-text-primary mb-2">
-                    主题设置
-                  </h2>
-                  <p class="text-text-secondary">
-                    此功能正在开发中...
-                  </p>
-                </div>
+                <ThemeSettings />
               </div>
 
               <!-- 默认内容 -->
@@ -159,6 +103,16 @@ import { ref } from 'vue'
 import GlassCard from '@/components/ui/GlassCard.vue'
 import Button from '@/components/ui/Button.vue'
 import MailboxManagement from '@/components/mailbox/MailboxManagement.vue'
+
+// 设置组件
+import ProfileSettings from '@/components/settings/ProfileSettings.vue'
+import SecuritySettings from '@/components/settings/SecuritySettings.vue'
+import NotificationSettings from '@/components/settings/NotificationSettings.vue'
+import EmailFilterSettings from '@/components/settings/EmailFilterSettings.vue'
+import EmailSignatureSettings from '@/components/settings/EmailSignatureSettings.vue'
+import ApiKeySettings from '@/components/settings/ApiKeySettings.vue'
+import ThemeSettings from '@/components/settings/ThemeSettings.vue'
+
 import {
   ArrowLeftIcon,
   CogIcon,
