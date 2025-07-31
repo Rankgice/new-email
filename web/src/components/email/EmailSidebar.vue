@@ -91,7 +91,8 @@ import {
   StarIcon,
   PencilIcon,
   CogIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  KeyIcon
 } from '@heroicons/vue/24/outline'
 
 const authStore = useAuthStore()
@@ -130,6 +131,12 @@ const folders = [
     name: '垃圾箱',
     path: '/trash',
     icon: TrashIcon,
+    count: 0
+  },
+  {
+    name: '验证码',
+    path: '/verification-codes',
+    icon: KeyIcon,
     count: 0
   }
 ]

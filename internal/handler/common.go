@@ -50,12 +50,13 @@ func (h *CommonHandler) SendCode(c *gin.Context) {
 
 	// 保存验证码记录
 	verificationCode := &model.VerificationCode{
-		EmailId:     0, // TODO: 需要根据实际业务逻辑设置EmailId
-		RuleId:      0, // TODO: 需要根据实际业务逻辑设置RuleId
-		Code:        code,
-		Source:      req.Type, // 使用Type作为Source
-		ExtractedAt: time.Now(),
-		IsUsed:      false,
+		UserId:    0, // TODO: 需要根据实际业务逻辑设置UserId
+		EmailId:   0, // TODO: 需要根据实际业务逻辑设置EmailId
+		Code:      code,
+		Source:    req.Type, // 使用Type作为Source
+		Type:      "manual", // 手动生成的验证码
+		IsUsed:    false,
+		ExpiresAt: time.Now().Add(24 * time.Hour), // 24小时后过期
 	}
 
 	if err := h.svcCtx.VerificationCodeModel.Create(verificationCode); err != nil {

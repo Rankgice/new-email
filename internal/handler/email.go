@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"new-email/internal/middleware"
@@ -9,6 +11,8 @@ import (
 	"new-email/internal/service"
 	"new-email/internal/svc"
 	"new-email/internal/types"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -692,9 +696,371 @@ func (h *EmailHandler) batchUpdateEmailStatus(emailId int64, userId int64, statu
 		return fmt.Errorf("无权限操作此邮件")
 	}
 
-	// TODO: 更新状态
-	// Email模型中没有Status字段，需要使用其他字段或添加Status字段
-	// email.Status = status
-	// return h.svcCtx.EmailModel.Update(email)
-	return nil
+	// 更新已读状态
+	updateData := map[string]interface{}{
+		"is_read": status == 1,
+	}
+	return h.svcCtx.EmailModel.MapUpdate(nil, emailId, updateData)
+}
+
+// Export 导出邮件
+func (h *EmailHandler) Export(c *gin.Context) {
+	var req types.EmailExportReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 获取当前用户ID
+	currentUserId := middleware.GetCurrentUserId(c)
+	if currentUserId == 0 {
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
+		return
+	}
+
+	// 设置默认格式
+	if req.Format == "" {
+		req.Format = "csv"
+	}
+
+	// 构建查询参数
+	params := model.EmailListParams{
+		BaseListParams: model.BaseListParams{
+			Page:     1,
+			PageSize: 10000, // 导出时设置较大的页面大小
+		},
+		BaseTimeRangeParams: model.BaseTimeRangeParams{
+			CreatedAtStart: req.CreatedAtStart,
+			CreatedAtEnd:   req.CreatedAtEnd,
+		},
+		Subject:   req.Subject,
+		FromEmail: req.FromEmail,
+		ToEmails:  req.ToEmail,
+		Direction: req.Direction,
+	}
+
+	// 处理可选的MailboxId参数
+	if req.MailboxId != nil {
+		// 检查邮箱权限
+		mailbox, err := h.svcCtx.MailboxModel.GetById(*req.MailboxId)
+		if err != nil {
+			c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
+			return
+		}
+		if mailbox == nil || mailbox.UserId != currentUserId {
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("无权限访问此邮箱"))
+			return
+		}
+		params.MailboxId = *req.MailboxId
+	}
+
+	// 查询邮件列表
+	emails, total, err := h.svcCtx.EmailModel.List(params)
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
+		return
+	}
+
+	if total == 0 {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("没有找到符合条件的邮件"))
+		return
+	}
+
+	// 过滤用户权限：只导出用户有权限的邮件
+	var filteredEmails []*model.Email
+	for _, email := range emails {
+		mailbox, err := h.svcCtx.MailboxModel.GetById(email.MailboxId)
+		if err != nil || mailbox == nil || mailbox.UserId != currentUserId {
+			continue // 跳过无权限的邮件
+		}
+		filteredEmails = append(filteredEmails, email)
+	}
+
+	if len(filteredEmails) == 0 {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("没有找到有权限的邮件"))
+		return
+	}
+
+	// 生成文件名
+	timestamp := time.Now().Format("20060102_150405")
+	fileName := fmt.Sprintf("emails_export_%s.%s", timestamp, req.Format)
+
+	// 确保导出目录存在
+	exportDir := "./data/exports"
+	if err := os.MkdirAll(exportDir, 0755); err != nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("创建导出目录失败"))
+		return
+	}
+
+	filePath := filepath.Join(exportDir, fileName)
+
+	// 根据格式导出
+	var fileSize int64
+	switch req.Format {
+	case "csv":
+		fileSize, err = h.exportToCSV(filteredEmails, filePath, req.IncludeContent)
+	case "json":
+		fileSize, err = h.exportToJSON(filteredEmails, filePath, req.IncludeContent)
+	case "eml":
+		fileSize, err = h.exportToEML(filteredEmails, filePath)
+	default:
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("不支持的导出格式"))
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("导出失败: "+err.Error()))
+		return
+	}
+
+	// 记录操作日志
+	log := &model.OperationLog{
+		UserId:     currentUserId,
+		Action:     "export_emails",
+		Resource:   "email",
+		ResourceId: 0,
+		Method:     "GET",
+		Path:       c.Request.URL.Path,
+		Ip:         c.ClientIP(),
+		UserAgent:  c.Request.UserAgent(),
+		Status:     http.StatusOK,
+	}
+	h.svcCtx.OperationLogModel.Create(log)
+
+	// 返回导出结果
+	resp := types.EmailExportResp{
+		FileName:    fileName,
+		FileSize:    fileSize,
+		RecordCount: int64(len(filteredEmails)),
+		DownloadUrl: fmt.Sprintf("/api/user/emails/download/%s", fileName),
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
+}
+
+// exportToCSV 导出为CSV格式
+func (h *EmailHandler) exportToCSV(emails []*model.Email, filePath string, includeContent bool) (int64, error) {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// 写入CSV头部
+	headers := []string{"ID", "邮箱ID", "主题", "发件人", "收件人", "抄送", "密送", "方向", "是否已读", "是否星标", "发送时间", "接收时间", "创建时间"}
+	if includeContent {
+		headers = append(headers, "内容类型", "邮件内容")
+	}
+
+	if err := writer.Write(headers); err != nil {
+		return 0, err
+	}
+
+	// 写入数据行
+	for _, email := range emails {
+		row := []string{
+			strconv.FormatInt(email.Id, 10),
+			strconv.FormatInt(email.MailboxId, 10),
+			email.Subject,
+			email.FromEmail,
+			email.ToEmails,
+			email.CcEmails,
+			email.BccEmails,
+			email.Direction,
+			strconv.FormatBool(email.IsRead),
+			strconv.FormatBool(email.IsStarred),
+			formatTimePtr(email.SentAt),
+			formatTimePtr(email.ReceivedAt),
+			email.CreatedAt.Format("2006-01-02 15:04:05"),
+		}
+
+		if includeContent {
+			row = append(row, email.ContentType, email.Content)
+		}
+
+		if err := writer.Write(row); err != nil {
+			return 0, err
+		}
+	}
+
+	// 获取文件大小
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return 0, err
+	}
+
+	return fileInfo.Size(), nil
+}
+
+// exportToJSON 导出为JSON格式
+func (h *EmailHandler) exportToJSON(emails []*model.Email, filePath string, includeContent bool) (int64, error) {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+
+	// 构建导出数据
+	var exportData []map[string]interface{}
+	for _, email := range emails {
+		data := map[string]interface{}{
+			"id":          email.Id,
+			"mailbox_id":  email.MailboxId,
+			"subject":     email.Subject,
+			"from_email":  email.FromEmail,
+			"from_name":   email.FromName,
+			"to_emails":   email.ToEmails,
+			"cc_emails":   email.CcEmails,
+			"bcc_emails":  email.BccEmails,
+			"reply_to":    email.ReplyTo,
+			"direction":   email.Direction,
+			"is_read":     email.IsRead,
+			"is_starred":  email.IsStarred,
+			"sent_at":     email.SentAt,
+			"received_at": email.ReceivedAt,
+			"created_at":  email.CreatedAt,
+			"updated_at":  email.UpdatedAt,
+		}
+
+		if includeContent {
+			data["content_type"] = email.ContentType
+			data["content"] = email.Content
+		}
+
+		exportData = append(exportData, data)
+	}
+
+	// 写入JSON文件
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(exportData); err != nil {
+		return 0, err
+	}
+
+	// 获取文件大小
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return 0, err
+	}
+
+	return fileInfo.Size(), nil
+}
+
+// exportToEML 导出为EML格式
+func (h *EmailHandler) exportToEML(emails []*model.Email, filePath string) (int64, error) {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+
+	var totalSize int64
+
+	for i, email := range emails {
+		// 构建EML格式的邮件内容
+		emlContent := h.buildEMLContent(email)
+
+		// 写入分隔符（除了第一封邮件）
+		if i > 0 {
+			separator := "\n\n" + strings.Repeat("-", 50) + "\n\n"
+			if _, err := file.WriteString(separator); err != nil {
+				return 0, err
+			}
+			totalSize += int64(len(separator))
+		}
+
+		// 写入EML内容
+		if _, err := file.WriteString(emlContent); err != nil {
+			return 0, err
+		}
+		totalSize += int64(len(emlContent))
+	}
+
+	return totalSize, nil
+}
+
+// buildEMLContent 构建EML格式的邮件内容
+func (h *EmailHandler) buildEMLContent(email *model.Email) string {
+	var builder strings.Builder
+
+	// 邮件头部
+	builder.WriteString(fmt.Sprintf("Message-ID: <%s>\n", email.MessageId))
+	builder.WriteString(fmt.Sprintf("Subject: %s\n", email.Subject))
+	builder.WriteString(fmt.Sprintf("From: %s <%s>\n", email.FromName, email.FromEmail))
+	builder.WriteString(fmt.Sprintf("To: %s\n", email.ToEmails))
+
+	if email.CcEmails != "" {
+		builder.WriteString(fmt.Sprintf("Cc: %s\n", email.CcEmails))
+	}
+
+	if email.ReplyTo != "" {
+		builder.WriteString(fmt.Sprintf("Reply-To: %s\n", email.ReplyTo))
+	}
+
+	// 时间信息
+	if email.SentAt != nil {
+		builder.WriteString(fmt.Sprintf("Date: %s\n", email.SentAt.Format(time.RFC1123Z)))
+	} else {
+		builder.WriteString(fmt.Sprintf("Date: %s\n", email.CreatedAt.Format(time.RFC1123Z)))
+	}
+
+	// 内容类型
+	if email.ContentType == "html" {
+		builder.WriteString("Content-Type: text/html; charset=utf-8\n")
+	} else {
+		builder.WriteString("Content-Type: text/plain; charset=utf-8\n")
+	}
+
+	builder.WriteString("Content-Transfer-Encoding: 8bit\n")
+	builder.WriteString("\n") // 空行分隔头部和正文
+
+	// 邮件正文
+	builder.WriteString(email.Content)
+
+	return builder.String()
+}
+
+// Download 下载导出的文件
+func (h *EmailHandler) Download(c *gin.Context) {
+	fileName := c.Param("filename")
+	if fileName == "" {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("文件名不能为空"))
+		return
+	}
+
+	// 获取当前用户ID（验证权限）
+	currentUserId := middleware.GetCurrentUserId(c)
+	if currentUserId == 0 {
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
+		return
+	}
+
+	// 构建文件路径
+	filePath := filepath.Join("./data/exports", fileName)
+
+	// 检查文件是否存在
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("文件不存在"))
+		return
+	}
+
+	// 设置响应头
+	c.Header("Content-Description", "File Transfer")
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	c.Header("Content-Type", "application/octet-stream")
+
+	// 发送文件
+	c.File(filePath)
+}
+
+// formatTimePtr 格式化时间指针
+func formatTimePtr(t *time.Time) string {
+	if t == nil {
+		return ""
+	}
+	return t.Format("2006-01-02 15:04:05")
 }

@@ -5,6 +5,7 @@ import (
 	"new-email/internal/middleware"
 	"new-email/internal/model"
 	"new-email/internal/result"
+	"new-email/internal/service"
 	"new-email/internal/svc"
 	"new-email/internal/types"
 	"strconv"
@@ -379,18 +380,92 @@ func (h *DraftHandler) Send(c *gin.Context) {
 		return
 	}
 
-	// TODO: 实现实际的邮件发送逻辑
-	// 这里应该：
-	// 1. 验证邮件内容的完整性
-	// 2. 调用邮件发送服务
-	// 3. 创建邮件记录
-	// 4. 删除草稿（可选）
+	// 验证邮件内容的完整性
+	if draft.Subject == "" {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮件主题不能为空"))
+		return
+	}
+	if draft.ToEmails == "" {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("收件人不能为空"))
+		return
+	}
+	if draft.Content == "" {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮件内容不能为空"))
+		return
+	}
 
-	// 模拟发送成功
+	// 获取邮箱信息
+	mailbox, err := h.svcCtx.MailboxModel.GetById(draft.MailboxId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+	if mailbox == nil {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱不存在"))
+		return
+	}
+	if mailbox.UserId != currentUserId {
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限使用此邮箱"))
+		return
+	}
+
+	// 调用邮件发送服务
+	smtpConfig := service.SMTPConfig{
+		Host:     h.svcCtx.Config.SMTP.Host,
+		Port:     h.svcCtx.Config.SMTP.Port,
+		Username: mailbox.Email,
+		Password: mailbox.Password,
+		UseTLS:   h.svcCtx.Config.SMTP.UseTLS,
+	}
+
+	smtpService := service.NewSMTPService(smtpConfig)
+
+	// 构建邮件消息
+	emailMessage := service.EmailMessage{
+		From:        mailbox.Email,
+		To:          splitEmails(draft.ToEmails),
+		Cc:          splitEmails(draft.CcEmails),
+		Bcc:         splitEmails(draft.BccEmails),
+		Subject:     draft.Subject,
+		Body:        draft.Content,
+		ContentType: draft.ContentType,
+	}
+
+	// 发送邮件
+	if err := smtpService.SendEmail(emailMessage); err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("邮件发送失败: "+err.Error()))
+		return
+	}
+
+	// 创建邮件记录
+	email := &model.Email{
+		MailboxId:   draft.MailboxId,
+		Subject:     draft.Subject,
+		FromEmail:   mailbox.Email,
+		ToEmails:    draft.ToEmails,
+		CcEmails:    draft.CcEmails,
+		BccEmails:   draft.BccEmails,
+		Content:     draft.Content,
+		ContentType: draft.ContentType,
+		Direction:   "sent",
+		SentAt:      &[]time.Time{time.Now()}[0],
+	}
+
+	if err := h.svcCtx.EmailModel.Create(email); err != nil {
+		// 邮件已发送，但记录创建失败，记录日志但不返回错误
+		// TODO: 添加日志记录
+	}
+
+	// 删除草稿（发送成功后）
+	if err := h.svcCtx.EmailDraftModel.Delete(draft); err != nil {
+		// 草稿删除失败，记录日志但不影响发送结果
+		// TODO: 添加日志记录
+	}
+
 	sendResp := types.DraftSendResp{
 		Success: true,
 		Message: "邮件发送成功",
-		EmailId: 0, // 实际发送后应该返回邮件ID
+		EmailId: email.Id,
 		SentAt:  time.Now(),
 	}
 
@@ -460,6 +535,98 @@ func (h *DraftHandler) GetById(c *gin.Context) {
 		Attachments: "", // EmailDraft模型中没有Attachments字段
 		CreatedAt:   draft.CreatedAt,
 		UpdatedAt:   draft.UpdatedAt,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
+}
+
+// AutoSave 自动保存草稿
+func (h *DraftHandler) AutoSave(c *gin.Context) {
+	var req types.DraftAutoSaveReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 获取当前用户ID
+	currentUserId := middleware.GetCurrentUserId(c)
+	if currentUserId == 0 {
+		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		return
+	}
+
+	// 检查邮箱是否属于当前用户
+	if req.MailboxId > 0 {
+		mailbox, err := h.svcCtx.MailboxModel.GetById(req.MailboxId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			return
+		}
+		if mailbox == nil || mailbox.UserId != currentUserId {
+			c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限使用此邮箱"))
+			return
+		}
+	}
+
+	var draft *model.EmailDraft
+	var err error
+
+	// 如果提供了草稿ID，则更新现有草稿
+	if req.DraftId != nil && *req.DraftId > 0 {
+		draft, err = h.svcCtx.EmailDraftModel.GetById(*req.DraftId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			return
+		}
+
+		// 检查权限
+		if draft != nil && draft.UserId != currentUserId {
+			c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限操作此草稿"))
+			return
+		}
+	}
+
+	// 如果草稿不存在，创建新草稿
+	if draft == nil {
+		draft = &model.EmailDraft{
+			UserId:      currentUserId,
+			MailboxId:   req.MailboxId,
+			Subject:     req.Subject,
+			ToEmails:    req.ToEmail,
+			CcEmails:    req.CcEmail,
+			BccEmails:   req.BccEmail,
+			Content:     req.Content,
+			ContentType: req.ContentType,
+			Status:      "draft",
+		}
+
+		if err := h.svcCtx.EmailDraftModel.Create(draft); err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorAdd.AddError(err))
+			return
+		}
+	} else {
+		// 更新现有草稿
+		draft.MailboxId = req.MailboxId
+		draft.Subject = req.Subject
+		draft.ToEmails = req.ToEmail
+		draft.CcEmails = req.CcEmail
+		draft.BccEmails = req.BccEmail
+		draft.Content = req.Content
+		draft.ContentType = req.ContentType
+
+		if err := h.svcCtx.EmailDraftModel.Update(draft); err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
+			return
+		}
+	}
+
+	// 返回自动保存结果
+	resp := types.DraftAutoSaveResp{
+		DraftId: draft.Id,
+		Success: true,
+		Message: "草稿自动保存成功",
+		SavedAt: time.Now(),
+		IsNew:   req.DraftId == nil || *req.DraftId == 0,
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))

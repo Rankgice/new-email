@@ -13,6 +13,7 @@ type Mailbox struct {
 	DomainId    int64          `gorm:"not null;index" json:"domain_id"`            // 域名ID（自建邮箱关联域名）
 	Email       string         `gorm:"uniqueIndex;size:100;not null" json:"email"` // 邮箱地址
 	Password    string         `gorm:"size:255;not null" json:"-"`                 // 邮箱密码（加密存储）
+	Type        string         `gorm:"size:20;not null;default:imap" json:"type"`  // 邮箱类型：imap, pop3
 	Status      int            `gorm:"default:1" json:"status"`                    // 状态：1启用 0禁用
 	AutoReceive bool           `gorm:"default:true" json:"auto_receive"`           // 是否自动收信
 	LastSyncAt  *time.Time     `json:"last_sync_at"`                               // 最后同步时间
@@ -179,4 +180,31 @@ func (m *MailboxModel) GetStatistics() (map[string]interface{}, error) {
 		"total":  total,
 		"active": active,
 	}, nil
+}
+
+// Count 获取邮箱总数
+func (m *MailboxModel) Count() (int64, error) {
+	var count int64
+	if err := m.db.Model(&Mailbox{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// CountByStatus 根据状态获取邮箱数
+func (m *MailboxModel) CountByStatus(status int) (int64, error) {
+	var count int64
+	if err := m.db.Model(&Mailbox{}).Where("status = ?", status).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// CountByUserId 获取用户的邮箱数
+func (m *MailboxModel) CountByUserId(userId int64) (int64, error) {
+	var count int64
+	if err := m.db.Model(&Mailbox{}).Where("user_id = ?", userId).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }

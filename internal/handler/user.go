@@ -101,9 +101,8 @@ func (h *UserHandler) verifyEmailCode(email, code string) error {
 		return fmt.Errorf("验证码已使用")
 	}
 
-	// 检查验证码是否过期（这里需要根据实际的过期时间字段调整）
-	// 假设验证码有效期为10分钟
-	if time.Since(verificationCode.ExtractedAt) > 10*time.Minute {
+	// 检查验证码是否过期
+	if time.Now().After(verificationCode.ExpiresAt) {
 		return fmt.Errorf("验证码已过期")
 	}
 

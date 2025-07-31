@@ -204,3 +204,42 @@ func (m *EmailModel) MarkAsStarred(id int64) error {
 func (m *EmailModel) UnmarkAsStarred(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_starred", false).Error
 }
+
+// Count 获取邮件总数
+func (m *EmailModel) Count() (int64, error) {
+	var count int64
+	if err := m.db.Model(&Email{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// CountByDate 获取指定日期的邮件数
+func (m *EmailModel) CountByDate(date string) (int64, error) {
+	var count int64
+	if err := m.db.Model(&Email{}).Where("DATE(created_at) = ?", date).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// CountByDirection 根据方向获取邮件数
+func (m *EmailModel) CountByDirection(direction string) (int64, error) {
+	var count int64
+	if err := m.db.Model(&Email{}).Where("direction = ?", direction).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// CountByUserId 获取用户的邮件数
+func (m *EmailModel) CountByUserId(userId int64) (int64, error) {
+	var count int64
+	if err := m.db.Model(&Email{}).
+		Joins("JOIN mailbox ON email.mailbox_id = mailbox.id").
+		Where("mailbox.user_id = ?", userId).
+		Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}

@@ -75,3 +75,30 @@ type EmailBatchOperationReq struct {
 	Operation string  `json:"operation" binding:"required,oneof=read unread delete move copy"` // 操作类型
 	TargetId  int64   `json:"targetId"`                                                        // 目标ID（移动或复制时使用）
 }
+
+// EmailBatchOperationResp 邮件批量操作响应
+type EmailBatchOperationResp struct {
+	Success int `json:"success"` // 成功数量
+	Failed  int `json:"failed"`  // 失败数量
+}
+
+// EmailExportReq 邮件导出请求
+type EmailExportReq struct {
+	MailboxId      *int64    `json:"mailboxId" form:"mailboxId"`                        // 邮箱ID
+	Subject        string    `json:"subject" form:"subject"`                            // 邮件主题（模糊搜索）
+	FromEmail      string    `json:"fromEmail" form:"fromEmail"`                        // 发件人邮箱
+	ToEmail        string    `json:"toEmail" form:"toEmail"`                            // 收件人邮箱
+	Direction      string    `json:"direction" form:"direction"`                        // 邮件方向：sent(已发送), received(已接收)
+	CreatedAtStart time.Time `json:"createdAtStart" form:"createdAtStart"`              // 创建时间开始
+	CreatedAtEnd   time.Time `json:"createdAtEnd" form:"createdAtEnd"`                  // 创建时间结束
+	Format         string    `json:"format" form:"format" binding:"oneof=csv json eml"` // 导出格式：csv, json, eml
+	IncludeContent bool      `json:"includeContent" form:"includeContent"`              // 是否包含邮件内容
+}
+
+// EmailExportResp 邮件导出响应
+type EmailExportResp struct {
+	FileName    string `json:"fileName"`    // 文件名
+	FileSize    int64  `json:"fileSize"`    // 文件大小
+	RecordCount int64  `json:"recordCount"` // 记录数量
+	DownloadUrl string `json:"downloadUrl"` // 下载链接
+}

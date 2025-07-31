@@ -331,3 +331,195 @@ export interface EmailSendResponse {
   emailId: number
   sentAt: string
 }
+
+// 验证码相关类型
+export interface VerificationCode {
+  id: number
+  userId: number
+  emailId: number
+  code: string
+  source: string
+  type?: string
+  context?: string
+  confidence?: number
+  pattern?: string
+  description?: string
+  isUsed: boolean
+  isExpired: boolean
+  usedAt?: string
+  expiresAt: string
+  createdAt: string
+}
+
+export interface VerificationCodeExtractRequest {
+  emailId: number
+}
+
+export interface VerificationCodeResult {
+  code: string
+  type: string
+  context: string
+  confidence: number
+  position: number
+  length: number
+  pattern: string
+  description: string
+}
+
+export interface VerificationCodeExtractResponse {
+  emailId: number
+  subject: string
+  fromEmail: string
+  extractedAt: string
+  codes: VerificationCodeResult[]
+}
+
+export interface VerificationCodeBatchExtractRequest {
+  emailIds: number[]
+}
+
+export interface VerificationCodeBatchExtractResponse {
+  totalEmails: number
+  processedEmails: number
+  extractedCodes: number
+  results: VerificationCodeExtractResponse[]
+  errors: string[]
+}
+
+export interface VerificationCodeStats {
+  totalCodes: number
+  usedCodes: number
+  unusedCodes: number
+  todayCodes: number
+  typeStats: Array<{
+    type: string
+    count: number
+  }>
+  sourceStats: Array<{
+    fromEmail: string
+    count: number
+  }>
+}
+
+export interface VerificationCodeListParams {
+  page?: number
+  pageSize?: number
+  emailId?: number
+  code?: string
+  source?: string
+  isUsed?: boolean
+  isExpired?: boolean
+  createdAtStart?: string
+  createdAtEnd?: string
+}
+
+// 管理员相关类型
+export interface AdminLoginRequest {
+  username: string
+  password: string
+}
+
+export interface AdminLoginResponse {
+  token: string
+  expiresAt: string
+  admin: AdminInfo
+}
+
+export interface AdminInfo {
+  id: number
+  username: string
+  nickname: string
+  email: string
+  role: string
+  status: number
+}
+
+export interface AdminSystemStats {
+  userStats: AdminUserStats
+  emailStats: AdminEmailStats
+  mailboxStats: AdminMailboxStats
+  systemStats: AdminSystemInfo
+}
+
+export interface AdminUserStats {
+  totalUsers: number
+  activeUsers: number
+  newUsers: number
+  onlineUsers: number
+}
+
+export interface AdminEmailStats {
+  totalEmails: number
+  todayEmails: number
+  sentEmails: number
+  receivedEmails: number
+}
+
+export interface AdminMailboxStats {
+  totalMailboxes: number
+  activeMailboxes: number
+  imapMailboxes: number
+  pop3Mailboxes: number
+}
+
+export interface AdminSystemInfo {
+  version: string
+  startTime: string
+  uptime: string
+  goVersion: string
+  platform: string
+  cpuUsage: number
+  memUsage: number
+  diskUsage: number
+}
+
+export interface AdminDashboard {
+  stats: AdminSystemStats
+  recentUsers: User[]
+  recentLogs: OperationLog[]
+  systemAlerts: SystemAlert[]
+}
+
+export interface SystemAlert {
+  id: number
+  type: string
+  level: string
+  title: string
+  message: string
+  status: string
+  createdAt: string
+}
+
+export interface AdminSystemSettings {
+  siteName: string
+  siteDescription: string
+  siteLogo: string
+  allowRegister: boolean
+  requireInvite: boolean
+  defaultQuota: number
+  maxMailboxes: number
+  updatedAt?: string
+}
+
+export interface DailyStats {
+  date: string
+  count: number
+}
+
+export interface UserActivityStats {
+  userId: number
+  username: string
+  emailCount: number
+  mailboxCount: number
+  lastLoginAt?: string
+}
+
+export interface SystemHealth {
+  status: string
+  score: number
+  cpuUsage: number
+  memUsage: number
+  diskUsage: number
+  uptime: string
+  checkedAt: string
+}

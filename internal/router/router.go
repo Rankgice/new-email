@@ -36,6 +36,8 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 	domainHandler := handler.NewDomainHandler(svcCtx)
 	adminRuleHandler := handler.NewAdminRuleHandler(svcCtx)
 	adminLogHandler := handler.NewAdminLogHandler(svcCtx)
+	adminSystemHandler := handler.NewAdminSystemHandler(svcCtx)
+	adminUserHandler := handler.NewAdminUserHandler(svcCtx)
 	apiHandler := handler.NewApiHandler(svcCtx)
 
 	// API路由组
@@ -52,7 +54,7 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 			public.POST("/user/login", userHandler.Login)
 
 			// 管理员登录
-			public.POST("/admin/login", adminHandler.Login)
+			public.POST("/admin/login", adminSystemHandler.Login)
 
 			// 验证码相关
 			public.POST("/send-code", commonHandler.SendCode)
@@ -90,25 +92,34 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 				email.PUT("/:id/star", emailHandler.MarkStar)
 				email.DELETE("/:id", emailHandler.Delete)
 				email.POST("/batch", emailHandler.BatchOperation)
+				email.GET("/export", emailHandler.Export)
+				email.GET("/download/:filename", emailHandler.Download)
 			}
 
 			// 草稿管理
 			draft := user.Group("/drafts")
 			{
 				draft.GET("", draftHandler.List)
+				draft.GET("/:id", draftHandler.GetById)
 				draft.POST("", draftHandler.Create)
 				draft.PUT("/:id", draftHandler.Update)
 				draft.DELETE("/:id", draftHandler.Delete)
 				draft.POST("/:id/send", draftHandler.Send)
+				draft.POST("/autosave", draftHandler.AutoSave)
 			}
 
 			// 邮件模板
 			template := user.Group("/templates")
 			{
 				template.GET("", templateHandler.List)
+				template.GET("/:id", templateHandler.GetById)
 				template.POST("", templateHandler.Create)
 				template.PUT("/:id", templateHandler.Update)
 				template.DELETE("/:id", templateHandler.Delete)
+				template.POST("/:id/copy", templateHandler.Copy)
+				template.POST("/:id/preview", templateHandler.Preview)
+				template.PUT("/:id/default", templateHandler.SetDefault)
+				template.GET("/categories", templateHandler.GetCategories)
 			}
 
 			// 邮件签名
@@ -148,6 +159,10 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 				codes.GET("", verificationCodeHandler.List)
 				codes.GET("/:id", verificationCodeHandler.GetById)
 				codes.PUT("/:id/used", verificationCodeHandler.MarkUsed)
+				codes.POST("/extract", verificationCodeHandler.Extract)
+				codes.POST("/batch-extract", verificationCodeHandler.BatchExtract)
+				codes.GET("/stats", verificationCodeHandler.GetStats)
+				codes.GET("/latest", verificationCodeHandler.GetLatest)
 			}
 
 			// API密钥管理
@@ -177,15 +192,25 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 			admin.POST("/change-password", adminHandler.ChangePassword)
 
 			// 仪表板
-			admin.GET("/dashboard", adminHandler.Dashboard)
+			admin.GET("/dashboard", adminSystemHandler.Dashboard)
+
+			// 系统管理
+			system := admin.Group("/system")
+			{
+				system.GET("/stats", adminSystemHandler.GetSystemStats)
+				system.GET("/settings", adminSystemHandler.GetSystemSettings)
+				system.PUT("/settings", adminSystemHandler.UpdateSystemSettings)
+			}
 
 			// 用户管理
 			users := admin.Group("/users")
 			{
-				users.GET("", adminHandler.ListUsers)
-				users.POST("", adminHandler.CreateUser)
-				users.PUT("/:id", adminHandler.UpdateUser)
-				users.DELETE("/:id", adminHandler.DeleteUser)
+				users.GET("", adminUserHandler.List)
+				users.GET("/:id", adminUserHandler.GetById)
+				users.POST("", adminUserHandler.Create)
+				users.PUT("/:id", adminUserHandler.Update)
+				users.DELETE("/:id", adminUserHandler.Delete)
+				users.PUT("/:id/password", adminUserHandler.ResetPassword)
 				users.POST("/batch", adminHandler.BatchOperationUsers)
 				users.POST("/import", adminHandler.ImportUsers)
 				users.GET("/export", adminHandler.ExportUsers)

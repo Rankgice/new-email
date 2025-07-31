@@ -6,17 +6,45 @@ import (
 	"time"
 )
 
+// VerificationCodeStatsResp 验证码统计响应
+type VerificationCodeStatsResp struct {
+	TotalCodes  int64                        `json:"totalCodes"`
+	UsedCodes   int64                        `json:"usedCodes"`
+	UnusedCodes int64                        `json:"unusedCodes"`
+	TodayCodes  int64                        `json:"todayCodes"`
+	TypeStats   []VerificationCodeTypeStat   `json:"typeStats"`
+	SourceStats []VerificationCodeSourceStat `json:"sourceStats"`
+}
+
+// VerificationCodeTypeStat 验证码类型统计
+type VerificationCodeTypeStat struct {
+	Type  string `json:"type"`
+	Count int64  `json:"count"`
+}
+
+// VerificationCodeSourceStat 验证码来源统计
+type VerificationCodeSourceStat struct {
+	FromEmail string `json:"fromEmail"`
+	Count     int64  `json:"count"`
+}
+
 // VerificationCode 验证码记录模型
 type VerificationCode struct {
 	Id          int64      `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserId      int64      `gorm:"not null;index" json:"user_id"`
 	EmailId     int64      `gorm:"not null;index" json:"email_id"`
-	RuleId      int64      `gorm:"not null;index" json:"rule_id"`
 	Code        string     `gorm:"size:50;not null" json:"code"`
 	Source      string     `gorm:"size:100" json:"source"`
-	ExtractedAt time.Time  `json:"extracted_at"`
+	Type        string     `gorm:"size:50" json:"type"`
+	Context     string     `gorm:"type:text" json:"context"`
+	Confidence  int        `gorm:"default:0" json:"confidence"`
+	Pattern     string     `gorm:"size:100" json:"pattern"`
+	Description string     `gorm:"size:200" json:"description"`
 	IsUsed      bool       `gorm:"default:false" json:"is_used"`
 	UsedAt      *time.Time `json:"used_at"`
+	ExpiresAt   time.Time  `json:"expires_at"`
 	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 func (VerificationCode) TableName() string { return "verification_code" }
@@ -44,6 +72,18 @@ func (m *VerificationCodeModel) GetById(id int64) (*VerificationCode, error) {
 		return nil, err
 	}
 	return &code, nil
+}
+
+// GetByEmailAndCode 根据邮件ID和验证码获取记录
+func (m *VerificationCodeModel) GetByEmailAndCode(emailId int64, code string) (*VerificationCode, error) {
+	var verificationCode VerificationCode
+	if err := m.db.Where("email_id = ? AND code = ?", emailId, code).First(&verificationCode).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &verificationCode, nil
 }
 
 // List 获取验证码记录列表
@@ -170,19 +210,6 @@ func (m *VerificationCodeModel) GetGlobalStatistics() (map[string]interface{}, e
 	}, nil
 }
 
-// GetLatestBySource 根据来源获取最新验证码
-func (m *VerificationCodeModel) GetLatestBySource(source string) (*VerificationCode, error) {
-	var code VerificationCode
-	if err := m.db.Where("source = ?", source).
-		Order("created_at DESC").First(&code).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &code, nil
-}
-
 // FindByCode 根据验证码查找记录
 func (m *VerificationCodeModel) FindByCode(code string) (*VerificationCode, error) {
 	var verificationCode VerificationCode
@@ -199,4 +226,57 @@ func (m *VerificationCodeModel) FindByCode(code string) (*VerificationCode, erro
 // GetStatistics 获取验证码统计信息（别名方法）
 func (m *VerificationCodeModel) GetStatistics() (map[string]interface{}, error) {
 	return m.GetGlobalStatistics()
+}
+
+// GetStats 获取用户验证码统计信息
+func (m *VerificationCodeModel) GetStats(userId int64) (*VerificationCodeStatsResp, error) {
+	var stats VerificationCodeStatsResp
+
+	// 总验证码数
+	m.db.Model(&VerificationCode{}).Where("user_id = ?", userId).Count(&stats.TotalCodes)
+
+	// 已使用数
+	m.db.Model(&VerificationCode{}).Where("user_id = ? AND is_used = ?", userId, true).Count(&stats.UsedCodes)
+
+	// 未使用数
+	stats.UnusedCodes = stats.TotalCodes - stats.UsedCodes
+
+	// 今日新增
+	today := time.Now().Format("2006-01-02")
+	m.db.Model(&VerificationCode{}).Where("user_id = ? AND DATE(created_at) = ?", userId, today).Count(&stats.TodayCodes)
+
+	// 类型统计
+	var typeStats []VerificationCodeTypeStat
+	m.db.Model(&VerificationCode{}).
+		Select("type, COUNT(*) as count").
+		Where("user_id = ?", userId).
+		Group("type").
+		Scan(&typeStats)
+	stats.TypeStats = typeStats
+
+	// 来源统计
+	var sourceStats []VerificationCodeSourceStat
+	m.db.Model(&VerificationCode{}).
+		Select("source as from_email, COUNT(*) as count").
+		Where("user_id = ?", userId).
+		Group("source").
+		Order("count DESC").
+		Limit(10).
+		Scan(&sourceStats)
+	stats.SourceStats = sourceStats
+
+	return &stats, nil
+}
+
+// GetLatestBySource 获取指定来源的最新验证码
+func (m *VerificationCodeModel) GetLatestBySource(userId int64, source string) (*VerificationCode, error) {
+	var code VerificationCode
+	if err := m.db.Where("user_id = ? AND source = ?", userId, source).
+		Order("created_at DESC").First(&code).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &code, nil
 }

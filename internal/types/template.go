@@ -53,3 +53,14 @@ type TemplateResp struct {
 type TemplateCopyReq struct {
 	Name string `json:"name" binding:"required,max=100"` // 新模板名称
 }
+
+// TemplatePreviewReq 模板预览请求
+type TemplatePreviewReq struct {
+	Variables map[string]interface{} `json:"variables"` // 变量值
+}
+
+// TemplatePreviewResp 模板预览响应
+type TemplatePreviewResp struct {
+	Subject string `json:"subject"` // 预览主题
+	Content string `json:"content"` // 预览内容
+}

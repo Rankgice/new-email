@@ -5,6 +5,7 @@ import (
 	"new-email/internal/middleware"
 	"new-email/internal/model"
 	"new-email/internal/result"
+	"new-email/internal/service"
 	"new-email/internal/svc"
 	"new-email/internal/types"
 	"strconv"
@@ -15,13 +16,15 @@ import (
 
 // VerificationCodeHandler 验证码处理器
 type VerificationCodeHandler struct {
-	svcCtx *svc.ServiceContext
+	svcCtx    *svc.ServiceContext
+	extractor *service.VerificationCodeExtractor
 }
 
 // NewVerificationCodeHandler 创建验证码处理器
 func NewVerificationCodeHandler(svcCtx *svc.ServiceContext) *VerificationCodeHandler {
 	return &VerificationCodeHandler{
-		svcCtx: svcCtx,
+		svcCtx:    svcCtx,
+		extractor: service.NewVerificationCodeExtractor(),
 	}
 }
 
@@ -237,7 +240,7 @@ func (h *VerificationCodeHandler) GetLatest(c *gin.Context) {
 	}
 
 	// 查询最新验证码
-	code, err := h.svcCtx.VerificationCodeModel.GetLatestBySource(req.Source)
+	code, err := h.svcCtx.VerificationCodeModel.GetLatestBySource(currentUserId, req.Source)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 		return
@@ -345,4 +348,218 @@ func (h *VerificationCodeHandler) MarkUsed(c *gin.Context) {
 	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SimpleResult("标记已使用"))
+}
+
+// Extract 从邮件中提取验证码
+func (h *VerificationCodeHandler) Extract(c *gin.Context) {
+	var req types.VerificationCodeExtractReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 获取当前用户ID
+	currentUserId := middleware.GetCurrentUserId(c)
+	if currentUserId == 0 {
+		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		return
+	}
+
+	// 获取邮件详情
+	email, err := h.svcCtx.EmailModel.GetById(req.EmailId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+	if email == nil {
+		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("邮件不存在"))
+		return
+	}
+
+	// 检查邮件权限
+	mailbox, err := h.svcCtx.MailboxModel.GetById(email.MailboxId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+	if mailbox == nil || mailbox.UserId != currentUserId {
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限访问此邮件"))
+		return
+	}
+
+	// 提取验证码
+	codes := h.extractor.ExtractFromEmail(email.Subject, email.Content)
+
+	// 保存提取结果到数据库
+	for _, code := range codes {
+		verificationCode := &model.VerificationCode{
+			UserId:      currentUserId,
+			EmailId:     email.Id,
+			Code:        code.Code,
+			Source:      email.FromEmail,
+			Type:        code.Type,
+			Context:     code.Context,
+			Confidence:  code.Confidence,
+			Pattern:     code.Pattern,
+			Description: code.Description,
+			IsUsed:      false,
+			ExpiresAt:   time.Now().Add(24 * time.Hour), // 默认24小时过期
+		}
+
+		// 检查是否已存在相同的验证码
+		existing, _ := h.svcCtx.VerificationCodeModel.GetByEmailAndCode(email.Id, code.Code)
+		if existing == nil {
+			if err := h.svcCtx.VerificationCodeModel.Create(verificationCode); err != nil {
+				// 记录错误但不中断流程
+				continue
+			}
+		}
+	}
+
+	// 记录操作日志
+	log := &model.OperationLog{
+		UserId:     currentUserId,
+		Action:     "extract_verification_codes",
+		Resource:   "email",
+		ResourceId: email.Id,
+		Method:     "POST",
+		Path:       c.Request.URL.Path,
+		Ip:         c.ClientIP(),
+		UserAgent:  c.Request.UserAgent(),
+		Status:     http.StatusOK,
+	}
+	h.svcCtx.OperationLogModel.Create(log)
+
+	// 返回提取结果
+	resp := types.VerificationCodeExtractResp{
+		EmailId:     email.Id,
+		Subject:     email.Subject,
+		FromEmail:   email.FromEmail,
+		ExtractedAt: time.Now(),
+		Codes:       codes,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
+}
+
+// BatchExtract 批量提取验证码
+func (h *VerificationCodeHandler) BatchExtract(c *gin.Context) {
+	var req types.VerificationCodeBatchExtractReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 获取当前用户ID
+	currentUserId := middleware.GetCurrentUserId(c)
+	if currentUserId == 0 {
+		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		return
+	}
+
+	var results []types.VerificationCodeExtractResp
+	var errors []string
+	processedEmails := 0
+	totalExtractedCodes := 0
+
+	for _, emailId := range req.EmailIds {
+		// 获取邮件详情
+		email, err := h.svcCtx.EmailModel.GetById(emailId)
+		if err != nil {
+			errors = append(errors, "邮件ID "+strconv.FormatInt(emailId, 10)+": "+err.Error())
+			continue
+		}
+		if email == nil {
+			errors = append(errors, "邮件ID "+strconv.FormatInt(emailId, 10)+": 邮件不存在")
+			continue
+		}
+
+		// 检查邮件权限
+		mailbox, err := h.svcCtx.MailboxModel.GetById(email.MailboxId)
+		if err != nil || mailbox == nil || mailbox.UserId != currentUserId {
+			errors = append(errors, "邮件ID "+strconv.FormatInt(emailId, 10)+": 无权限访问")
+			continue
+		}
+
+		// 提取验证码
+		codes := h.extractor.ExtractFromEmail(email.Subject, email.Content)
+
+		// 保存提取结果
+		for _, code := range codes {
+			verificationCode := &model.VerificationCode{
+				UserId:      currentUserId,
+				EmailId:     email.Id,
+				Code:        code.Code,
+				Source:      email.FromEmail,
+				Type:        code.Type,
+				Context:     code.Context,
+				Confidence:  code.Confidence,
+				Pattern:     code.Pattern,
+				Description: code.Description,
+				IsUsed:      false,
+				ExpiresAt:   time.Now().Add(24 * time.Hour),
+			}
+
+			existing, _ := h.svcCtx.VerificationCodeModel.GetByEmailAndCode(email.Id, code.Code)
+			if existing == nil {
+				h.svcCtx.VerificationCodeModel.Create(verificationCode)
+			}
+		}
+
+		// 添加到结果
+		result := types.VerificationCodeExtractResp{
+			EmailId:     email.Id,
+			Subject:     email.Subject,
+			FromEmail:   email.FromEmail,
+			ExtractedAt: time.Now(),
+			Codes:       codes,
+		}
+		results = append(results, result)
+		processedEmails++
+		totalExtractedCodes += len(codes)
+	}
+
+	// 记录操作日志
+	log := &model.OperationLog{
+		UserId:     currentUserId,
+		Action:     "batch_extract_verification_codes",
+		Resource:   "email",
+		ResourceId: 0,
+		Method:     "POST",
+		Path:       c.Request.URL.Path,
+		Ip:         c.ClientIP(),
+		UserAgent:  c.Request.UserAgent(),
+		Status:     http.StatusOK,
+	}
+	h.svcCtx.OperationLogModel.Create(log)
+
+	// 返回批量提取结果
+	resp := types.VerificationCodeBatchExtractResp{
+		TotalEmails:     len(req.EmailIds),
+		ProcessedEmails: processedEmails,
+		ExtractedCodes:  totalExtractedCodes,
+		Results:         results,
+		Errors:          errors,
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
+}
+
+// GetStats 获取验证码统计信息
+func (h *VerificationCodeHandler) GetStats(c *gin.Context) {
+	// 获取当前用户ID
+	currentUserId := middleware.GetCurrentUserId(c)
+	if currentUserId == 0 {
+		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
+		return
+	}
+
+	// 获取统计数据
+	stats, err := h.svcCtx.VerificationCodeModel.GetStats(currentUserId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(stats))
 }

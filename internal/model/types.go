@@ -84,6 +84,7 @@ type EmailTemplateListParams struct {
 	BaseTimeRangeParams
 	UserId      int64  `json:"userId" form:"userId"`           // 用户ID
 	Name        string `json:"name" form:"name"`               // 模板名称
+	Category    string `json:"category" form:"category"`       // 模板分类
 	Subject     string `json:"subject" form:"subject"`         // 主题
 	ContentType string `json:"contentType" form:"contentType"` // 内容类型
 	IsDefault   *bool  `json:"isDefault" form:"isDefault"`     // 是否默认

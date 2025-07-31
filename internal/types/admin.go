@@ -223,3 +223,125 @@ type ExportUsersResp struct {
 	Filename string `json:"filename"` // 文件名
 	Message  string `json:"message"`  // 消息
 }
+
+// AdminInfo 管理员信息
+type AdminInfo struct {
+	Id       int64  `json:"id"`       // 管理员ID
+	Username string `json:"username"` // 用户名
+	Nickname string `json:"nickname"` // 昵称
+	Email    string `json:"email"`    // 邮箱
+	Role     string `json:"role"`     // 角色
+	Status   int    `json:"status"`   // 状态
+}
+
+// AdminSystemStatsResp 管理员系统统计响应
+type AdminSystemStatsResp struct {
+	UserStats    AdminUserStats    `json:"userStats"`    // 用户统计
+	EmailStats   AdminEmailStats   `json:"emailStats"`   // 邮件统计
+	MailboxStats AdminMailboxStats `json:"mailboxStats"` // 邮箱统计
+	SystemStats  AdminSystemInfo   `json:"systemStats"`  // 系统统计
+}
+
+// AdminUserStats 用户统计
+type AdminUserStats struct {
+	TotalUsers  int64 `json:"totalUsers"`  // 总用户数
+	ActiveUsers int64 `json:"activeUsers"` // 活跃用户数
+	NewUsers    int64 `json:"newUsers"`    // 新用户数（今日）
+	OnlineUsers int64 `json:"onlineUsers"` // 在线用户数
+}
+
+// AdminEmailStats 邮件统计
+type AdminEmailStats struct {
+	TotalEmails    int64 `json:"totalEmails"`    // 总邮件数
+	TodayEmails    int64 `json:"todayEmails"`    // 今日邮件数
+	SentEmails     int64 `json:"sentEmails"`     // 发送邮件数
+	ReceivedEmails int64 `json:"receivedEmails"` // 接收邮件数
+}
+
+// AdminMailboxStats 邮箱统计
+type AdminMailboxStats struct {
+	TotalMailboxes  int64 `json:"totalMailboxes"`  // 总邮箱数
+	ActiveMailboxes int64 `json:"activeMailboxes"` // 活跃邮箱数
+	ImapMailboxes   int64 `json:"imapMailboxes"`   // IMAP邮箱数
+	Pop3Mailboxes   int64 `json:"pop3Mailboxes"`   // POP3邮箱数
+}
+
+// AdminSystemInfo 系统信息
+type AdminSystemInfo struct {
+	Version   string    `json:"version"`   // 系统版本
+	StartTime time.Time `json:"startTime"` // 启动时间
+	Uptime    string    `json:"uptime"`    // 运行时间
+	GoVersion string    `json:"goVersion"` // Go版本
+	Platform  string    `json:"platform"`  // 平台信息
+	CPUUsage  float64   `json:"cpuUsage"`  // CPU使用率
+	MemUsage  float64   `json:"memUsage"`  // 内存使用率
+	DiskUsage float64   `json:"diskUsage"` // 磁盘使用率
+}
+
+// AdminDashboardResp 管理员仪表板响应
+type AdminDashboardResp struct {
+	Stats        AdminSystemStatsResp `json:"stats"`        // 统计信息
+	RecentUsers  []UserResp           `json:"recentUsers"`  // 最近用户
+	RecentLogs   []OperationLogResp   `json:"recentLogs"`   // 最近日志
+	SystemAlerts []SystemAlert        `json:"systemAlerts"` // 系统警告
+}
+
+// SystemAlert 系统警告
+type SystemAlert struct {
+	Id        int64     `json:"id"`        // 警告ID
+	Type      string    `json:"type"`      // 警告类型
+	Level     string    `json:"level"`     // 警告级别
+	Title     string    `json:"title"`     // 警告标题
+	Message   string    `json:"message"`   // 警告消息
+	Status    string    `json:"status"`    // 状态
+	CreatedAt time.Time `json:"createdAt"` // 创建时间
+}
+
+// AdminSystemSettingsReq 管理员系统设置请求
+type AdminSystemSettingsReq struct {
+	SiteName        string `json:"siteName"`        // 网站名称
+	SiteDescription string `json:"siteDescription"` // 网站描述
+	SiteLogo        string `json:"siteLogo"`        // 网站Logo
+	AllowRegister   bool   `json:"allowRegister"`   // 允许注册
+	RequireInvite   bool   `json:"requireInvite"`   // 需要邀请码
+	DefaultQuota    int64  `json:"defaultQuota"`    // 默认配额
+	MaxMailboxes    int    `json:"maxMailboxes"`    // 最大邮箱数
+}
+
+// AdminSystemSettingsResp 管理员系统设置响应
+type AdminSystemSettingsResp struct {
+	SiteName        string    `json:"siteName"`        // 网站名称
+	SiteDescription string    `json:"siteDescription"` // 网站描述
+	SiteLogo        string    `json:"siteLogo"`        // 网站Logo
+	AllowRegister   bool      `json:"allowRegister"`   // 允许注册
+	RequireInvite   bool      `json:"requireInvite"`   // 需要邀请码
+	DefaultQuota    int64     `json:"defaultQuota"`    // 默认配额
+	MaxMailboxes    int       `json:"maxMailboxes"`    // 最大邮箱数
+	UpdatedAt       time.Time `json:"updatedAt"`       // 更新时间
+}
+
+// DailyStats 每日统计
+type DailyStats struct {
+	Date  string `json:"date"`  // 日期
+	Count int64  `json:"count"` // 数量
+}
+
+// UserActivityStats 用户活动统计
+type UserActivityStats struct {
+	UserId       int64      `json:"userId"`       // 用户ID
+	Username     string     `json:"username"`     // 用户名
+	EmailCount   int64      `json:"emailCount"`   // 邮件数量
+	MailboxCount int64      `json:"mailboxCount"` // 邮箱数量
+	LastLoginAt  *time.Time `json:"lastLoginAt"`  // 最后登录时间
+}
+
+// SystemHealth 系统健康状态
+type SystemHealth struct {
+	Status    string    `json:"status"`    // 状态
+	Score     float64   `json:"score"`     // 健康分数
+	CPUUsage  float64   `json:"cpuUsage"`  // CPU使用率
+	MemUsage  float64   `json:"memUsage"`  // 内存使用率
+	DiskUsage float64   `json:"diskUsage"` // 磁盘使用率
+	Uptime    string    `json:"uptime"`    // 运行时间
+	CheckedAt time.Time `json:"checkedAt"` // 检查时间
+}

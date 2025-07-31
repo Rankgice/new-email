@@ -137,7 +137,77 @@ const router = createRouter({
         keepAlive: true
       }
     },
-    
+    {
+      path: '/verification-codes',
+      name: 'VerificationCodes',
+      component: () => import('@/views/verification-codes/index.vue'),
+      meta: {
+        title: '验证码管理',
+        requiresAuth: true,
+        keepAlive: true
+      }
+    },
+
+    // 管理员路由
+    {
+      path: '/admin/login',
+      name: 'AdminLogin',
+      component: () => import('@/views/admin/login.vue'),
+      meta: {
+        title: '管理员登录',
+        requiresAuth: false,
+        layout: 'blank'
+      }
+    },
+    {
+      path: '/admin',
+      redirect: '/admin/dashboard'
+    },
+    {
+      path: '/admin/dashboard',
+      name: 'AdminDashboard',
+      component: () => import('@/views/admin/dashboard.vue'),
+      meta: {
+        title: '管理员仪表板',
+        requiresAuth: true,
+        requiresAdmin: true,
+        keepAlive: true
+      }
+    },
+    {
+      path: '/admin/users',
+      name: 'AdminUsers',
+      component: () => import('@/views/admin/users/index.vue'),
+      meta: {
+        title: '用户管理',
+        requiresAuth: true,
+        requiresAdmin: true,
+        keepAlive: true
+      }
+    },
+    {
+      path: '/admin/system',
+      name: 'AdminSystem',
+      component: () => import('@/views/admin/system/index.vue'),
+      meta: {
+        title: '系统管理',
+        requiresAuth: true,
+        requiresAdmin: true,
+        keepAlive: true
+      }
+    },
+    {
+      path: '/admin/logs',
+      name: 'AdminLogs',
+      component: () => import('@/views/admin/logs/index.vue'),
+      meta: {
+        title: '操作日志',
+        requiresAuth: true,
+        requiresAdmin: true,
+        keepAlive: true
+      }
+    },
+
     // 用户相关路由
     {
       path: '/settings',

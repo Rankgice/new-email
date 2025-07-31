@@ -10,9 +10,12 @@ type EmailTemplate struct {
 	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`
 	UserId      int64          `gorm:"not null;index" json:"user_id"`
 	Name        string         `gorm:"size:100;not null" json:"name"`
+	Category    string         `gorm:"size:50;default:通用模板" json:"category"`
 	Subject     string         `gorm:"size:500" json:"subject"`
 	Content     string         `gorm:"type:longtext" json:"content"`
 	ContentType string         `gorm:"size:20;default:html" json:"content_type"`
+	Variables   string         `gorm:"type:text" json:"variables"`
+	Description string         `gorm:"size:500" json:"description"`
 	IsDefault   bool           `gorm:"default:false" json:"is_default"`
 	Status      int            `gorm:"default:1" json:"status"`
 	CreatedAt   time.Time      `json:"created_at"`
@@ -63,6 +66,9 @@ func (m *EmailTemplateModel) List(params EmailTemplateListParams) ([]*EmailTempl
 	}
 	if params.Name != "" {
 		db = db.Where("name LIKE ?", "%"+params.Name+"%")
+	}
+	if params.Category != "" {
+		db = db.Where("category = ?", params.Category)
 	}
 	if params.Subject != "" {
 		db = db.Where("subject LIKE ?", "%"+params.Subject+"%")
@@ -124,12 +130,27 @@ func (m *EmailTemplateModel) GetDefaultTemplates(userId int64) ([]*EmailTemplate
 
 // GetCategoriesByUserId 获取用户的模板分类列表
 func (m *EmailTemplateModel) GetCategoriesByUserId(userId int64) ([]string, error) {
-	// 由于EmailTemplate模型中没有Category字段，返回默认分类
-	categories := []string{
-		"通用模板",
-		"营销邮件",
-		"通知邮件",
-		"系统邮件",
+	var categories []string
+
+	// 从数据库中查询用户的所有分类
+	err := m.db.Model(&EmailTemplate{}).
+		Where("user_id = ?", userId).
+		Distinct("category").
+		Pluck("category", &categories).Error
+
+	if err != nil {
+		return nil, err
 	}
+
+	// 如果没有分类，返回默认分类
+	if len(categories) == 0 {
+		categories = []string{
+			"通用模板",
+			"营销邮件",
+			"通知邮件",
+			"系统邮件",
+		}
+	}
+
 	return categories, nil
 }
