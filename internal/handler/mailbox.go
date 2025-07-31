@@ -7,6 +7,7 @@ import (
 	"new-email/internal/result"
 	"new-email/internal/svc"
 	"new-email/internal/types"
+	"new-email/pkg/auth"
 	"strconv"
 	"time"
 
@@ -413,34 +414,6 @@ func (h *MailboxHandler) Sync(c *gin.Context) {
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
-// TestConnection 测试邮箱连接
-func (h *MailboxHandler) TestConnection(c *gin.Context) {
-	var req types.MailboxTestConnectionReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
-		return
-	}
-
-	// TODO: 实现实际的邮箱连接测试
-	// 这里应该测试IMAP和SMTP连接
-
-	// 模拟测试结果
-	resp := types.MailboxTestConnectionResp{
-		ImapSuccess: true,
-		SmtpSuccess: true,
-		ImapError:   "",
-		SmtpError:   "",
-		Message:     "连接测试成功",
-	}
-
-	// 实际实现中，这里应该：
-	// 1. 使用提供的配置连接IMAP服务器
-	// 2. 使用提供的配置连接SMTP服务器
-	// 3. 返回连接测试结果
-
-	c.JSON(http.StatusOK, result.SuccessResult(resp))
-}
-
 // GetById 根据ID获取邮箱信息
 func (h *MailboxHandler) GetById(c *gin.Context) {
 	idStr := c.Param("id")
@@ -479,14 +452,6 @@ func (h *MailboxHandler) GetById(c *gin.Context) {
 		UserId:      mailbox.UserId,
 		DomainId:    mailbox.DomainId,
 		Email:       mailbox.Email,
-		Type:        mailbox.Type,
-		Provider:    mailbox.Provider,
-		ImapHost:    mailbox.ImapHost,
-		ImapPort:    mailbox.ImapPort,
-		ImapSsl:     mailbox.ImapSsl,
-		SmtpHost:    mailbox.SmtpHost,
-		SmtpPort:    mailbox.SmtpPort,
-		SmtpSsl:     mailbox.SmtpSsl,
 		AutoReceive: mailbox.AutoReceive,
 		Status:      mailbox.Status,
 		LastSyncAt:  mailbox.LastSyncAt,
@@ -526,77 +491,10 @@ func (h *MailboxHandler) GetStats(c *gin.Context) {
 		return
 	}
 
-	// 获取自建邮箱数
-	selfMailboxes, _, err := h.svcCtx.MailboxModel.List(model.MailboxListParams{
-		UserId: currentUserId,
-		Type:   "self",
-	})
-	if err != nil {
-		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
-		return
-	}
-
-	// 获取第三方邮箱数
-	thirdMailboxes, _, err := h.svcCtx.MailboxModel.List(model.MailboxListParams{
-		UserId: currentUserId,
-		Type:   "third",
-	})
-	if err != nil {
-		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
-		return
-	}
-
 	resp := types.MailboxStatsResp{
 		TotalMailboxes:  int64(len(totalMailboxes)),
 		ActiveMailboxes: int64(len(activeMailboxes)),
-		SelfMailboxes:   int64(len(selfMailboxes)),
-		ThirdMailboxes:  int64(len(thirdMailboxes)),
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
-}
-
-// GetProviders 获取邮箱提供商配置
-func (h *MailboxHandler) GetProviders(c *gin.Context) {
-	// 预定义的邮箱提供商配置
-	providers := []types.MailboxProviderResp{
-		{
-			Provider: "gmail",
-			ImapHost: "imap.gmail.com",
-			ImapPort: 993,
-			ImapSsl:  true,
-			SmtpHost: "smtp.gmail.com",
-			SmtpPort: 587,
-			SmtpSsl:  true,
-		},
-		{
-			Provider: "outlook",
-			ImapHost: "outlook.office365.com",
-			ImapPort: 993,
-			ImapSsl:  true,
-			SmtpHost: "smtp.office365.com",
-			SmtpPort: 587,
-			SmtpSsl:  true,
-		},
-		{
-			Provider: "qq",
-			ImapHost: "imap.qq.com",
-			ImapPort: 993,
-			ImapSsl:  true,
-			SmtpHost: "smtp.qq.com",
-			SmtpPort: 587,
-			SmtpSsl:  true,
-		},
-		{
-			Provider: "163",
-			ImapHost: "imap.163.com",
-			ImapPort: 993,
-			ImapSsl:  true,
-			SmtpHost: "smtp.163.com",
-			SmtpPort: 587,
-			SmtpSsl:  true,
-		},
-	}
-
-	c.JSON(http.StatusOK, result.SuccessResult(providers))
 }

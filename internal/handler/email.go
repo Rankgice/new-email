@@ -221,11 +221,11 @@ func (h *EmailHandler) Send(c *gin.Context) {
 
 	// 调用邮件发送服务
 	smtpConfig := service.SMTPConfig{
-		Host:     mailbox.SmtpHost,
-		Port:     mailbox.SmtpPort,
+		Host:     h.svcCtx.Config.SMTP.Host,
+		Port:     h.svcCtx.Config.SMTP.Port,
 		Username: mailbox.Email,
-		Password: mailbox.Password, // TODO: 后续需要实现密码解密
-		UseTLS:   mailbox.SmtpSsl,
+		Password: mailbox.Password,
+		UseTLS:   h.svcCtx.Config.SMTP.UseTLS,
 	}
 
 	smtpService := service.NewSMTPService(smtpConfig)

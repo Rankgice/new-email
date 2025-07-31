@@ -8,9 +8,6 @@ import type {
   MailboxCreateRequest,
   MailboxUpdateRequest,
   MailboxListRequest,
-  MailboxProvider,
-  MailboxTestConnectionRequest,
-  MailboxTestConnectionResponse,
   MailboxSyncRequest,
   MailboxSyncResponse,
   MailboxStats
@@ -439,10 +436,6 @@ export const mailboxApi = {
   getById: (id: number) =>
     apiClient.get<Mailbox>(`/user/mailboxes/${id}`),
 
-  // 测试邮箱连接
-  testConnection: (data: MailboxTestConnectionRequest) =>
-    apiClient.post<MailboxTestConnectionResponse>('/user/mailboxes/test-connection', data),
-
   // 同步邮箱
   sync: (data: MailboxSyncRequest) =>
     apiClient.post<MailboxSyncResponse>(`/user/mailboxes/${data.id}/sync`),
@@ -450,10 +443,6 @@ export const mailboxApi = {
   // 获取邮箱统计
   getStats: () =>
     apiClient.get<MailboxStats>('/user/mailboxes/stats'),
-
-  // 获取邮箱提供商配置
-  getProviders: () =>
-    apiClient.get<MailboxProvider[]>('/user/mailboxes/providers'),
 }
 
 

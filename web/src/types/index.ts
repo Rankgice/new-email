@@ -255,14 +255,6 @@ export interface Mailbox {
   userId: number
   domainId: number
   email: string
-  type: 'self' | 'third'
-  provider: string
-  imapHost: string
-  imapPort: number
-  imapSsl: boolean
-  smtpHost: string
-  smtpPort: number
-  smtpSsl: boolean
   autoReceive: boolean
   status: number
   lastSyncAt?: string
@@ -271,17 +263,9 @@ export interface Mailbox {
 }
 
 export interface MailboxCreateRequest {
-  domainId?: number
+  domainId: number
   email: string
   password: string
-  type: 'self' | 'third'
-  provider?: string
-  imapHost?: string
-  imapPort?: number
-  imapSsl?: boolean
-  smtpHost?: string
-  smtpPort?: number
-  smtpSsl?: boolean
   autoReceive?: boolean
   status?: number
 }
@@ -291,14 +275,6 @@ export interface MailboxUpdateRequest {
   domainId?: number
   email?: string
   password?: string
-  type?: 'self' | 'third'
-  provider?: string
-  imapHost?: string
-  imapPort?: number
-  imapSsl?: boolean
-  smtpHost?: string
-  smtpPort?: number
-  smtpSsl?: boolean
   autoReceive?: boolean
   status?: number
 }
@@ -307,8 +283,6 @@ export interface MailboxListRequest {
   userId?: number
   domainId?: number
   email?: string
-  type?: string
-  provider?: string
   status?: number
   autoReceive?: boolean
   page?: number
@@ -317,34 +291,7 @@ export interface MailboxListRequest {
   endTime?: string
 }
 
-export interface MailboxProvider {
-  provider: string
-  imapHost: string
-  imapPort: number
-  imapSsl: boolean
-  smtpHost: string
-  smtpPort: number
-  smtpSsl: boolean
-}
 
-export interface MailboxTestConnectionRequest {
-  email: string
-  password: string
-  imapHost: string
-  imapPort: number
-  imapSsl: boolean
-  smtpHost: string
-  smtpPort: number
-  smtpSsl: boolean
-}
-
-export interface MailboxTestConnectionResponse {
-  imapSuccess: boolean
-  smtpSuccess: boolean
-  imapError: string
-  smtpError: string
-  message: string
-}
 
 export interface MailboxSyncRequest {
   id: number
@@ -363,8 +310,6 @@ export interface MailboxSyncResponse {
 export interface MailboxStats {
   totalMailboxes: number
   activeMailboxes: number
-  selfMailboxes: number
-  thirdMailboxes: number
 }
 
 // 邮件发送相关类型

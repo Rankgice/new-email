@@ -76,8 +76,6 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 				mailbox.PUT("/:id", mailboxHandler.Update)
 				mailbox.DELETE("/:id", mailboxHandler.Delete)
 				mailbox.GET("/stats", mailboxHandler.GetStats)
-				mailbox.GET("/providers", mailboxHandler.GetProviders)
-				mailbox.POST("/test-connection", mailboxHandler.TestConnection)
 				mailbox.GET("/:id", mailboxHandler.GetById)
 				mailbox.POST("/:id/sync", mailboxHandler.Sync)
 			}
