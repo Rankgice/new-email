@@ -137,7 +137,7 @@ func validateAndRefreshToken(c *gin.Context, svcCtx *svc.ServiceContext, require
 			refreshWindow := time.Duration(svcCtx.Config.JWT.RefreshExpireHours) * time.Hour
 			if time.Since(claims.ExpiresAt.Time) <= refreshWindow {
 				// 生成新token
-				newToken, genErr := auth.GenerateToken(
+				newToken, genErr := auth.GenerateTokenFull(
 					claims.UserId,
 					claims.Username,
 					claims.IsAdmin,

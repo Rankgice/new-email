@@ -78,7 +78,7 @@ func (h *AdminHandler) Login(c *gin.Context) {
 	}
 
 	// 生成JWT token
-	token, err := auth.GenerateToken(admin.Id, admin.Username, true, admin.Role, h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.ExpireHours)
+	token, err := auth.GenerateTokenFull(admin.Id, admin.Username, true, admin.Role, h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.ExpireHours)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("生成token失败"))
 		return

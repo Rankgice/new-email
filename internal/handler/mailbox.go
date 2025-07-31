@@ -176,7 +176,11 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 	}
 	h.svcCtx.OperationLogModel.Create(log)
 
-	c.JSON(http.StatusOK, result.SimpleResult("创建成功"))
+	// 返回创建的邮箱信息
+	c.JSON(http.StatusOK, result.SuccessResult(map[string]interface{}{
+		"id":    mailbox.Id,
+		"email": mailbox.Email,
+	}))
 }
 
 // Update 更新邮箱

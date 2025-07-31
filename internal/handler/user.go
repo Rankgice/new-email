@@ -122,7 +122,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	// 生成JWT token
-	token, err := auth.GenerateToken(user.Id, user.Username, false, "", h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.ExpireHours)
+	token, err := auth.GenerateTokenFull(user.Id, user.Username, false, "", h.svcCtx.Config.JWT.Secret, h.svcCtx.Config.JWT.ExpireHours)
 	if err != nil {
 		c.JSON(http.StatusOK, result.ErrorSimpleResult("生成token失败"))
 		return

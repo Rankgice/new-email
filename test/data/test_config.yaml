@@ -1,0 +1,118 @@
+# 测试环境配置
+app:
+  name: "邮件管理系统-测试"
+  version: "1.0.0-test"
+  debug: true
+
+# Web服务配置
+web:
+  port: 8888
+  mode: "debug"
+  read_timeout: 30
+  write_timeout: 30
+
+# 数据库配置 - 使用内存数据库
+database:
+  type: "sqlite"
+  sqlite:
+    path: ":memory:"  # 内存数据库，测试完成后自动清理
+
+# JWT配置
+jwt:
+  secret: "test-jwt-secret-key-for-testing-only"
+  expire_hours: 1
+  refresh_expire_hours: 24
+
+# 邮件配置 - 测试环境使用Mock
+email:
+  default_smtp:
+    host: "mock.smtp.com"
+    port: 587
+    username: "test@example.com"
+    password: "test-password"
+    use_tls: false
+  
+  attachment:
+    max_size: 1048576  # 1MB for testing
+    storage_path: "./test/data/attachments"
+    allowed_types: ["jpg", "jpeg", "png", "gif", "pdf", "txt"]
+  
+  receive:
+    batch_size: 10
+    sync_interval: 60
+    max_retries: 1
+
+# 日志配置 - 测试环境简化日志
+log:
+  level: "debug"
+  format: "text"
+  output: "console"
+  file_path: "./test/data/logs/test.log"
+  max_size: 10
+  max_backups: 3
+  max_age: 7
+
+# SMTP服务配置 - Mock
+smtp:
+  host: "mock.smtp.com"
+  port: 587
+  username: "test@example.com"
+  password: "test-password"
+  use_tls: false
+
+# IMAP服务配置 - Mock
+imap:
+  host: "mock.imap.com"
+  port: 993
+  username: "test@example.com"
+  password: "test-password"
+  use_tls: false
+
+# SMS服务配置 - Mock
+sms:
+  provider: "mock"
+  access_key: "test-access-key"
+  secret_key: "test-secret-key"
+  sign_name: "测试系统"
+  region: "test-region"
+
+# 存储服务配置 - 本地测试
+storage:
+  type: "local"
+  base_path: "./test/data/uploads"
+  max_size: 1048576  # 1MB
+  allow_exts: ["jpg", "jpeg", "png", "gif", "pdf", "txt"]
+  cdn_domain: ""
+
+# Redis配置 - 测试环境禁用
+redis:
+  enabled: false
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 1  # 使用不同的数据库
+  pool_size: 5
+
+# 限流配置 - 测试环境放宽限制
+rate_limit:
+  enabled: false
+  requests_per_minute: 1000
+  burst: 100
+
+# 系统默认设置
+system:
+  default_admin:
+    username: "testadmin"
+    email: "testadmin@example.com"
+    password: "testpass123"
+    nickname: "测试管理员"
+  
+  registration:
+    enabled: true
+    require_email_verification: false
+  
+  security:
+    password_min_length: 6
+    session_timeout: 3600
+    max_login_attempts: 10
+    lockout_duration: 60

@@ -16,8 +16,17 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// GenerateToken 生成统一Token
-func GenerateToken(userId int64, username string, isAdmin bool, role string, secret string, expireHours int) (string, error) {
+// GenerateToken 生成Token（用户版本）
+func GenerateToken(userId int64, userType string, secret string, expireHours int) (string, error) {
+	isAdmin := userType == "admin"
+	username := ""
+	role := ""
+
+	return GenerateTokenFull(userId, username, isAdmin, role, secret, expireHours)
+}
+
+// GenerateTokenFull 生成完整Token
+func GenerateTokenFull(userId int64, username string, isAdmin bool, role string, secret string, expireHours int) (string, error) {
 	subject := "user"
 	if isAdmin {
 		subject = "admin"
