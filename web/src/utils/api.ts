@@ -445,6 +445,10 @@ export const mailboxApi = {
   list: (params?: MailboxListRequest) =>
     apiClient.get<PaginatedResponse<Mailbox>>('/user/mailboxes', { params }),
 
+  // 获取邮箱列表（简化版本）
+  getMailboxes: () =>
+    apiClient.get<PaginatedResponse<Mailbox>>('/user/mailboxes'),
+
   // 创建邮箱
   create: (data: MailboxCreateRequest) =>
     apiClient.post<Mailbox>('/user/mailboxes', data),

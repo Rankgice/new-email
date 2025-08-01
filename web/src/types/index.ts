@@ -331,8 +331,10 @@ export interface Mailbox {
   userId: number
   domainId: number
   email: string
+  name?: string
   autoReceive: boolean
   status: number
+  unreadCount?: number
   lastSyncAt?: string
   createdAt: string
   updatedAt: string
