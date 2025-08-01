@@ -328,8 +328,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { verificationCodeApi } from '@/api/verification-code'
-import { emailApi } from '@/api/email'
-import { mailboxApi } from '@/api/mailbox'
+import { emailApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import type { 
   VerificationCodeExtractResponse, 

@@ -1,30 +1,42 @@
 <template>
-  <div class="verification-codes-page">
-    <!-- 页面头部 -->
-    <div class="page-header">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">验证码管理</h1>
-          <p class="text-gray-600 dark:text-gray-400 mt-1">管理和查看从邮件中提取的验证码</p>
-        </div>
-        <div class="flex items-center space-x-3">
-          <button
-            @click="showExtractModal = true"
-            class="btn btn-primary"
-          >
-            <i class="fas fa-search mr-2"></i>
-            提取验证码
-          </button>
-          <button
-            @click="showStatsModal = true"
-            class="btn btn-secondary"
-          >
-            <i class="fas fa-chart-bar mr-2"></i>
-            统计信息
-          </button>
-        </div>
-      </div>
-    </div>
+  <div class="h-screen flex bg-background-primary">
+    <!-- 侧边栏 -->
+    <EmailSidebar />
+
+    <!-- 主内容区 -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- 顶部工具栏 -->
+      <EmailToolbar />
+
+      <!-- 验证码管理页面 -->
+      <div class="flex-1 overflow-hidden p-4">
+        <div class="h-full flex flex-col">
+          <!-- 页面标题 -->
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-3">
+              <ShieldCheckIcon class="w-6 h-6 text-text-primary" />
+              <h1 class="text-2xl font-bold text-text-primary">验证码管理</h1>
+              <span v-if="pagination.total > 0" class="text-sm text-text-secondary">
+                ({{ pagination.total }})
+              </span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <Button
+                variant="primary"
+                @click="showExtractModal = true"
+              >
+                <MagnifyingGlassIcon class="w-4 h-4 mr-2" />
+                提取验证码
+              </Button>
+              <Button
+                variant="secondary"
+                @click="showStatsModal = true"
+              >
+                <ChartBarIcon class="w-4 h-4 mr-2" />
+                统计信息
+              </Button>
+            </div>
+          </div>
 
     <!-- 统计卡片 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -170,7 +182,7 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 <input
                   type="checkbox"
-                  :checked="selectedCodes.length === codes.length && codes.length > 0"
+                  :checked="codes && selectedCodes.length === codes.length && codes.length > 0"
                   @change="toggleSelectAll"
                   class="rounded border-gray-300"
                 />
@@ -200,8 +212,8 @@
           </thead>
           <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             <tr
-              v-for="code in codes"
-              :key="code.id"
+              v-for="code in (codes || [])"
+              :key="code?.id || Math.random()"
               class="hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               <td class="px-6 py-4 whitespace-nowrap">
@@ -379,6 +391,24 @@
       @close="showStatsModal = false"
     />
 
+        </div>
+      </div>
+    </div>
+
+    <!-- 提取验证码模态框 -->
+    <ExtractModal
+      v-if="showExtractModal"
+      @close="showExtractModal = false"
+      @extracted="onCodesExtracted"
+    />
+
+    <!-- 统计信息模态框 -->
+    <StatsModal
+      v-if="showStatsModal"
+      :stats="stats"
+      @close="showStatsModal = false"
+    />
+
     <!-- 验证码详情模态框 -->
     <CodeDetailModal
       v-if="showDetailModal"
@@ -393,13 +423,25 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { verificationCodeApi } from '@/api/verification-code'
 import { useNotification } from '@/composables/useNotification'
-import { debounce } from 'lodash-es'
 import type { VerificationCode, VerificationCodeStats, VerificationCodeListParams } from '@/types'
 
 // 组件引入
+import EmailSidebar from '@/components/email/EmailSidebar.vue'
+import EmailToolbar from '@/components/email/EmailToolbar.vue'
+import GlassCard from '@/components/ui/GlassCard.vue'
+import Button from '@/components/ui/Button.vue'
 import ExtractModal from './components/ExtractModal.vue'
 import StatsModal from './components/StatsModal.vue'
 import CodeDetailModal from './components/CodeDetailModal.vue'
+
+import {
+  ShieldCheckIcon,
+  MagnifyingGlassIcon,
+  ChartBarIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  CalendarDaysIcon
+} from '@heroicons/vue/24/outline'
 
 // 响应式数据
 const codes = ref<VerificationCode[]>([])
@@ -442,6 +484,15 @@ const { showSuccess, showError, showWarning } = useNotification()
 
 // 计算属性
 const hasSelectedCodes = computed(() => selectedCodes.value.length > 0)
+
+// 原生 debounce 函数实现
+function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout>
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => func.apply(null, args), delay)
+  }
+}
 
 // 防抖搜索
 const debouncedSearch = debounce(() => {

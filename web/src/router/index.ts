@@ -12,6 +12,7 @@ const Compose = () => import('@/views/email/Compose.vue')
 const EmailDetail = () => import('@/views/email/EmailDetail.vue')
 const Sent = () => import('@/views/email/Sent.vue')
 const Drafts = () => import('@/views/email/Drafts.vue')
+const Starred = () => import('@/views/email/Starred.vue')
 const Trash = () => import('@/views/email/Trash.vue')
 
 const Settings = () => import('@/views/user/Settings.vue')
@@ -123,6 +124,16 @@ const router = createRouter({
       component: Drafts,
       meta: {
         title: '草稿箱',
+        requiresAuth: true,
+        keepAlive: true
+      }
+    },
+    {
+      path: '/starred',
+      name: 'Starred',
+      component: Starred,
+      meta: {
+        title: '已加星标',
         requiresAuth: true,
         keepAlive: true
       }

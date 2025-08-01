@@ -8,14 +8,14 @@
       <!-- 顶部工具栏 -->
       <EmailToolbar />
 
-      <!-- 草稿箱列表 -->
+      <!-- 星标邮件页面 -->
       <div class="flex-1 overflow-hidden p-4">
         <div class="h-full flex flex-col">
           <!-- 页面标题 -->
           <div class="flex items-center justify-between mb-6">
             <div class="flex items-center space-x-3">
-              <DocumentIcon class="w-6 h-6 text-text-primary" />
-              <h1 class="text-2xl font-bold text-text-primary">草稿箱</h1>
+              <StarIcon class="w-6 h-6 text-yellow-400" />
+              <h1 class="text-2xl font-bold text-text-primary">已加星标</h1>
               <span v-if="totalCount > 0" class="text-sm text-text-secondary">
                 ({{ totalCount }})
               </span>
@@ -23,20 +23,11 @@
 
             <!-- 操作按钮 -->
             <div class="flex items-center space-x-3">
-              <!-- 新建草稿 -->
-              <Button
-                variant="primary"
-                @click="createNewDraft"
-              >
-                <PlusIcon class="w-4 h-4 mr-2" />
-                新建草稿
-              </Button>
-
               <!-- 刷新按钮 -->
               <Button
                 variant="ghost"
                 size="sm"
-                @click="refreshDrafts"
+                @click="refreshEmails"
                 :loading="loading"
               >
                 <ArrowPathIcon class="w-4 h-4 mr-2" />
@@ -44,7 +35,16 @@
               </Button>
 
               <!-- 批量操作 -->
-              <div v-if="selectedDrafts.length > 0" class="flex items-center space-x-2">
+              <div v-if="selectedEmails.length > 0" class="flex items-center space-x-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  @click="batchRemoveStar"
+                  :loading="batchLoading"
+                >
+                  <StarIcon class="w-4 h-4 mr-2" />
+                  取消星标 ({{ selectedEmails.length }})
+                </Button>
                 <Button
                   variant="secondary"
                   size="sm"
@@ -52,36 +52,35 @@
                   :loading="batchLoading"
                 >
                   <TrashIcon class="w-4 h-4 mr-2" />
-                  删除 ({{ selectedDrafts.length }})
+                  删除 ({{ selectedEmails.length }})
                 </Button>
               </div>
             </div>
           </div>
 
-          <!-- 草稿列表 -->
+          <!-- 邮件列表 -->
           <div class="flex-1 overflow-hidden">
             <GlassCard padding="none" class="h-full">
               <!-- 空状态 -->
-              <div v-if="!loading && drafts.length === 0" class="h-full flex items-center justify-center">
+              <div v-if="!loading && (!emails || emails.length === 0)" class="h-full flex items-center justify-center">
                 <div class="text-center">
-                  <DocumentIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
+                  <StarIcon class="w-16 h-16 text-text-secondary mx-auto mb-4" />
                   <h3 class="text-lg font-medium text-text-primary mb-2">
-                    暂无草稿
+                    暂无星标邮件
                   </h3>
                   <p class="text-text-secondary mb-4">
-                    开始撰写邮件，系统会自动保存为草稿
+                    为重要邮件添加星标，方便快速查找
                   </p>
                   <Button
                     variant="primary"
-                    @click="createNewDraft"
+                    @click="$router.push('/inbox')"
                   >
-                    <PlusIcon class="w-4 h-4 mr-2" />
-                    新建草稿
+                    前往收件箱
                   </Button>
                 </div>
               </div>
 
-              <!-- 草稿列表 -->
+              <!-- 邮件列表 -->
               <div v-else class="h-full flex flex-col">
                 <!-- 列表头部 -->
                 <div class="flex items-center px-4 py-3 border-b border-glass-border bg-white/5">
@@ -92,87 +91,81 @@
                     class="rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500 mr-3"
                   />
                   <div class="flex-1 grid grid-cols-12 gap-4 text-sm font-medium text-text-secondary">
-                    <div class="col-span-3">收件人</div>
+                    <div class="col-span-1">星标</div>
+                    <div class="col-span-3">发件人</div>
                     <div class="col-span-5">主题</div>
                     <div class="col-span-2">附件</div>
-                    <div class="col-span-2">保存时间</div>
+                    <div class="col-span-1">时间</div>
                   </div>
                 </div>
 
-                <!-- 草稿项目 -->
+                <!-- 邮件项目 -->
                 <div class="flex-1 overflow-y-auto">
                   <div
-                    v-for="draft in drafts"
-                    :key="draft?.id || Math.random()"
+                    v-for="email in (emails || [])"
+                    :key="email?.id || Math.random()"
                     :class="[
                       'flex items-center px-4 py-3 border-b border-glass-border hover:bg-white/5 cursor-pointer transition-colors',
-                      draft?.id && selectedDrafts.includes(draft.id) ? 'bg-primary-500/10' : ''
+                      email?.id && selectedEmails.includes(email.id) ? 'bg-primary-500/10' : '',
+                      !email?.isRead ? 'font-semibold' : ''
                     ]"
-                    @click="editDraft(draft)"
+                    @click="email && openEmail(email)"
                   >
                     <!-- 选择框 -->
                     <input
                       type="checkbox"
-                      :checked="draft?.id && selectedDrafts.includes(draft.id)"
-                      @change="draft?.id && toggleDraftSelection(draft.id)"
+                      :checked="email?.id && selectedEmails.includes(email.id)"
+                      @change="email?.id && toggleEmailSelection(email.id)"
                       @click.stop
                       class="rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500 mr-3"
                     />
 
-                    <!-- 草稿信息 -->
+                    <!-- 邮件信息 -->
                     <div class="flex-1 grid grid-cols-12 gap-4 items-center">
-                      <!-- 收件人 -->
+                      <!-- 星标 -->
+                      <div class="col-span-1">
+                        <button
+                          @click.stop="email?.id && toggleStar(email.id, false)"
+                          class="text-yellow-400 hover:text-yellow-300 transition-colors"
+                        >
+                          <StarIcon class="w-5 h-5 fill-current" />
+                        </button>
+                      </div>
+
+                      <!-- 发件人 -->
                       <div class="col-span-3">
                         <div class="text-text-primary truncate">
-                          {{ getRecipientDisplay(draft?.to) }}
+                          {{ email?.from?.name || email?.from?.email || '未知发件人' }}
                         </div>
-                        <div v-if="draft?.cc && draft.cc.length > 0" class="text-xs text-text-secondary truncate">
-                          抄送: {{ draft.cc.map(c => c?.email).join(', ') }}
+                        <div class="text-xs text-text-secondary truncate">
+                          {{ email?.from?.email || '' }}
                         </div>
                       </div>
 
                       <!-- 主题 -->
                       <div class="col-span-5">
                         <div class="text-text-primary truncate">
-                          {{ draft?.subject || '(无主题)' }}
+                          {{ email?.subject || '(无主题)' }}
                         </div>
                         <div class="text-xs text-text-secondary truncate">
-                          {{ getEmailPreview(draft?.body) }}
+                          {{ getEmailPreview(email?.body) }}
                         </div>
                       </div>
 
                       <!-- 附件 -->
                       <div class="col-span-2">
-                        <div v-if="draft?.attachments && draft.attachments.length > 0" class="flex items-center text-text-secondary">
+                        <div v-if="email?.attachments && email.attachments.length > 0" class="flex items-center text-text-secondary">
                           <PaperClipIcon class="w-4 h-4 mr-1" />
-                          <span class="text-xs">{{ draft.attachments.length }}</span>
+                          <span class="text-xs">{{ email.attachments.length }}</span>
                         </div>
                       </div>
 
-                      <!-- 保存时间 -->
-                      <div class="col-span-2 text-right">
+                      <!-- 时间 -->
+                      <div class="col-span-1 text-right">
                         <div class="text-xs text-text-secondary">
-                          {{ formatDate(draft?.updatedAt || draft?.createdAt) }}
+                          {{ formatDate(email?.createdAt) }}
                         </div>
                       </div>
-                    </div>
-
-                    <!-- 操作按钮 -->
-                    <div class="flex items-center space-x-2 ml-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        @click.stop="draft && editDraft(draft)"
-                      >
-                        <PencilIcon class="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        @click.stop="draft?.id && deleteDraft(draft.id)"
-                      >
-                        <TrashIcon class="w-4 h-4" />
-                      </Button>
                     </div>
                   </div>
 
@@ -193,6 +186,8 @@
         </div>
       </div>
     </div>
+
+    <!-- TODO: 添加邮件详情模态框 -->
   </div>
 </template>
 
@@ -203,18 +198,16 @@ import { emailApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import type { Email, EmailListParams } from '@/types'
 
-import EmailSidebar from '@/components/email/EmailSidebar.vue'
-import EmailToolbar from '@/components/email/EmailToolbar.vue'
 import GlassCard from '@/components/ui/GlassCard.vue'
 import Button from '@/components/ui/Button.vue'
+import EmailSidebar from '@/components/email/EmailSidebar.vue'
+import EmailToolbar from '@/components/email/EmailToolbar.vue'
 
 import {
-  DocumentIcon,
-  PlusIcon,
+  StarIcon,
   ArrowPathIcon,
   TrashIcon,
-  PaperClipIcon,
-  PencilIcon
+  PaperClipIcon
 } from '@heroicons/vue/24/outline'
 
 // 路由和通知
@@ -226,8 +219,9 @@ const loading = ref(false)
 const loadingMore = ref(false)
 const batchLoading = ref(false)
 
-const drafts = ref<Email[]>([])
-const selectedDrafts = ref<string[]>([])
+const emails = ref<Email[]>([])
+const selectedEmail = ref<Email | null>(null)
+const selectedEmails = ref<string[]>([])
 const totalCount = ref(0)
 const currentPage = ref(1)
 const hasMore = ref(true)
@@ -236,22 +230,22 @@ const hasMore = ref(true)
 const queryParams = reactive<EmailListParams>({
   page: 1,
   limit: 20,
-  sortBy: 'updatedAt',
+  sortBy: 'createdAt',
   sortOrder: 'desc'
 })
 
 // 计算属性
 const isAllSelected = computed(() => {
-  return drafts.value.length > 0 && selectedDrafts.value.length === drafts.value.length
+  return emails.value && emails.value.length > 0 && selectedEmails.value.length === emails.value.length
 })
 
 // 生命周期
 onMounted(() => {
-  loadDrafts()
+  loadEmails()
 })
 
 // 方法
-const loadDrafts = async (append = false) => {
+const loadEmails = async (append = false) => {
   try {
     if (!append) {
       loading.value = true
@@ -265,105 +259,148 @@ const loadDrafts = async (append = false) => {
       page: append ? currentPage.value + 1 : 1
     }
 
-    const response = await emailApi.getDrafts()
-
+    const response = await emailApi.getStarredEmails(params)
+    
     if (append) {
-      drafts.value.push(...response.data)
+      emails.value.push(...response.data)
       currentPage.value++
     } else {
-      drafts.value = response.data
+      emails.value = response.data
     }
-
+    
     totalCount.value = response.total
     hasMore.value = response.data.length === queryParams.limit
   } catch (error) {
-    showError('加载草稿失败')
+    showError('加载星标邮件失败')
   } finally {
     loading.value = false
     loadingMore.value = false
   }
 }
 
-const refreshDrafts = () => {
-  selectedDrafts.value = []
-  loadDrafts()
+const refreshEmails = () => {
+  selectedEmails.value = []
+  loadEmails()
 }
 
 const loadMore = () => {
-  loadDrafts(true)
-}
-
-const createNewDraft = () => {
-  router.push('/compose')
-}
-
-const editDraft = (draft: Email) => {
-  router.push(`/compose?draft=${draft.id}`)
+  loadEmails(true)
 }
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
-    selectedDrafts.value = []
+    selectedEmails.value = []
   } else {
-    selectedDrafts.value = drafts.value.map(draft => draft.id)
+    selectedEmails.value = (emails.value || []).map(email => email?.id).filter(Boolean)
   }
 }
 
-const toggleDraftSelection = (draftId: string) => {
-  const index = selectedDrafts.value.indexOf(draftId)
+const toggleEmailSelection = (emailId: string) => {
+  const index = selectedEmails.value.indexOf(emailId)
   if (index > -1) {
-    selectedDrafts.value.splice(index, 1)
+    selectedEmails.value.splice(index, 1)
   } else {
-    selectedDrafts.value.push(draftId)
+    selectedEmails.value.push(emailId)
   }
 }
 
-const deleteDraft = async (draftId: string) => {
-  if (!confirm('确定要删除这个草稿吗？')) return
+const openEmail = (email: Email) => {
+  // TODO: 实现邮件详情查看
+  console.log('查看邮件:', email)
+  
+  // 标记为已读
+  if (!email.isRead) {
+    markAsRead(email.id, true)
+  }
+}
 
+const toggleStar = async (emailId: string, starred: boolean) => {
   try {
-    await emailApi.deleteEmail(draftId)
-    drafts.value = drafts.value.filter(draft => draft.id !== draftId)
-    totalCount.value--
-    selectedDrafts.value = selectedDrafts.value.filter(id => id !== draftId)
-    showSuccess('草稿已删除')
+    await emailApi.markAsStarred(emailId, starred)
+    
+    if (!starred) {
+      // 从星标列表中移除
+      emails.value = emails.value.filter(email => email.id !== emailId)
+      totalCount.value--
+      selectedEmails.value = selectedEmails.value.filter(id => id !== emailId)
+    }
+    
+    showSuccess(starred ? '已添加星标' : '已取消星标')
   } catch (error) {
-    showError('删除失败')
+    showError('操作失败')
   }
 }
 
-const batchDelete = async () => {
-  if (!confirm(`确定要删除选中的 ${selectedDrafts.value.length} 个草稿吗？`)) return
+const markAsRead = async (emailId: string, isRead: boolean) => {
+  try {
+    await emailApi.markAsRead(emailId, isRead)
+    
+    // 更新本地状态
+    const email = emails.value.find(e => e.id === emailId)
+    if (email) {
+      email.isRead = isRead
+    }
+  } catch (error) {
+    console.error('Failed to mark as read:', error)
+  }
+}
 
+const batchRemoveStar = async () => {
   try {
     batchLoading.value = true
-
-    await emailApi.batchUpdate(selectedDrafts.value, 'delete')
-
-    drafts.value = drafts.value.filter(draft => !selectedDrafts.value.includes(draft.id))
-    totalCount.value -= selectedDrafts.value.length
-    selectedDrafts.value = []
-
-    showSuccess('草稿已删除')
+    
+    await emailApi.batchUpdate(selectedEmails.value, 'unstar')
+    
+    // 从列表中移除
+    emails.value = emails.value.filter(email => !selectedEmails.value.includes(email.id))
+    totalCount.value -= selectedEmails.value.length
+    selectedEmails.value = []
+    
+    showSuccess('已取消星标')
   } catch (error) {
-    showError('批量删除失败')
+    showError('批量操作失败')
   } finally {
     batchLoading.value = false
   }
 }
 
-const getRecipientDisplay = (recipients: any[]) => {
-  if (!recipients || recipients.length === 0) return '(无收件人)'
-
-  if (recipients.length === 1) {
-    return recipients[0].name || recipients[0].email
-  } else {
-    return `${recipients[0].name || recipients[0].email} 等 ${recipients.length} 人`
+const batchDelete = async () => {
+  if (!confirm(`确定要删除选中的 ${selectedEmails.value.length} 封邮件吗？`)) return
+  
+  try {
+    batchLoading.value = true
+    
+    await emailApi.batchUpdate(selectedEmails.value, 'delete')
+    
+    // 从列表中移除
+    emails.value = emails.value.filter(email => !selectedEmails.value.includes(email.id))
+    totalCount.value -= selectedEmails.value.length
+    selectedEmails.value = []
+    
+    showSuccess('邮件已删除')
+  } catch (error) {
+    showError('删除失败')
+  } finally {
+    batchLoading.value = false
   }
+}
+
+const handleStarChanged = (emailId: string, starred: boolean) => {
+  if (!starred) {
+    // 从星标列表中移除
+    emails.value = emails.value.filter(email => email.id !== emailId)
+    totalCount.value--
+  }
+}
+
+const handleEmailDeleted = (emailId: string) => {
+  emails.value = emails.value.filter(email => email.id !== emailId)
+  totalCount.value--
 }
 
 const getEmailPreview = (body: string) => {
   if (!body) return ''
+  // 移除HTML标签并截取前50个字符
   const text = body.replace(/<[^>]*>/g, '').trim()
   return text.length > 50 ? text.substring(0, 50) + '...' : text
 }
@@ -373,7 +410,7 @@ const formatDate = (dateString: string) => {
   const now = new Date()
   const diffTime = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-
+  
   if (diffDays === 0) {
     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   } else if (diffDays === 1) {

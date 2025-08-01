@@ -141,6 +141,9 @@ class ApiClient {
 // 创建 API 客户端实例
 const apiClient = new ApiClient(API_BASE_URL)
 
+// 导出 API 客户端供其他模块使用
+export { apiClient }
+
 // 认证相关 API
 export const authApi = {
   // 用户登录
@@ -196,6 +199,16 @@ export const emailApi = {
       params: { ...params, direction: 'received' }
     }),
 
+  // 获取星标邮件列表
+  getStarredEmails: (params: EmailListParams) =>
+    apiClient.get<PaginatedResponse<Email>>('/user/emails', {
+      params: { ...params, isStarred: true }
+    }),
+
+  // 获取垃圾箱邮件列表
+  getTrashEmails: (params: EmailListParams) =>
+    apiClient.get<PaginatedResponse<Email>>('/user/emails/trash', { params }),
+
   // 获取邮件详情
   getEmail: (id: string) =>
     apiClient.get<Email>(`/user/emails/${id}`),
@@ -212,9 +225,21 @@ export const emailApi = {
   markAsStarred: (id: string, isStarred: boolean) =>
     apiClient.put(`/user/emails/${id}/star`, { is_starred: isStarred }),
 
-  // 删除邮件
+  // 删除邮件（移到垃圾箱）
   deleteEmail: (id: string) =>
     apiClient.delete(`/user/emails/${id}`),
+
+  // 恢复邮件（从垃圾箱恢复）
+  restoreEmail: (id: string) =>
+    apiClient.put(`/user/emails/${id}/restore`),
+
+  // 永久删除邮件
+  permanentDeleteEmail: (id: string) =>
+    apiClient.delete(`/user/emails/${id}/permanent`),
+
+  // 清空垃圾箱
+  emptyTrash: () =>
+    apiClient.delete('/user/emails/trash/empty'),
 
   // 批量操作
   batchUpdate: (emailIds: string[], action: string, data?: any) =>

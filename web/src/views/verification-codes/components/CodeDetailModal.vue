@@ -260,7 +260,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { verificationCodeApi } from '@/api/verification-code'
-import { emailApi } from '@/api/email'
+import { emailApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import { useRouter } from 'vue-router'
 import type { VerificationCode, Email, OperationLog } from '@/types'
