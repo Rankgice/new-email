@@ -56,65 +56,43 @@
 
               <!-- 邮箱列表 -->
               <div v-else class="h-full flex flex-col">
-                <!-- 列表头部 -->
-                <div class="flex items-center px-4 py-3 border-b border-glass-border bg-white/5">
-                  <div class="flex-1 grid grid-cols-12 gap-4 text-sm font-medium text-text-secondary">
-                    <div class="col-span-1">状态</div>
-                    <div class="col-span-6">邮箱地址</div>
-                    <div class="col-span-3">邮箱类型</div>
-                    <div class="col-span-2">操作</div>
-                  </div>
-                </div>
-
                 <!-- 邮箱项目 -->
                 <div class="flex-1 overflow-y-auto">
                   <div
                     v-for="mailbox in (mailboxes || [])"
                     :key="mailbox?.id || Math.random()"
                     :class="[
-                      'flex items-center px-4 py-3 border-b border-glass-border hover:bg-white/5 cursor-pointer transition-colors',
-                      selectedMailbox?.id === mailbox?.id ? 'bg-primary-500/10' : ''
+                      'border-b border-glass-border transition-colors',
+                      selectedMailbox?.id === mailbox?.id ? 'bg-primary-500/10' : 'hover:bg-white/5'
                     ]"
-                    @click="mailbox && selectMailbox(mailbox)"
                   >
-                    <div class="flex-1 grid grid-cols-12 gap-4 items-center">
-                      <!-- 状态 -->
-                      <div class="col-span-1">
-                        <div
-                          :class="[
-                            'w-3 h-3 rounded-full',
-                            mailbox?.isActive ? 'bg-green-400' : 'bg-gray-400'
-                          ]"
-                        />
-                      </div>
-
-                      <!-- 邮箱地址 -->
-                      <div class="col-span-6">
-                        <div class="text-text-primary font-medium">
-                          {{ mailbox?.email || '未知邮箱' }}
+                    <!-- 邮箱信息 -->
+                    <div
+                      class="flex items-center justify-between p-4 cursor-pointer hover:bg-white/5 transition-colors"
+                      @click="handleMailboxClick(mailbox)"
+                    >
+                      <div class="flex items-center space-x-3">
+                        <!-- 邮箱图标 -->
+                        <div class="flex items-center justify-center w-10 h-10 bg-primary-500/20 rounded-lg">
+                          <PaperAirplaneIcon class="w-5 h-5 text-primary-400" />
                         </div>
-                        <div class="text-xs text-text-secondary">
-                          {{ mailbox?.displayName || mailbox?.email }}
+
+                        <!-- 邮箱信息 -->
+                        <div>
+                          <h3 class="font-medium text-text-primary">
+                            {{ mailbox?.email || '未知邮箱' }}
+                          </h3>
+                          <p class="text-sm text-text-secondary">
+                            {{ mailbox?.name || mailbox?.email }}
+                          </p>
                         </div>
                       </div>
 
-                      <!-- 邮箱类型 -->
-                      <div class="col-span-3">
-                        <span
-                          :class="[
-                            'px-2 py-1 rounded text-xs font-medium',
-                            getMailboxTypeClass(mailbox?.provider)
-                          ]"
-                        >
-                          {{ getMailboxTypeLabel(mailbox?.provider) }}
-                        </span>
-                      </div>
-
-                      <!-- 操作 -->
-                      <div class="col-span-2 flex items-center space-x-2">
+                      <div class="flex items-center space-x-3">
+                        <!-- 展开/收起图标 -->
                         <ChevronDownIcon
                           :class="[
-                            'w-5 h-5 text-text-secondary transition-transform duration-200 cursor-pointer',
+                            'w-5 h-5 text-text-secondary transition-transform duration-200',
                             selectedMailbox?.id === mailbox?.id ? 'rotate-180' : ''
                           ]"
                         />
@@ -199,7 +177,7 @@ const refreshMailboxes = () => {
   loadMailboxes()
 }
 
-const selectMailbox = (mailbox: Mailbox) => {
+const handleMailboxClick = (mailbox: Mailbox) => {
   if (selectedMailbox.value?.id === mailbox.id) {
     // 如果点击的是已选中的邮箱，则收起
     selectedMailbox.value = null
@@ -215,60 +193,5 @@ const handleEmailSelected = (email: Email) => {
   selectedEmail.value = email
 }
 
-const getMailboxTypeClass = (provider?: string) => {
-  switch (provider?.toLowerCase()) {
-    case 'gmail':
-      return 'bg-red-500/20 text-red-400'
-    case 'outlook':
-    case 'hotmail':
-      return 'bg-blue-500/20 text-blue-400'
-    case 'yahoo':
-      return 'bg-purple-500/20 text-purple-400'
-    case 'qq':
-      return 'bg-green-500/20 text-green-400'
-    case '163':
-    case '126':
-      return 'bg-orange-500/20 text-orange-400'
-    default:
-      return 'bg-gray-500/20 text-gray-400'
-  }
-}
 
-const getMailboxTypeLabel = (provider?: string) => {
-  switch (provider?.toLowerCase()) {
-    case 'gmail':
-      return 'Gmail'
-    case 'outlook':
-      return 'Outlook'
-    case 'hotmail':
-      return 'Hotmail'
-    case 'yahoo':
-      return 'Yahoo'
-    case 'qq':
-      return 'QQ邮箱'
-    case '163':
-      return '163邮箱'
-    case '126':
-      return '126邮箱'
-    default:
-      return provider || '其他'
-  }
-}
-
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffTime = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 0) {
-    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  } else if (diffDays === 1) {
-    return '昨天'
-  } else if (diffDays < 7) {
-    return `${diffDays}天前`
-  } else {
-    return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
-  }
-}
 </script>
