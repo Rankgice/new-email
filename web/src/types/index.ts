@@ -341,7 +341,7 @@ export interface Mailbox {
 }
 
 export interface MailboxCreateRequest {
-  domainId: number
+  domainId?: number
   email: string
   password: string
   autoReceive?: boolean

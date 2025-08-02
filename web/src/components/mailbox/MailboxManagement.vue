@@ -11,7 +11,7 @@
         @click="showAddModal = true"
       >
         <PlusIcon class="w-4 h-4 mr-2" />
-        添加邮箱
+        创建邮箱
       </Button>
     </div>
 
@@ -129,7 +129,7 @@
           {{ searchQuery || typeFilter || statusFilter ? '请尝试调整筛选条件' : '开始添加您的第一个邮箱账户' }}
         </p>
         <Button v-if="!searchQuery && !typeFilter && !statusFilter" variant="primary" @click="showAddModal = true">
-          添加邮箱
+          创建邮箱
         </Button>
       </div>
 
@@ -160,7 +160,6 @@
       v-if="showAddModal || showEditModal"
       :visible="showAddModal || showEditModal"
       :mailbox="editingMailbox"
-      :providers="providers"
       @close="closeModal"
       @save="saveMailbox"
     />
@@ -181,11 +180,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import type { 
-  Mailbox, 
-  MailboxCreateRequest, 
-  MailboxUpdateRequest, 
-  MailboxProvider,
+import type {
+  Mailbox,
+  MailboxCreateRequest,
+  MailboxUpdateRequest,
   MailboxStats,
   MailboxListRequest
 } from '@/types'
@@ -222,7 +220,7 @@ const stats = ref<MailboxStats>({
   selfMailboxes: 0,
   thirdMailboxes: 0
 })
-const providers = ref<MailboxProvider[]>([])
+
 
 // 模态框状态
 const showAddModal = ref(false)
@@ -301,16 +299,7 @@ const loadStats = async () => {
   }
 }
 
-const loadProviders = async () => {
-  try {
-    const response = await mailboxApi.getProviders()
-    if (response.success && response.data) {
-      providers.value = response.data
-    }
-  } catch (error) {
-    console.error('Failed to load providers:', error)
-  }
-}
+
 
 const editMailbox = (mailbox: Mailbox) => {
   editingMailbox.value = mailbox
@@ -452,6 +441,5 @@ const handlePageChange = (page: number) => {
 onMounted(() => {
   loadMailboxes()
   loadStats()
-  loadProviders()
 })
 </script>

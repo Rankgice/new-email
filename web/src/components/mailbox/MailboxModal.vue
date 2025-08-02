@@ -1,82 +1,14 @@
 <template>
   <Modal
     :visible="visible"
-    :title="isEdit ? '编辑邮箱' : '添加邮箱'"
+    :title="isEdit ? '编辑邮箱' : '创建邮箱'"
     size="lg"
     @close="$emit('close')"
   >
-    <form @submit.prevent="handleSubmit" class="space-y-6">
-      <!-- 邮箱类型选择 -->
-      <div>
-        <label class="block text-sm font-medium text-text-primary mb-2">
-          邮箱类型
-        </label>
-        <div class="grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            :class="[
-              'p-4 border-2 rounded-lg transition-all duration-200',
-              formData.type === 'third'
-                ? 'border-primary-500 bg-primary-500/10'
-                : 'border-glass-border hover:border-primary-500/50'
-            ]"
-            @click="formData.type = 'third'"
-          >
-            <ServerIcon class="w-8 h-8 mx-auto mb-2 text-primary-400" />
-            <div class="text-sm font-medium text-text-primary">第三方邮箱</div>
-            <div class="text-xs text-text-secondary mt-1">Gmail, Outlook, QQ等</div>
-          </button>
-          <button
-            type="button"
-            :class="[
-              'p-4 border-2 rounded-lg transition-all duration-200',
-              formData.type === 'self'
-                ? 'border-primary-500 bg-primary-500/10'
-                : 'border-glass-border hover:border-primary-500/50'
-            ]"
-            @click="formData.type = 'self'"
-          >
-            <BuildingOfficeIcon class="w-8 h-8 mx-auto mb-2 text-primary-400" />
-            <div class="text-sm font-medium text-text-primary">自建邮箱</div>
-            <div class="text-xs text-text-secondary mt-1">企业邮箱服务器</div>
-          </button>
-        </div>
-      </div>
+    <div class="space-y-6">
 
-      <!-- 邮箱提供商选择（第三方邮箱） -->
-      <div v-if="formData.type === 'third'">
-        <label class="block text-sm font-medium text-text-primary mb-2">
-          邮箱提供商
-        </label>
-        <select
-          v-model="formData.provider"
-          class="w-full px-3 py-2 bg-glass-light border border-glass-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-text-primary"
-          @change="handleProviderChange"
-        >
-          <option value="">请选择提供商</option>
-          <option
-            v-for="provider in (providers || [])"
-            :key="provider.provider"
-            :value="provider.provider"
-          >
-            {{ getProviderLabel(provider.provider) }}
-          </option>
-        </select>
-      </div>
 
-      <!-- 域名选择（自建邮箱） -->
-      <div v-if="formData.type === 'self'">
-        <label class="block text-sm font-medium text-text-primary mb-2">
-          域名
-        </label>
-        <select
-          v-model="formData.domainId"
-          class="w-full px-3 py-2 bg-glass-light border border-glass-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-text-primary"
-        >
-          <option value="">请选择域名</option>
-          <!-- TODO: 从API获取域名列表 -->
-        </select>
-      </div>
+
 
       <!-- 邮箱地址 -->
       <div>
@@ -119,92 +51,7 @@
         </p>
       </div>
 
-      <!-- 服务器配置 -->
-      <div class="space-y-4">
-        <h3 class="text-lg font-medium text-text-primary">服务器配置</h3>
-        
-        <!-- IMAP配置 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-text-primary mb-2">
-              IMAP服务器 *
-            </label>
-            <input
-              v-model="formData.imapHost"
-              type="text"
-              required
-              class="w-full px-3 py-2 bg-glass-light border border-glass-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-text-primary placeholder-text-secondary"
-              placeholder="imap.example.com"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-text-primary mb-2">
-              IMAP端口 *
-            </label>
-            <input
-              v-model.number="formData.imapPort"
-              type="number"
-              required
-              class="w-full px-3 py-2 bg-glass-light border border-glass-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-text-primary placeholder-text-secondary"
-              placeholder="993"
-            />
-          </div>
-        </div>
 
-        <!-- SMTP配置 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-text-primary mb-2">
-              SMTP服务器 *
-            </label>
-            <input
-              v-model="formData.smtpHost"
-              type="text"
-              required
-              class="w-full px-3 py-2 bg-glass-light border border-glass-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-text-primary placeholder-text-secondary"
-              placeholder="smtp.example.com"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-text-primary mb-2">
-              SMTP端口 *
-            </label>
-            <input
-              v-model.number="formData.smtpPort"
-              type="number"
-              required
-              class="w-full px-3 py-2 bg-glass-light border border-glass-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-text-primary placeholder-text-secondary"
-              placeholder="587"
-            />
-          </div>
-        </div>
-
-        <!-- SSL选项 -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="flex items-center">
-            <input
-              id="imapSsl"
-              v-model="formData.imapSsl"
-              type="checkbox"
-              class="w-4 h-4 text-primary-500 bg-glass-light border-glass-border rounded focus:ring-primary-500"
-            />
-            <label for="imapSsl" class="ml-2 text-sm text-text-primary">
-              IMAP使用SSL/TLS
-            </label>
-          </div>
-          <div class="flex items-center">
-            <input
-              id="smtpSsl"
-              v-model="formData.smtpSsl"
-              type="checkbox"
-              class="w-4 h-4 text-primary-500 bg-glass-light border-glass-border rounded focus:ring-primary-500"
-            />
-            <label for="smtpSsl" class="ml-2 text-sm text-text-primary">
-              SMTP使用SSL/TLS
-            </label>
-          </div>
-        </div>
-      </div>
 
       <!-- 其他选项 -->
       <div class="space-y-4">
@@ -233,19 +80,7 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div class="flex justify-between pt-6 border-t border-glass-border">
-        <div>
-          <Button
-            v-if="!isEdit"
-            type="button"
-            variant="ghost"
-            @click="testConnection"
-            :loading="testing"
-          >
-            <WifiIcon class="w-4 h-4 mr-2" />
-            测试连接
-          </Button>
-        </div>
+      <div class="flex justify-end pt-6 border-t border-glass-border">
         <div class="flex space-x-3">
           <Button
             type="button"
@@ -255,37 +90,33 @@
             取消
           </Button>
           <Button
-            type="submit"
+            type="button"
             variant="primary"
             :loading="saving"
+            @click="handleButtonClick"
           >
-            {{ isEdit ? '更新' : '添加' }}
+            {{ isEdit ? '更新' : '创建' }}
           </Button>
         </div>
       </div>
-    </form>
+    </div>
   </Modal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import type { 
-  Mailbox, 
-  MailboxCreateRequest, 
-  MailboxUpdateRequest, 
-  MailboxProvider,
-  MailboxTestConnectionRequest 
+import type {
+  Mailbox,
+  MailboxCreateRequest,
+  MailboxUpdateRequest
 } from '@/types'
 import { mailboxApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 
 // Icons
 import {
-  ServerIcon,
-  BuildingOfficeIcon,
   EyeIcon,
-  EyeSlashIcon,
-  WifiIcon
+  EyeSlashIcon
 } from '@heroicons/vue/24/outline'
 
 // Components
@@ -296,7 +127,6 @@ import Button from '@/components/ui/Button.vue'
 interface Props {
   visible: boolean
   mailbox?: Mailbox | null
-  providers: MailboxProvider[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -315,7 +145,6 @@ const { showNotification } = useNotification()
 // State
 const showPassword = ref(false)
 const saving = ref(false)
-const testing = ref(false)
 
 // 计算属性
 const isEdit = computed(() => !!props.mailbox)
@@ -328,149 +157,48 @@ const statusEnabled = computed({
 
 // 表单数据
 const formData = ref<MailboxCreateRequest & { id?: number }>({
-  type: 'third',
   email: '',
   password: '',
-  provider: '',
-  domainId: 0,
-  imapHost: '',
-  imapPort: 993,
-  imapSsl: true,
-  smtpHost: '',
-  smtpPort: 587,
-  smtpSsl: true,
   autoReceive: true,
   status: 1
 })
 
 // 方法
-const getProviderLabel = (provider: string) => {
-  const labels: Record<string, string> = {
-    gmail: 'Gmail',
-    outlook: 'Outlook',
-    qq: 'QQ邮箱',
-    163: '163邮箱',
-    126: '126邮箱',
-    imap: '其他IMAP'
-  }
-  return labels[provider] || provider
-}
-
-const handleProviderChange = () => {
-  const provider = (props.providers || []).find(p => p.provider === formData.value.provider)
-  if (provider) {
-    formData.value.imapHost = provider.imapHost
-    formData.value.imapPort = provider.imapPort
-    formData.value.imapSsl = provider.imapSsl
-    formData.value.smtpHost = provider.smtpHost
-    formData.value.smtpPort = provider.smtpPort
-    formData.value.smtpSsl = provider.smtpSsl
-  }
-}
-
-const testConnection = async () => {
-  if (!formData.value.email || !formData.value.password || !formData.value.imapHost || !formData.value.smtpHost) {
-    showNotification({
-      type: 'warning',
-      title: '信息不完整',
-      message: '请填写完整的邮箱信息后再测试连接'
-    })
+const handleButtonClick = async () => {
+  // 检查必填字段
+  if (!formData.value.email || !formData.value.password) {
     return
   }
 
-  testing.value = true
-  try {
-    const testData: MailboxTestConnectionRequest = {
-      email: formData.value.email,
-      password: formData.value.password,
-      imapHost: formData.value.imapHost,
-      imapPort: formData.value.imapPort,
-      imapSsl: formData.value.imapSsl,
-      smtpHost: formData.value.smtpHost,
-      smtpPort: formData.value.smtpPort,
-      smtpSsl: formData.value.smtpSsl
-    }
-
-    const response = await mailboxApi.testConnection(testData)
-    if (response.success && response.data) {
-      const result = response.data
-      if (result.imapSuccess && result.smtpSuccess) {
-        showNotification({
-          type: 'success',
-          title: '连接测试成功',
-          message: result.message
-        })
-      } else {
-        showNotification({
-          type: 'warning',
-          title: '连接测试部分失败',
-          message: `IMAP: ${result.imapSuccess ? '成功' : result.imapError}, SMTP: ${result.smtpSuccess ? '成功' : result.smtpError}`
-        })
-      }
-    }
-  } catch (error) {
-    console.error('Failed to test connection:', error)
-    showNotification({
-      type: 'error',
-      title: '连接测试失败',
-      message: '无法测试邮箱连接'
-    })
-  } finally {
-    testing.value = false
-  }
-}
-
-const handleSubmit = async () => {
   saving.value = true
   try {
     const data = { ...formData.value }
-    
-    // 清理不需要的字段
-    if (data.type === 'third') {
-      delete data.domainId
-    } else {
-      delete data.provider
-    }
-
     emit('save', data)
   } finally {
     saving.value = false
   }
 }
 
+
+
+
+
 // 监听邮箱数据变化
 watch(() => props.mailbox, (newMailbox) => {
   if (newMailbox) {
     formData.value = {
       id: newMailbox.id,
-      type: newMailbox.type,
+      domainId: newMailbox.domainId,
       email: newMailbox.email,
       password: '', // 密码不回显
-      provider: newMailbox.provider,
-      domainId: newMailbox.domainId,
-      imapHost: newMailbox.imapHost,
-      imapPort: newMailbox.imapPort,
-      imapSsl: newMailbox.imapSsl,
-      smtpHost: newMailbox.smtpHost,
-      smtpPort: newMailbox.smtpPort,
-      smtpSsl: newMailbox.smtpSsl,
       autoReceive: newMailbox.autoReceive,
       status: newMailbox.status
     }
   } else {
     // 重置表单
     formData.value = {
-      type: 'third',
       email: '',
       password: '',
-      provider: '',
-      domainId: 0,
-      imapHost: '',
-      imapPort: 993,
-      imapSsl: true,
-      smtpHost: '',
-      smtpPort: 587,
-      smtpSsl: true,
       autoReceive: true,
       status: 1
     }

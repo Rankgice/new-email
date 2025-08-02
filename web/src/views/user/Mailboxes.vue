@@ -22,14 +22,14 @@
                 <div class="text-text-secondary">活跃</div>
               </div>
             </div>
-            <!-- 添加邮箱按钮 -->
+            <!-- 创建邮箱按钮 -->
             <Button
               variant="primary"
               @click="showAddModal = true"
               class="flex items-center"
             >
               <PlusIcon class="w-4 h-4 mr-2" />
-              添加邮箱
+              创建邮箱
             </Button>
           </div>
         </div>
@@ -132,7 +132,6 @@
       v-if="showAddModal || showEditModal"
       :visible="showAddModal || showEditModal"
       :mailbox="editingMailbox"
-      :providers="providers"
       @close="closeModal"
       @save="saveMailbox"
     />
@@ -143,7 +142,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useNotification } from '@/composables/useNotification'
 import { mailboxApi } from '@/utils/api'
-import type { Mailbox, MailboxStats, MailboxProvider, MailboxCreateRequest, MailboxUpdateRequest } from '@/types'
+import type { Mailbox, MailboxStats, MailboxCreateRequest, MailboxUpdateRequest } from '@/types'
 
 // Icons
 import {
@@ -169,7 +168,7 @@ const stats = ref<MailboxStats>({
   selfMailboxes: 0,
   thirdMailboxes: 0
 })
-const providers = ref<MailboxProvider[]>([])
+
 
 // 分页
 const currentPage = ref(1)
@@ -248,16 +247,7 @@ const loadStats = async () => {
   }
 }
 
-const loadProviders = async () => {
-  try {
-    const response = await mailboxApi.getProviders()
-    if (response.success && response.data) {
-      providers.value = response.data
-    }
-  } catch (error) {
-    console.error('Failed to load providers:', error)
-  }
-}
+
 
 const editMailbox = (mailbox: Mailbox) => {
   editingMailbox.value = mailbox
@@ -405,6 +395,5 @@ watch([searchQuery, filterType, filterStatus], () => {
 onMounted(() => {
   loadMailboxes()
   loadStats()
-  loadProviders()
 })
 </script>

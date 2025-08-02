@@ -4,7 +4,7 @@ import "time"
 
 // MailboxCreateReq 创建邮箱请求
 type MailboxCreateReq struct {
-	DomainId    int64  `json:"domainId" binding:"required"`    // 域名ID（自建邮箱）
+	DomainId    int64  `json:"domainId"`                       // 域名ID（可选，使用默认域名）
 	Email       string `json:"email" binding:"required,email"` // 邮箱地址
 	Password    string `json:"password" binding:"required"`    // 邮箱密码
 	AutoReceive bool   `json:"autoReceive"`                    // 是否自动收信

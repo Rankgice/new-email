@@ -133,8 +133,24 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// 检查域名是否存在且属于当前用户
-	domain, err := h.svcCtx.DomainModel.GetById(req.DomainId)
+	// 如果没有提供域名ID，使用默认域名
+	domainId := req.DomainId
+	if domainId == 0 {
+		// 获取第一个可用的域名作为默认域名
+		domains, err := h.svcCtx.DomainModel.GetActiveDomains()
+		if err != nil {
+			c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
+			return
+		}
+		if len(domains) == 0 {
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("系统中没有可用的域名，请联系管理员"))
+			return
+		}
+		domainId = domains[0].Id
+	}
+
+	// 检查域名是否存在且启用
+	domain, err := h.svcCtx.DomainModel.GetById(domainId)
 	if err != nil {
 		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
@@ -150,7 +166,7 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 	// 创建邮箱
 	mailbox := &model.Mailbox{
 		UserId:      currentUserId,
-		DomainId:    req.DomainId,
+		DomainId:    domainId,
 		Email:       req.Email,
 		Password:    req.Password,
 		AutoReceive: req.AutoReceive,

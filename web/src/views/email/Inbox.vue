@@ -49,7 +49,7 @@
                     variant="primary"
                     @click="$router.push('/settings')"
                   >
-                    添加邮箱
+                    创建邮箱
                   </Button>
                 </div>
               </div>
