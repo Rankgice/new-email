@@ -10,6 +10,17 @@
 
 
 
+      <!-- 调试信息 -->
+      <div style="background: #f0f0f0; padding: 10px; margin-bottom: 10px; border-radius: 4px;">
+        <p>调试信息:</p>
+        <p>Email: {{ formData.email }}</p>
+        <p>Password: {{ formData.password ? '***' : '(空)' }}</p>
+        <p>Saving: {{ saving }}</p>
+        <button @click="testClick" style="background: red; color: white; padding: 4px 8px; border: none; border-radius: 2px; margin: 4px;">
+          调试按钮
+        </button>
+      </div>
+
       <!-- 邮箱地址 -->
       <div>
         <label class="block text-sm font-medium text-text-primary mb-2">
@@ -80,8 +91,8 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div class="flex justify-end pt-6 border-t border-glass-border">
-        <div class="flex space-x-3">
+      <div class="flex justify-end pt-6 border-t border-glass-border" style="position: relative; z-index: 1000;">
+        <div class="flex space-x-3" style="position: relative; z-index: 1001;">
           <Button
             type="button"
             variant="ghost"
@@ -89,14 +100,21 @@
           >
             取消
           </Button>
-          <Button
+          <button
             type="button"
-            variant="primary"
-            :loading="saving"
-            @click="handleButtonClick"
+            @click="testClick"
+            style="background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;"
           >
-            {{ isEdit ? '更新' : '创建' }}
-          </Button>
+            测试
+          </button>
+          <button
+            type="button"
+            @click="handleButtonClick"
+            :disabled="saving"
+            style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;"
+          >
+            {{ saving ? '创建中...' : (isEdit ? '更新' : '创建') }}
+          </button>
         </div>
       </div>
     </div>
@@ -164,15 +182,26 @@ const formData = ref<MailboxCreateRequest & { id?: number }>({
 })
 
 // 方法
+const testClick = () => {
+  console.log('Test button clicked!')
+  alert('Test button works!')
+}
+
 const handleButtonClick = async () => {
+  console.log('Button clicked!')
+  console.log('Form data:', formData.value)
+
   // 检查必填字段
   if (!formData.value.email || !formData.value.password) {
+    console.log('Missing required fields')
     return
   }
 
+  console.log('Saving mailbox...')
   saving.value = true
   try {
     const data = { ...formData.value }
+    console.log('Emitting save event with data:', data)
     emit('save', data)
   } finally {
     saving.value = false
@@ -183,8 +212,16 @@ const handleButtonClick = async () => {
 
 
 
+// 组件挂载时的调试信息
+onMounted(() => {
+  console.log('MailboxModal mounted')
+  console.log('Props:', props)
+  console.log('Form data:', formData.value)
+})
+
 // 监听邮箱数据变化
 watch(() => props.mailbox, (newMailbox) => {
+  console.log('Mailbox data changed:', newMailbox)
   if (newMailbox) {
     formData.value = {
       id: newMailbox.id,
@@ -203,5 +240,6 @@ watch(() => props.mailbox, (newMailbox) => {
       status: 1
     }
   }
+  console.log('Updated form data:', formData.value)
 }, { immediate: true })
 </script>
