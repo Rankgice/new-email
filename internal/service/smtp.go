@@ -113,6 +113,11 @@ func (s *SMTPService) SendEmail(message EmailMessage) error {
 
 // TestConnection 测试SMTP连接
 func (s *SMTPService) TestConnection() error {
+	// 如果没有配置主机，跳过测试
+	if s.config.Host == "" {
+		return nil
+	}
+
 	// 创建SMTP拨号器
 	d := mail.NewDialer(s.config.Host, s.config.Port, s.config.Username, s.config.Password)
 

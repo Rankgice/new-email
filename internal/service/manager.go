@@ -8,11 +8,12 @@ import (
 
 // ServiceManager 服务管理器
 type ServiceManager struct {
-	SMTP    *SMTPService
-	IMAP    *IMAPService
-	SMS     *SMSService
-	Storage *StorageService
-	Cache   *CacheService
+	SMTP          *SMTPService
+	IMAP          *IMAPService
+	SMS           *SMSService
+	Storage       *StorageService
+	Cache         *CacheService
+	MessageParser *MessageParser
 }
 
 // ServiceConfig 服务配置
@@ -57,6 +58,10 @@ func NewServiceManager(config ServiceConfig) *ServiceManager {
 		manager.Cache = NewCacheService(config.Cache)
 		log.Printf("缓存服务已初始化: %s:%d", config.Cache.Host, config.Cache.Port)
 	}
+
+	// 初始化邮件解析器
+	manager.MessageParser = NewMessageParser()
+	log.Printf("邮件解析器已初始化")
 
 	return manager
 }

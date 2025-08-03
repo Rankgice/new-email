@@ -65,20 +65,22 @@ log:
   max_age: 30  # days
 
 # SMTP服务配置（用于发送邮件）
+# 使用 go-mail/mail 库发送邮件
 smtp:
   host: "smtp.email.host"
   port: 587
-  username: ""
-  password: ""
+  username: ""  # 你的Gmail地址
+  password: ""  # 你的应用密码
   use_tls: false
 
 # IMAP服务配置（用于接收邮件）
+# 使用 emersion/go-imap 库接收邮件
 imap:
   host: "imap.email.host"
   port: 993
-  username: ""
-  password: ""
-  use_tls: true
+  username: ""  # 你的Gmail地址
+  password: ""  # 你的应用密码
+  use_tls: false
 
 # SMS服务配置（用于发送短信验证码）
 sms:

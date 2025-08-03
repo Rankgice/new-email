@@ -190,6 +190,27 @@ func (m *EmailModel) MarkAsRead(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_read", true).Error
 }
 
+// CountByMailboxId 根据邮箱ID统计邮件数量
+func (m *EmailModel) CountByMailboxId(mailboxId int64) (int, error) {
+	var count int64
+	err := m.db.Model(&Email{}).Where("mailbox_id = ?", mailboxId).Count(&count).Error
+	return int(count), err
+}
+
+// GetByMailboxId 根据邮箱ID获取邮件列表
+func (m *EmailModel) GetByMailboxId(mailboxId int64, limit int) ([]*Email, error) {
+	var emails []*Email
+	query := m.db.Where("mailbox_id = ?", mailboxId).
+		Order("received_at DESC")
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	err := query.Find(&emails).Error
+	return emails, err
+}
+
 // MarkAsUnread 标记邮件为未读
 func (m *EmailModel) MarkAsUnread(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_read", false).Error

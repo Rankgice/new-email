@@ -111,24 +111,52 @@ npm run dev
 - 用户面板: http://localhost:8081/user
 - API文档: http://localhost:8081/api/health
 
-## 📧 邮件发送
+## 📧 邮件系统架构
 
-本项目使用 `github.com/go-mail/mail/v2` 库进行邮件发送，相比原生的 `net/smtp` 具有以下优势：
+本项目采用现代化的邮件处理架构，使用以下专业库：
 
-- **更简单的API**: 提供了更友好的邮件构建和发送接口
-- **更好的附件支持**: 内置对邮件附件的完整支持
-- **自动TLS处理**: 自动处理TLS连接和认证
-- **更好的错误处理**: 提供更详细的错误信息
-- **MIME支持**: 完整支持HTML邮件和多媒体内容
+### 🚀 核心框架
+- **发送** → `go-mail/mail` - 强大的SMTP邮件发送库
+- **接收** → `emersion/go-imap` - 专业的IMAP客户端库
+- **解析** → `emersion/go-message` - 完整的邮件解析库
 
-### 邮件发送配置
+### ✨ 技术优势
 
-在 `etc/config.yaml` 中配置SMTP服务器：
+#### 📤 邮件发送 (go-mail/mail)
+- **简洁API**: 提供直观的邮件构建接口
+- **完整支持**: HTML邮件、附件、抄送密送
+- **自动TLS**: 智能处理加密连接
+- **错误处理**: 详细的错误信息和重试机制
+
+#### 📥 邮件接收 (emersion/go-imap)
+- **标准兼容**: 完整支持IMAP4rev1协议
+- **高性能**: 异步处理和连接池
+- **功能完整**: 邮箱管理、搜索、标记等
+- **安全连接**: 支持TLS/SSL加密
+
+#### 🔍 邮件解析 (emersion/go-message)
+- **格式支持**: RFC 5322邮件格式完整解析
+- **多媒体**: 支持多部分邮件和附件
+- **字符集**: 自动处理各种字符编码
+- **头部解析**: 完整的邮件头信息提取
+
+### 📋 配置示例
+
+在 `etc/config.yaml` 中配置邮件服务器：
 
 ```yaml
+# SMTP服务配置（用于发送邮件）
 smtp:
   host: "smtp.gmail.com"
   port: 587
+  username: "your-email@gmail.com"
+  password: "your-app-password"
+  use_tls: true
+
+# IMAP服务配置（用于接收邮件）
+imap:
+  host: "imap.gmail.com"
+  port: 993
   username: "your-email@gmail.com"
   password: "your-app-password"
   use_tls: true

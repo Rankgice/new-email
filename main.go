@@ -39,10 +39,6 @@ func main() {
 
 	// 确定端口
 	port := c.Web.Port
-	if port == 0 {
-		port = 8081
-	}
-
 	log.Printf("🚀 邮件管理系统启动成功")
 	log.Printf("📱 管理端: http://localhost:%d/admin", port)
 	log.Printf("👤 用户端: http://localhost:%d/user", port)
