@@ -111,6 +111,29 @@ npm run dev
 - 用户面板: http://localhost:8081/user
 - API文档: http://localhost:8081/api/health
 
+## 📧 邮件发送
+
+本项目使用 `github.com/go-mail/mail/v2` 库进行邮件发送，相比原生的 `net/smtp` 具有以下优势：
+
+- **更简单的API**: 提供了更友好的邮件构建和发送接口
+- **更好的附件支持**: 内置对邮件附件的完整支持
+- **自动TLS处理**: 自动处理TLS连接和认证
+- **更好的错误处理**: 提供更详细的错误信息
+- **MIME支持**: 完整支持HTML邮件和多媒体内容
+
+### 邮件发送配置
+
+在 `etc/config.yaml` 中配置SMTP服务器：
+
+```yaml
+smtp:
+  host: "smtp.gmail.com"
+  port: 587
+  username: "your-email@gmail.com"
+  password: "your-app-password"
+  use_tls: true
+```
+
 ## ⚙️ 配置说明
 
 ### 基本配置
