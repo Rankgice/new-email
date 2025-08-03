@@ -48,9 +48,10 @@
 - **@headlessui/vue** - 无样式 UI 组件
 
 ### 邮件处理
-- **go-mail** - SMTP发送
-- **go-imap** - IMAP接收
-- **go-message** - 邮件解析
+- **emersion/go-smtp** - 专业SMTP服务端实现
+- **emersion/go-imap** - IMAP接收
+- **emersion/go-message** - 邮件解析
+- **go-mail** - SMTP客户端发送
 
 ## 📦 快速开始
 
@@ -116,11 +117,19 @@ npm run dev
 本项目采用现代化的邮件处理架构，使用以下专业库：
 
 ### 🚀 核心框架
-- **发送** → `go-mail/mail` - 强大的SMTP邮件发送库
-- **接收** → `emersion/go-imap` - 专业的IMAP客户端库
-- **解析** → `emersion/go-message` - 完整的邮件解析库
+- **SMTP服务端** → `emersion/go-smtp` - 专业的SMTP服务器实现
+- **SMTP客户端** → `go-mail/mail` - 强大的SMTP邮件发送库
+- **IMAP接收** → `emersion/go-imap` - 专业的IMAP客户端库
+- **邮件解析** → `emersion/go-message` - 完整的邮件解析库
 
 ### ✨ 技术优势
+
+#### 📧 SMTP服务端 (emersion/go-smtp)
+- **专业实现**: 完整支持SMTP协议规范
+- **高性能**: 异步处理和连接管理
+- **安全认证**: 支持PLAIN认证和扩展认证
+- **邮件存储**: 集成数据库存储和邮件管理
+- **错误处理**: 完善的错误处理和日志记录
 
 #### 📤 邮件发送 (go-mail/mail)
 - **简洁API**: 提供直观的邮件构建接口
@@ -414,7 +423,19 @@ go mod tidy
 go run main.go
 ```
 
-### 4. 测试服务
+### 4. 测试SMTP服务器
+
+测试emersion/go-smtp SMTP服务器：
+
+```bash
+# 启动邮件系统（在一个终端中）
+go run main.go
+
+# 在另一个终端中测试SMTP服务器
+go run test_smtp.go
+```
+
+### 5. 测试其他服务
 
 运行服务演示程序：
 
@@ -424,7 +445,14 @@ go run examples/service_demo.go
 
 ## 📋 服务功能说明
 
-### SMTP邮件发送
+### SMTP服务端 (内置邮件服务器)
+- 基于emersion/go-smtp专业库实现
+- 支持标准SMTP协议 (RFC 5321)
+- 用户认证和权限管理
+- 邮件接收和数据库存储
+- 监听端口: 587 (可配置)
+
+### SMTP邮件发送 (客户端)
 - 支持Gmail、Outlook、企业邮箱等
 - 自动TLS加密
 - HTML和纯文本邮件

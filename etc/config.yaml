@@ -65,21 +65,21 @@ log:
   max_age: 30  # days
 
 # SMTP服务配置（用于发送邮件）
-# 使用 go-mail/mail 库发送邮件
+# 使用本地SMTP服务器
 smtp:
-  host: "smtp.email.host"
+  host: "smtp.email.host"  # 映射到127.0.0.1的本地服务器
   port: 587
-  username: ""  # 你的Gmail地址
-  password: ""  # 你的应用密码
+  username: "test@localhost"  # 任意用户名
+  password: "password"  # 任意密码
   use_tls: false
 
 # IMAP服务配置（用于接收邮件）
-# 使用 emersion/go-imap 库接收邮件
+# 使用本地IMAP服务器
 imap:
-  host: "imap.email.host"
+  host: "imap.email.host"  # 映射到127.0.0.1的本地服务器
   port: 993
-  username: ""  # 你的Gmail地址
-  password: ""  # 你的应用密码
+  username: "test@localhost"  # 任意用户名
+  password: "password"  # 任意密码
   use_tls: false
 
 # SMS服务配置（用于发送短信验证码）
