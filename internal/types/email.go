@@ -52,7 +52,6 @@ type EmailResp struct {
 type EmailSendReq struct {
 	MailboxId   int64  `json:"mailboxId"`                             // 邮箱ID
 	Subject     string `json:"subject" binding:"required,max=200"`    // 邮件主题
-	FromEmail   string `json:"fromEmail" binding:"required,email"`    // 发件人邮箱
 	ToEmail     string `json:"toEmail" binding:"required"`            // 收件人邮箱（多个用逗号分隔）
 	CcEmail     string `json:"ccEmail"`                               // 抄送邮箱（多个用逗号分隔）
 	BccEmail    string `json:"bccEmail"`                              // 密送邮箱（多个用逗号分隔）

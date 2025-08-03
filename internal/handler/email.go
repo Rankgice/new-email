@@ -236,7 +236,7 @@ func (h *EmailHandler) Send(c *gin.Context) {
 
 	// 构建邮件消息
 	emailMessage := service.EmailMessage{
-		From:        req.FromEmail,
+		From:        mailbox.Email,
 		To:          splitEmails(req.ToEmail),
 		Cc:          splitEmails(req.CcEmail),
 		Bcc:         splitEmails(req.BccEmail),
@@ -255,7 +255,7 @@ func (h *EmailHandler) Send(c *gin.Context) {
 	email := &model.Email{
 		MailboxId:   req.MailboxId,
 		Subject:     req.Subject,
-		FromEmail:   req.FromEmail,
+		FromEmail:   mailbox.Email,
 		ToEmails:    req.ToEmail,  // 使用ToEmails字段
 		CcEmails:    req.CcEmail,  // 使用CcEmails字段
 		BccEmails:   req.BccEmail, // 使用BccEmails字段

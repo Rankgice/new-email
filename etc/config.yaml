@@ -36,11 +36,11 @@ jwt:
 email:
   # 默认SMTP配置
   default_smtp:
-    host: "smtp.gmail.com"
+    host: "smtp.email.host"
     port: 587
     username: ""
     password: ""
-    use_tls: true
+    use_tls: false
   
   # 附件配置
   attachment:
@@ -66,15 +66,15 @@ log:
 
 # SMTP服务配置（用于发送邮件）
 smtp:
-  host: "smtp.gmail.com"
+  host: "smtp.email.host"
   port: 587
   username: ""
   password: ""
-  use_tls: true
+  use_tls: false
 
 # IMAP服务配置（用于接收邮件）
 imap:
-  host: "imap.gmail.com"
+  host: "imap.email.host"
   port: 993
   username: ""
   password: ""
