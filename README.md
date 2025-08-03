@@ -428,19 +428,24 @@ go run main.go
 测试emersion/go-smtp SMTP服务器：
 
 ```bash
-# 启动邮件系统（在一个终端中）
+# 启动邮件系统
 go run main.go
 
-# 在另一个终端中测试SMTP服务器
-go run test_smtp.go
+# 查看SMTP服务器日志确认启动成功
+# SMTP服务器将在587端口启动
+# IMAP服务器将在993端口启动
 ```
 
-### 5. 测试其他服务
+### 5. 运行测试
 
-运行服务演示程序：
+运行项目测试：
 
 ```bash
-go run examples/service_demo.go
+# 运行所有测试
+go test ./test/... -v
+
+# 运行特定测试
+go test ./test/api/... -v
 ```
 
 ## 📋 服务功能说明
