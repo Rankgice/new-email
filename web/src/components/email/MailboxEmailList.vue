@@ -182,9 +182,7 @@ const hasMore = ref(true)
 // 查询参数
 const queryParams = reactive<EmailListParams>({
   page: 1,
-  limit: 10,
-  sortBy: 'createdAt',
-  sortOrder: 'desc'
+  pageSize: 10
 })
 
 // 计算属性
@@ -229,20 +227,33 @@ const loadEmails = async (append = false) => {
     const params = {
       ...queryParams,
       page: append ? currentPage.value + 1 : 1,
-      mailboxId: props.mailboxId
+      mailboxId: props.mailboxId,
+      direction: 'received' // 收件箱只显示接收的邮件
     }
 
+    console.log('MailboxEmailList API params:', params)
     const response = await emailApi.getInboxEmails(params)
+    console.log('MailboxEmailList API response:', response)
 
-    if (append) {
-      emails.value.push(...response.data)
-      currentPage.value++
+    if (response.success && response.data) {
+      const emailList = response.data.list || response.data || []
+
+      if (append) {
+        emails.value.push(...emailList)
+        currentPage.value++
+      } else {
+        emails.value = emailList
+      }
+
+      totalCount.value = response.data.total || emailList.length
+      hasMore.value = emailList.length === queryParams.pageSize
     } else {
-      emails.value = response.data
+      if (!append) {
+        emails.value = []
+      }
+      totalCount.value = 0
+      hasMore.value = false
     }
-
-    totalCount.value = response.total
-    hasMore.value = response.data.length === queryParams.limit
   } catch (error) {
     console.error('Failed to load emails:', error)
     showError('加载邮件失败')

@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"new-email/internal/middleware"
 	"new-email/internal/model"
@@ -82,13 +83,14 @@ func (h *EmailHandler) List(c *gin.Context) {
 	// 处理可选的MailboxId参数
 	if req.MailboxId != nil {
 		params.MailboxId = *req.MailboxId
+		log.Printf("邮件列表查询 - MailboxId: %d", params.MailboxId)
 	}
 
 	// 根据direction参数设置邮件类型
 	if req.Direction == "sent" {
 		params.Direction = "sent"
 	} else if req.Direction == "received" {
-		params.Direction = "inbox"
+		params.Direction = "received"
 	} else if req.Type != "" {
 		params.Direction = req.Type
 	}
@@ -363,13 +365,21 @@ func (h *EmailHandler) MarkRead(c *gin.Context) {
 		return
 	}
 
-	// TODO: 标记为已读
-	// Email模型中没有Status字段，需要使用IsRead字段
-	// email.IsRead = true
-	// if err := h.svcCtx.EmailModel.Update(email); err != nil {
-	//     c.JSON(http.StatusOK, result.ErrorUpdate.AddError(err))
-	//     return
-	// }
+	// 解析请求体
+	var req struct {
+		IsRead bool `json:"is_read"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 标记为已读/未读
+	email.IsRead = req.IsRead
+	if err := h.svcCtx.EmailModel.Update(email); err != nil {
+		c.JSON(http.StatusOK, result.ErrorUpdate.AddError(err))
+		return
+	}
 
 	// 记录操作日志
 	log := &model.OperationLog{
@@ -399,7 +409,7 @@ func (h *EmailHandler) MarkStar(c *gin.Context) {
 	}
 
 	var req struct {
-		IsStarred bool `json:"isStarred"`
+		IsStarred bool `json:"is_starred"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
