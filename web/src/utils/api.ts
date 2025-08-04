@@ -91,7 +91,20 @@ class ApiClient {
 
   // GET 请求
   async get<T = any>(endpoint: string, params?: Record<string, any>, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
-    const url = params ? `${endpoint}?${new URLSearchParams(params)}` : endpoint
+    let url = endpoint
+    if (params) {
+      // 过滤掉undefined和null值，并确保所有值都是字符串
+      const cleanParams: Record<string, string> = {}
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          cleanParams[key] = String(value)
+        }
+      })
+
+      if (Object.keys(cleanParams).length > 0) {
+        url = `${endpoint}?${new URLSearchParams(cleanParams)}`
+      }
+    }
     return this.request<T>(url, { method: 'GET' }, options?.headers)
   }
 

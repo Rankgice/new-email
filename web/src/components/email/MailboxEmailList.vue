@@ -225,8 +225,8 @@ const loadEmails = async (append = false) => {
     }
 
     const params = {
-      ...queryParams,
       page: append ? currentPage.value + 1 : 1,
+      pageSize: queryParams.pageSize,
       mailboxId: props.mailboxId,
       direction: 'received' // 收件箱只显示接收的邮件
     }
