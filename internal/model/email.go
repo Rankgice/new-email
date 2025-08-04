@@ -8,6 +8,7 @@ import (
 // Email 邮件模型
 type Email struct {
 	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`       // 邮件ID
+	UserId      int64          `gorm:"not null;index" json:"user_id"`            // 用户ID
 	MailboxId   int64          `gorm:"not null;index" json:"mailbox_id"`         // 邮箱ID
 	MessageId   string         `gorm:"size:255;index" json:"message_id"`         // 邮件消息ID
 	Subject     string         `gorm:"size:500" json:"subject"`                  // 邮件主题
@@ -68,6 +69,9 @@ func (m *EmailModel) List(params EmailListParams) ([]*Email, int64, error) {
 	db := m.db.Model(&Email{})
 
 	// 添加查询条件
+	if params.UserId != 0 {
+		db = db.Where("user_id = ?", params.UserId)
+	}
 	if params.MailboxId != 0 {
 		db = db.Where("mailbox_id = ?", params.MailboxId)
 	}
@@ -211,6 +215,20 @@ func (m *EmailModel) GetByMailboxId(mailboxId int64, limit int) ([]*Email, error
 	return emails, err
 }
 
+// GetByUserId 根据用户ID获取邮件列表
+func (m *EmailModel) GetByUserId(userId int64, limit int) ([]*Email, error) {
+	var emails []*Email
+	query := m.db.Where("user_id = ?", userId).
+		Order("received_at DESC")
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	err := query.Find(&emails).Error
+	return emails, err
+}
+
 // MarkAsUnread 标记邮件为未读
 func (m *EmailModel) MarkAsUnread(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_read", false).Error
@@ -257,8 +275,7 @@ func (m *EmailModel) CountByDirection(direction string) (int64, error) {
 func (m *EmailModel) CountByUserId(userId int64) (int64, error) {
 	var count int64
 	if err := m.db.Model(&Email{}).
-		Joins("JOIN mailbox ON email.mailbox_id = mailbox.id").
-		Where("mailbox.user_id = ?", userId).
+		Where("user_id = ?", userId).
 		Count(&count).Error; err != nil {
 		return 0, err
 	}

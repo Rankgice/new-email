@@ -58,6 +58,7 @@ func (s *MailStorage) StoreMail(mail *StoredMail) error {
 
 		// 创建邮件记录
 		email := &model.Email{
+			UserId:      mailbox.UserId, // 添加用户ID
 			MailboxId:   mailbox.Id,
 			MessageId:   mail.MessageID,
 			Subject:     mail.Subject,

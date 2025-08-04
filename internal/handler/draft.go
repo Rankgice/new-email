@@ -439,6 +439,7 @@ func (h *DraftHandler) Send(c *gin.Context) {
 
 	// 创建邮件记录
 	email := &model.Email{
+		UserId:      currentUserId, // 添加用户ID
 		MailboxId:   draft.MailboxId,
 		Subject:     draft.Subject,
 		FromEmail:   mailbox.Email,

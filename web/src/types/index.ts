@@ -106,6 +106,7 @@ export interface NotificationSettingsUpdateRequest {
 // 邮件相关类型
 export interface Email {
   id: string
+  userId: number
   mailboxId: number
   subject: string
   fromEmail: string
@@ -182,6 +183,7 @@ export interface PaginatedResponse<T> {
 
 // 邮件列表查询参数
 export interface EmailListParams {
+  userId?: number
   mailboxId?: number
   messageId?: string
   subject?: string

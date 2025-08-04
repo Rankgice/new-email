@@ -49,6 +49,9 @@ func (h *ApiHandler) ListEmails(c *gin.Context) {
 		req.PageSize = 20
 	}
 
+	// 获取当前用户ID（如果有的话）
+	currentUserId := middleware.GetCurrentUserId(c)
+
 	// 转换为model参数
 	params := model.EmailListParams{
 		BaseListParams: model.BaseListParams{
@@ -59,10 +62,19 @@ func (h *ApiHandler) ListEmails(c *gin.Context) {
 			CreatedAtStart: req.CreatedAtStart,
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
+		UserId:    0, // API接口默认不限制用户
 		MailboxId: 0, // 默认值
 		Subject:   req.Subject,
 		FromEmail: req.FromEmail,
 		ToEmails:  req.ToEmail, // 注意字段名是ToEmails
+	}
+
+	// 处理可选的UserId参数
+	if req.UserId != nil {
+		params.UserId = *req.UserId
+	} else if currentUserId != 0 {
+		// 如果有当前用户ID，默认只查询当前用户的邮件
+		params.UserId = currentUserId
 	}
 
 	// 处理可选的MailboxId参数

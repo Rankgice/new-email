@@ -59,6 +59,7 @@ type MailboxListParams struct {
 type EmailListParams struct {
 	BaseListParams
 	BaseTimeRangeParams
+	UserId      int64  `json:"userId" form:"userId"`           // 用户ID
 	MailboxId   int64  `json:"mailboxId" form:"mailboxId"`     // 邮箱ID
 	MessageId   string `json:"messageId" form:"messageId"`     // 消息ID
 	Subject     string `json:"subject" form:"subject"`         // 主题

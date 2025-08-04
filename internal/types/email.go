@@ -18,6 +18,7 @@ type EmailCreateReq struct {
 
 // EmailListReq 邮件列表请求
 type EmailListReq struct {
+	UserId         *int64    `json:"userId" form:"userId"`                 // 用户ID
 	MailboxId      *int64    `json:"mailboxId" form:"mailboxId"`           // 邮箱ID
 	Subject        string    `json:"subject" form:"subject"`               // 邮件主题（模糊搜索）
 	FromEmail      string    `json:"fromEmail" form:"fromEmail"`           // 发件人邮箱
@@ -33,6 +34,7 @@ type EmailListReq struct {
 // EmailResp 邮件响应
 type EmailResp struct {
 	Id          int64     `json:"id"`          // 邮件ID
+	UserId      int64     `json:"userId"`      // 用户ID
 	MailboxId   int64     `json:"mailboxId"`   // 邮箱ID
 	Subject     string    `json:"subject"`     // 邮件主题
 	FromEmail   string    `json:"fromEmail"`   // 发件人邮箱
