@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import { emailApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import type { Email, EmailListParams } from '@/types'
@@ -191,9 +191,17 @@ const isAllSelected = computed(() => {
 })
 
 // 监听邮箱ID变化
-watch(() => props.mailboxId, () => {
-  if (props.mailboxId) {
-    resetAndLoad()
+watch(() => props.mailboxId, (newMailboxId) => {
+  if (newMailboxId) {
+    // 重置状态并加载邮件
+    emails.value = []
+    selectedEmails.value = []
+    currentPage.value = 1
+    hasMore.value = true
+    // 使用nextTick确保在下一个tick中调用loadEmails
+    nextTick(() => {
+      loadEmails()
+    })
   }
 }, { immediate: true })
 
@@ -203,15 +211,6 @@ onMounted(() => {
     loadEmails()
   }
 })
-
-// 方法
-const resetAndLoad = () => {
-  emails.value = []
-  selectedEmails.value = []
-  currentPage.value = 1
-  hasMore.value = true
-  loadEmails()
-}
 
 const loadEmails = async (append = false) => {
   if (!props.mailboxId) return
