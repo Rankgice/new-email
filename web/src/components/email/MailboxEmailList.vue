@@ -205,12 +205,7 @@ watch(() => props.mailboxId, (newMailboxId) => {
   }
 }, { immediate: true })
 
-// 生命周期
-onMounted(() => {
-  if (props.mailboxId) {
-    loadEmails()
-  }
-})
+// 注意：移除onMounted中的重复调用，因为watch已经处理了初始化
 
 const loadEmails = async (append = false) => {
   if (!props.mailboxId) return
@@ -257,53 +252,10 @@ const loadEmails = async (append = false) => {
     console.error('Failed to load emails:', error)
     showError('加载邮件失败')
 
-    // 提供模拟数据用于测试
+    // 不使用模拟数据，保持空状态
     if (!append) {
-      emails.value = [
-        {
-          id: `email-${props.mailboxId}-1`,
-          mailboxId: props.mailboxId,
-          subject: `测试邮件 1 - 邮箱 ${props.mailboxId}`,
-          fromEmail: 'sender1@example.com',
-          toEmails: 'recipient@example.com',
-          body: '这是一封测试邮件的内容...',
-          isRead: false,
-          isStarred: true,
-          attachments: [],
-          from: {
-            email: 'sender1@example.com',
-            name: '发件人1'
-          },
-          to: [{
-            email: 'recipient@example.com',
-            name: '收件人'
-          }],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: `email-${props.mailboxId}-2`,
-          mailboxId: props.mailboxId,
-          subject: `测试邮件 2 - 邮箱 ${props.mailboxId}`,
-          fromEmail: 'sender2@example.com',
-          toEmails: 'recipient@example.com',
-          body: '这是另一封测试邮件的内容，包含更多文字用于测试预览功能...',
-          isRead: true,
-          isStarred: false,
-          attachments: [{ name: 'document.pdf', size: 1024 }],
-          from: {
-            email: 'sender2@example.com',
-            name: '发件人2'
-          },
-          to: [{
-            email: 'recipient@example.com',
-            name: '收件人'
-          }],
-          createdAt: new Date(Date.now() - 86400000).toISOString(), // 1天前
-          updatedAt: new Date(Date.now() - 86400000).toISOString()
-        }
-      ]
-      totalCount.value = emails.value.length
+      emails.value = []
+      totalCount.value = 0
       hasMore.value = false
     }
   } finally {

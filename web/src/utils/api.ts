@@ -90,12 +90,30 @@ class ApiClient {
   }
 
   // GET 请求
-  async get<T = any>(endpoint: string, params?: Record<string, any>, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
+  async get<T = any>(endpoint: string, paramsOrOptions?: Record<string, any> | { params?: Record<string, any>, headers?: Record<string, string> }, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
     let url = endpoint
-    if (params) {
+    let headers = options?.headers
+
+    // 处理参数：支持两种调用方式
+    // 1. get(url, params, options)
+    // 2. get(url, { params, headers })
+    let queryParams: Record<string, any> | undefined
+
+    if (paramsOrOptions) {
+      if (paramsOrOptions.params !== undefined) {
+        // 第二种调用方式：{ params: {...}, headers: {...} }
+        queryParams = paramsOrOptions.params
+        headers = paramsOrOptions.headers || headers
+      } else {
+        // 第一种调用方式：直接传递params
+        queryParams = paramsOrOptions
+      }
+    }
+
+    if (queryParams) {
       // 过滤掉undefined和null值，并确保所有值都是字符串
       const cleanParams: Record<string, string> = {}
-      Object.entries(params).forEach(([key, value]) => {
+      Object.entries(queryParams).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           cleanParams[key] = String(value)
         }
@@ -105,7 +123,8 @@ class ApiClient {
         url = `${endpoint}?${new URLSearchParams(cleanParams)}`
       }
     }
-    return this.request<T>(url, { method: 'GET' }, options?.headers)
+
+    return this.request<T>(url, { method: 'GET' }, { headers })
   }
 
   // POST 请求
