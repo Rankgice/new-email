@@ -8,7 +8,6 @@ import (
 	"new-email/internal/service"
 	"os"
 	"path/filepath"
-	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"

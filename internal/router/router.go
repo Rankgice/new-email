@@ -274,7 +274,6 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 		apiAccess.Use(middleware.ApiKeyMiddleware(svcCtx))
 		{
 			// 邮件API
-			apiAccess.GET("/emails", apiHandler.ListEmails)
 			apiAccess.GET("/emails/:id", apiHandler.GetEmail)
 			apiAccess.POST("/emails/send", apiHandler.SendEmail)
 

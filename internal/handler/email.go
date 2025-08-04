@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"new-email/internal/middleware"
 	"new-email/internal/model"
@@ -67,23 +66,10 @@ func (h *EmailHandler) List(c *gin.Context) {
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
 		UserId:    currentUserId, // 设置当前用户ID
-		MailboxId: 0,             // 默认值
+		MailboxId: req.MailboxId, // 默认值
 		Subject:   req.Subject,
 		FromEmail: req.FromEmail,
 		ToEmails:  req.ToEmail, // 使用ToEmails字段
-	}
-
-	// 处理可选的UserId参数（管理员可以查看其他用户的邮件）
-	if req.UserId != nil && *req.UserId != currentUserId {
-		// 这里可以添加管理员权限检查
-		// 暂时只允许查看自己的邮件
-		params.UserId = currentUserId
-	}
-
-	// 处理可选的MailboxId参数
-	if req.MailboxId != nil {
-		params.MailboxId = *req.MailboxId
-		log.Printf("邮件列表查询 - MailboxId: %d", params.MailboxId)
 	}
 
 	// 根据direction参数设置邮件类型
