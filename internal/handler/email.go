@@ -68,17 +68,9 @@ func (h *EmailHandler) List(c *gin.Context) {
 		UserId:    currentUserId, // 设置当前用户ID
 		MailboxId: req.MailboxId, // 默认值
 		Subject:   req.Subject,
+		Direction: req.Direction,
 		FromEmail: req.FromEmail,
 		ToEmails:  req.ToEmail, // 使用ToEmails字段
-	}
-
-	// 根据direction参数设置邮件类型
-	if req.Direction == "sent" {
-		params.Direction = "sent"
-	} else if req.Direction == "received" {
-		params.Direction = "received"
-	} else if req.Type != "" {
-		params.Direction = req.Type
 	}
 
 	// 查询邮件列表

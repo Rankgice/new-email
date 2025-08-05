@@ -2,6 +2,7 @@ package svc
 
 import (
 	"fmt"
+	"gorm.io/gorm/logger"
 	"log"
 	"new-email/internal/config"
 	"new-email/internal/model"
@@ -106,7 +107,10 @@ func initDatabase(c config.Config) *gorm.DB {
 			log.Fatalln("创建数据库目录失败", "error", err.Error())
 		}
 
-		db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+		db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info), // 打印所有 SQL
+		})
+
 		if err != nil {
 			log.Fatalln("连接SQLite数据库失败", "error", err.Error())
 		}
