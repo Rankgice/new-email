@@ -183,54 +183,15 @@ const loadMailboxes = async () => {
       mailboxes.value = []
     }
 
-    // 如果没有数据，添加一些模拟数据用于测试
-    if (mailboxes.value.length === 0) {
-      console.log('Using mock mailbox data for testing in sent page')
-      mailboxes.value = [
-        {
-          id: 1,
-          userId: 1,
-          domainId: 1,
-          email: 'test1@example.com',
-          name: '测试邮箱1',
-          autoReceive: true,
-          status: 1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 2,
-          userId: 1,
-          domainId: 1,
-          email: 'test2@gmail.com',
-          name: '测试邮箱2',
-          autoReceive: true,
-          status: 1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ]
-    }
+    // 不使用模拟数据，保持真实状态
 
     console.log('Final mailboxes for sent page:', mailboxes.value)
   } catch (error) {
     console.error('Failed to load mailboxes for sent page:', error)
     showError('加载邮箱列表失败')
 
-    // 在错误情况下也提供模拟数据
-    mailboxes.value = [
-      {
-        id: 1,
-        userId: 1,
-        domainId: 1,
-        email: 'test1@example.com',
-        name: '测试邮箱1',
-        autoReceive: true,
-        status: 1,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ]
+    // 不使用模拟数据，保持空状态
+    mailboxes.value = []
   } finally {
     loading.value = false
   }
