@@ -9,19 +9,17 @@ import (
 
 // User 用户模型
 type User struct {
-	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`           // 用户ID
-	Username    string         `gorm:"uniqueIndex;size:50;not null" json:"username"` // 用户名
-	Email       string         `gorm:"uniqueIndex;size:100;not null" json:"email"`   // 邮箱地址
-	Password    string         `gorm:"size:255;not null" json:"-"`                   // 密码（加密存储）
-	Nickname    string         `gorm:"size:50" json:"nickname"`                      // 昵称
-	Avatar      string         `gorm:"size:255" json:"avatar"`                       // 头像URL
-	Role        string         `gorm:"size:20;default:'user'" json:"role"`           // 角色：user用户 admin管理员
-	Status      int            `gorm:"default:1" json:"status"`                      // 状态：1启用 2禁用
-	LastLoginAt *time.Time     `json:"last_login_at"`                                // 最后登录时间
-	LastLoginIp string         `gorm:"size:45" json:"last_login_ip"`                 // 最后登录IP
-	CreatedAt   time.Time      `json:"created_at"`                                   // 创建时间
-	UpdatedAt   time.Time      `json:"updated_at"`                                   // 更新时间
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`                               // 软删除时间
+	Id          int64     `gorm:"primaryKey;autoIncrement" json:"id"`           // 用户ID
+	Username    string    `gorm:"uniqueIndex;size:50;not null" json:"username"` // 用户名
+	Email       string    `gorm:"uniqueIndex;size:100;not null" json:"email"`   // 邮箱地址
+	Password    string    `gorm:"size:255;not null" json:"-"`                   // 密码（加密存储）
+	Nickname    string    `gorm:"size:50" json:"nickname"`                      // 昵称
+	Avatar      string    `gorm:"size:255" json:"avatar"`                       // 头像URL
+	Status      int       `gorm:"default:1" json:"status"`                      // 状态：1启用 2禁用
+	LastLoginAt time.Time `json:"last_login_at"`                                // 最后登录时间
+	LastLoginIp string    `gorm:"size:45" json:"last_login_ip"`                 // 最后登录IP
+	CreatedAt   time.Time `json:"created_at"`                                   // 创建时间
+	UpdatedAt   time.Time `json:"updated_at"`                                   // 更新时间
 }
 
 // TableName 指定表名

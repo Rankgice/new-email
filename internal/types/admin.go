@@ -170,15 +170,15 @@ type UserListReq struct {
 
 // UserResp 用户响应
 type UserResp struct {
-	Id          int64      `json:"id"`          // 用户ID
-	Username    string     `json:"username"`    // 用户名
-	Email       string     `json:"email"`       // 邮箱
-	Nickname    string     `json:"nickname"`    // 昵称
-	Avatar      string     `json:"avatar"`      // 头像URL
-	Status      int        `json:"status"`      // 状态
-	LastLoginAt *time.Time `json:"lastLoginAt"` // 最后登录时间
-	CreatedAt   time.Time  `json:"createdAt"`   // 创建时间
-	UpdatedAt   time.Time  `json:"updatedAt"`   // 更新时间
+	Id          int64     `json:"id"`          // 用户ID
+	Username    string    `json:"username"`    // 用户名
+	Email       string    `json:"email"`       // 邮箱
+	Nickname    string    `json:"nickname"`    // 昵称
+	Avatar      string    `json:"avatar"`      // 头像URL
+	Status      int       `json:"status"`      // 状态
+	LastLoginAt time.Time `json:"lastLoginAt"` // 最后登录时间
+	CreatedAt   time.Time `json:"createdAt"`   // 创建时间
+	UpdatedAt   time.Time `json:"updatedAt"`   // 更新时间
 }
 
 // UserStatsResp 用户统计响应

@@ -231,17 +231,6 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// 检查邮箱是否已被其他用户使用
-	if req.Email != "" {
-		if exists, err := h.svcCtx.UserModel.CheckEmailExists(req.Email, userId); err != nil {
-			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
-			return
-		} else if exists {
-			c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱已被其他用户使用"))
-			return
-		}
-	}
-
 	// 更新用户信息
 	updateData := map[string]interface{}{}
 	if req.Nickname != "" {
@@ -249,9 +238,6 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	}
 	if req.Avatar != "" {
 		updateData["avatar"] = req.Avatar
-	}
-	if req.Email != "" {
-		updateData["email"] = req.Email
 	}
 
 	if len(updateData) > 0 {

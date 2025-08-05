@@ -1851,16 +1851,10 @@ func (h *AdminHandler) Delete(c *gin.Context) {
 
 // checkAdminPermission 检查管理员权限
 func (h *AdminHandler) checkAdminPermission(c *gin.Context, userId int64) bool {
-	user, err := h.svcCtx.UserModel.GetById(userId)
-	if err != nil || user == nil {
+	admin, err := h.svcCtx.AdminModel.GetById(userId)
+	if err != nil || admin == nil {
 		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
 		return false
 	}
-
-	if user.Role != "admin" && user.Role != "manager" {
-		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无管理员权限"))
-		return false
-	}
-
-	return true
+	return false
 }

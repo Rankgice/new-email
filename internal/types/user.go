@@ -2,9 +2,8 @@ package types
 
 // UserProfileReq 用户资料更新请求
 type UserProfileReq struct {
-	Nickname string `json:"nickname"`              // 昵称
-	Avatar   string `json:"avatar"`                // 头像
-	Email    string `json:"email" binding:"email"` // 邮箱
+	Nickname string `json:"nickname"` // 昵称
+	Avatar   string `json:"avatar"`   // 头像
 }
 
 // UserRegisterReq 用户注册请求
