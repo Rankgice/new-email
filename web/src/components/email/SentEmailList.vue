@@ -303,11 +303,14 @@ const getEmailPreview = (body: string) => {
 
 const formatDate = (dateString: string) => {
   if (!dateString) return ''
+
   const date = new Date(dateString)
+  if (isNaN(date.getTime())) return '' // 检查日期是否有效
+
   const now = new Date()
   const diffTime = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) {
     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   } else if (diffDays === 1) {

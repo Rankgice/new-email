@@ -286,8 +286,8 @@ export const emailApi = {
     apiClient.upload<{ url: string; filename: string; size: number }>('/user/attachments', file),
 
   // 草稿管理
-  getDrafts: () =>
-    apiClient.get<PaginatedResponse<Email>>('/user/drafts'),
+  getDrafts: (params?: EmailListParams) =>
+    apiClient.get<PaginatedResponse<Email>>('/user/drafts', params ? { params } : undefined),
 
   saveDraft: (draftData: any) =>
     apiClient.post<Email>('/user/drafts', draftData),
