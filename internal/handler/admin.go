@@ -1856,5 +1856,5 @@ func (h *AdminHandler) checkAdminPermission(c *gin.Context, userId int64) bool {
 		c.JSON(http.StatusUnauthorized, result.ErrorUnauthorized)
 		return false
 	}
-	return false
+	return true
 }
