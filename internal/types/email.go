@@ -38,9 +38,9 @@ type EmailResp struct {
 	MailboxId   int64     `json:"mailboxId"`   // 邮箱ID
 	Subject     string    `json:"subject"`     // 邮件主题
 	FromEmail   string    `json:"fromEmail"`   // 发件人邮箱
-	ToEmail     string    `json:"toEmail"`     // 收件人邮箱
-	CcEmail     string    `json:"ccEmail"`     // 抄送邮箱
-	BccEmail    string    `json:"bccEmail"`    // 密送邮箱
+	ToEmail     []string  `json:"toEmail"`     // 收件人邮箱
+	CcEmail     []string  `json:"ccEmail"`     // 抄送邮箱
+	BccEmail    []string  `json:"bccEmail"`    // 密送邮箱
 	Content     string    `json:"content"`     // 邮件内容
 	ContentType string    `json:"contentType"` // 内容类型
 	Attachments string    `json:"attachments"` // 附件信息
@@ -52,14 +52,14 @@ type EmailResp struct {
 
 // EmailSendReq 发送邮件请求
 type EmailSendReq struct {
-	MailboxId   int64  `json:"mailboxId"`                             // 邮箱ID
-	Subject     string `json:"subject" binding:"required,max=200"`    // 邮件主题
-	ToEmail     string `json:"toEmail" binding:"required"`            // 收件人邮箱（多个用逗号分隔）
-	CcEmail     string `json:"ccEmail"`                               // 抄送邮箱（多个用逗号分隔）
-	BccEmail    string `json:"bccEmail"`                              // 密送邮箱（多个用逗号分隔）
-	Content     string `json:"content" binding:"required"`            // 邮件内容
-	ContentType string `json:"contentType" binding:"oneof=text html"` // 内容类型：text, html
-	Attachments string `json:"attachments"`                           // 附件信息（JSON格式）
+	MailboxId   int64    `json:"mailboxId"`                             // 邮箱ID
+	Subject     string   `json:"subject" binding:"required,max=200"`    // 邮件主题
+	ToEmail     []string `json:"toEmail" binding:"required"`            // 收件人邮箱（多个用逗号分隔）
+	CcEmail     []string `json:"ccEmail"`                               // 抄送邮箱（多个用逗号分隔）
+	BccEmail    []string `json:"bccEmail"`                              // 密送邮箱（多个用逗号分隔）
+	Content     string   `json:"content" binding:"required"`            // 邮件内容
+	ContentType string   `json:"contentType" binding:"oneof=text html"` // 内容类型：text, html
+	Attachments string   `json:"attachments"`                           // 附件信息（JSON格式）
 }
 
 // EmailSendResp 发送邮件响应

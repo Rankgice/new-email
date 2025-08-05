@@ -385,7 +385,7 @@ func (h *DraftHandler) Send(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮件主题不能为空"))
 		return
 	}
-	if draft.ToEmails == "" {
+	if len(draft.ToEmails) == 0 {
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("收件人不能为空"))
 		return
 	}
@@ -423,9 +423,9 @@ func (h *DraftHandler) Send(c *gin.Context) {
 	// 构建邮件消息
 	emailMessage := service.EmailMessage{
 		From:        mailbox.Email,
-		To:          splitEmails(draft.ToEmails),
-		Cc:          splitEmails(draft.CcEmails),
-		Bcc:         splitEmails(draft.BccEmails),
+		To:          draft.ToEmails,
+		Cc:          draft.CcEmails,
+		Bcc:         draft.BccEmails,
 		Subject:     draft.Subject,
 		Body:        draft.Content,
 		ContentType: draft.ContentType,

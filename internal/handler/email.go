@@ -211,7 +211,7 @@ func (h *EmailHandler) Send(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮件主题不能为空"))
 		return
 	}
-	if req.ToEmail == "" {
+	if len(req.ToEmail) == 0 {
 		c.JSON(http.StatusOK, result.ErrorSimpleResult("收件人不能为空"))
 		return
 	}
@@ -234,9 +234,9 @@ func (h *EmailHandler) Send(c *gin.Context) {
 	// 构建邮件消息
 	emailMessage := service.EmailMessage{
 		From:        mailbox.Email,
-		To:          splitEmails(req.ToEmail),
-		Cc:          splitEmails(req.CcEmail),
-		Bcc:         splitEmails(req.BccEmail),
+		To:          req.ToEmail,
+		Cc:          req.CcEmail,
+		Bcc:         req.BccEmail,
 		Subject:     req.Subject,
 		Body:        req.Content,
 		ContentType: req.ContentType,
@@ -872,16 +872,20 @@ func (h *EmailHandler) exportToCSV(emails []*model.Email, filePath string, inclu
 			strconv.FormatInt(email.MailboxId, 10),
 			email.Subject,
 			email.FromEmail,
-			email.ToEmails,
-			email.CcEmails,
-			email.BccEmails,
+		}
+
+		row = append(row, email.ToEmails...)
+		row = append(row, email.CcEmails...)
+		row = append(row, email.BccEmails...)
+
+		row = append(row,
 			email.Direction,
 			strconv.FormatBool(email.IsRead),
 			strconv.FormatBool(email.IsStarred),
 			formatTimePtr(email.SentAt),
 			formatTimePtr(email.ReceivedAt),
 			email.CreatedAt.Format("2006-01-02 15:04:05"),
-		}
+		)
 
 		if includeContent {
 			row = append(row, email.ContentType, email.Content)
@@ -998,7 +1002,7 @@ func (h *EmailHandler) buildEMLContent(email *model.Email) string {
 	builder.WriteString(fmt.Sprintf("From: %s <%s>\n", email.FromName, email.FromEmail))
 	builder.WriteString(fmt.Sprintf("To: %s\n", email.ToEmails))
 
-	if email.CcEmails != "" {
+	if len(email.CcEmails) != 0 {
 		builder.WriteString(fmt.Sprintf("Cc: %s\n", email.CcEmails))
 	}
 

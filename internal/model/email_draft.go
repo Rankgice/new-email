@@ -11,9 +11,9 @@ type EmailDraft struct {
 	UserId      int64          `gorm:"not null;index" json:"user_id"`
 	MailboxId   int64          `gorm:"not null;index" json:"mailbox_id"`
 	Subject     string         `gorm:"size:500" json:"subject"`
-	ToEmails    string         `gorm:"type:text" json:"to_emails"`
-	CcEmails    string         `gorm:"type:text" json:"cc_emails"`
-	BccEmails   string         `gorm:"type:text" json:"bcc_emails"`
+	ToEmails    []string       `gorm:"type:json;serializer:json" json:"to_emails"`
+	CcEmails    []string       `gorm:"type:json;serializer:json" json:"cc_emails"`
+	BccEmails   []string       `gorm:"type:json;serializer:json" json:"bcc_emails"`
 	ContentType string         `gorm:"size:20;default:html" json:"content_type"`
 	Content     string         `gorm:"type:longtext" json:"content"`
 	ScheduledAt *time.Time     `json:"scheduled_at"`

@@ -3,7 +3,6 @@ package mailserver
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -63,9 +62,9 @@ func (s *MailStorage) StoreMail(mail *StoredMail) error {
 			MessageId:   mail.MessageID,
 			Subject:     mail.Subject,
 			FromEmail:   mail.From,
-			ToEmails:    strings.Join(mail.To, ","),
-			CcEmails:    strings.Join(mail.Cc, ","),
-			BccEmails:   strings.Join(mail.Bcc, ","),
+			ToEmails:    mail.To,
+			CcEmails:    mail.Cc,
+			BccEmails:   mail.Bcc,
 			Content:     mail.Body,
 			ContentType: mail.ContentType,
 			IsRead:      false,
@@ -113,9 +112,9 @@ func (s *MailStorage) GetMails(mailboxEmail string, folder string, limit int) ([
 			ID:          email.Id,
 			MessageID:   fmt.Sprintf("<%d@%s>", email.Id, "localhost"),
 			From:        email.FromEmail,
-			To:          strings.Split(email.ToEmails, ","),
-			Cc:          strings.Split(email.CcEmails, ","),
-			Bcc:         strings.Split(email.BccEmails, ","),
+			To:          email.ToEmails,
+			Cc:          email.CcEmails,
+			Bcc:         email.BccEmails,
 			Subject:     email.Subject,
 			Body:        email.Content,
 			ContentType: email.ContentType,
@@ -164,9 +163,9 @@ func (s *MailStorage) GetMail(mailboxEmail string, messageID string) (*StoredMai
 		ID:          email.Id,
 		MessageID:   messageID,
 		From:        email.FromEmail,
-		To:          strings.Split(email.ToEmails, ","),
-		Cc:          strings.Split(email.CcEmails, ","),
-		Bcc:         strings.Split(email.BccEmails, ","),
+		To:          email.ToEmails,
+		Cc:          email.CcEmails,
+		Bcc:         email.BccEmails,
 		Subject:     email.Subject,
 		Body:        email.Content,
 		ContentType: email.ContentType,
