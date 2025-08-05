@@ -53,7 +53,7 @@
                 :key="mailbox.id"
                 :value="mailbox.id"
               >
-                {{ mailbox.email }} ({{ getMailboxTypeLabel(mailbox.type) }})
+                {{ mailbox.email }}{{ mailbox.name ? ` (${mailbox.name})` : '' }}
               </option>
             </select>
           </div>
@@ -201,13 +201,7 @@ const handleMailboxChange = () => {
   }
 }
 
-const getMailboxTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    'third': '第三方邮箱',
-    'self': '自建邮箱'
-  }
-  return labels[type] || type
-}
+
 
 const validateForm = () => {
   if (!form.mailboxId) {
@@ -249,6 +243,17 @@ const validateForm = () => {
   return true
 }
 
+// 解析邮件地址字符串为数组
+const parseEmailAddresses = (emailString: string): string[] => {
+  if (!emailString.trim()) return []
+
+  // 支持多种分隔符：逗号、分号、空格
+  return emailString
+    .split(/[,;，；\s]+/)
+    .map(email => email.trim())
+    .filter(email => email.length > 0)
+}
+
 const sendEmail = async () => {
   if (!validateForm()) return
 
@@ -258,12 +263,14 @@ const sendEmail = async () => {
       mailboxId: parseInt(form.mailboxId),
       subject: form.subject,
       fromEmail: selectedMailbox.value?.email || '',
-      toEmail: form.to,
-      ccEmail: form.cc || undefined,
-      bccEmail: form.bcc || undefined,
+      toEmail: parseEmailAddresses(form.to),
+      ccEmail: form.cc ? parseEmailAddresses(form.cc) : undefined,
+      bccEmail: form.bcc ? parseEmailAddresses(form.bcc) : undefined,
       content: form.content,
       contentType: form.contentType
     }
+
+    console.log('Sending email with data:', sendData)
 
     const response = await emailApi.sendEmail(sendData)
     if (response.success) {

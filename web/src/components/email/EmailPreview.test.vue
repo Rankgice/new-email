@@ -43,10 +43,11 @@ const testEmail: Email = {
   mailboxId: 1,
   subject: '测试邮件主题',
   fromEmail: 'sender@example.com',
-  toEmails: 'recipient@example.com',
+  toEmails: ['recipient@example.com'],
   content: '这是一封测试邮件的内容。\n\n包含多行文本和一些基本格式。',
   contentType: 'text',
-  direction: 'received',
+  status: 1,
+  type: 'inbox',
   isRead: false,
   isStarred: false,
   createdAt: new Date().toISOString(),
@@ -59,8 +60,8 @@ const htmlEmail: Email = {
   mailboxId: 1,
   subject: 'HTML格式邮件测试',
   fromEmail: 'marketing@company.com',
-  toEmails: 'user@example.com',
-  ccEmail: 'manager@company.com',
+  toEmails: ['user@example.com'],
+  ccEmails: ['manager@company.com'],
   content: `
     <h2>欢迎使用我们的服务</h2>
     <p>这是一封<strong>HTML格式</strong>的邮件，包含：</p>
@@ -75,7 +76,8 @@ const htmlEmail: Email = {
     <p>感谢您的使用！</p>
   `,
   contentType: 'html',
-  direction: 'received',
+  status: 1,
+  type: 'inbox',
   isRead: true,
   isStarred: true,
   createdAt: new Date(Date.now() - 86400000).toISOString(),
@@ -88,10 +90,11 @@ const emailWithAttachments: Email = {
   mailboxId: 1,
   subject: '带附件的邮件',
   fromEmail: 'files@company.com',
-  toEmails: 'user@example.com',
+  toEmails: ['user@example.com'],
   content: '请查看附件中的重要文档。',
   contentType: 'text',
-  direction: 'received',
+  status: 1,
+  type: 'inbox',
   isRead: false,
   isStarred: false,
   attachments: [
@@ -99,13 +102,15 @@ const emailWithAttachments: Email = {
       id: '1',
       filename: '重要文档.pdf',
       size: 1024000,
-      contentType: 'application/pdf'
+      mimeType: 'application/pdf',
+      url: '/attachments/1'
     },
     {
       id: '2',
       filename: '图片.jpg',
       size: 512000,
-      contentType: 'image/jpeg'
+      mimeType: 'image/jpeg',
+      url: '/attachments/2'
     }
   ],
   createdAt: new Date(Date.now() - 3600000).toISOString(),

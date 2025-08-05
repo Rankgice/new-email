@@ -68,12 +68,12 @@
 
           <!-- 收件人信息 -->
           <div class="text-sm text-text-secondary space-y-1">
-            <p>收件人: {{ selectedEmail.toEmails }}</p>
-            <p v-if="selectedEmail.ccEmail">
-              抄送: {{ selectedEmail.ccEmail }}
+            <p>收件人: {{ formatEmailArray(selectedEmail.toEmails) }}</p>
+            <p v-if="selectedEmail.ccEmails && selectedEmail.ccEmails.length > 0">
+              抄送: {{ formatEmailArray(selectedEmail.ccEmails) }}
             </p>
-            <p v-if="selectedEmail.bccEmail">
-              密送: {{ selectedEmail.bccEmail }}
+            <p v-if="selectedEmail.bccEmails && selectedEmail.bccEmails.length > 0">
+              密送: {{ formatEmailArray(selectedEmail.bccEmails) }}
             </p>
           </div>
         </div>
@@ -292,6 +292,12 @@ const getInitials = (email: string) => {
 const getDisplayName = (email: string) => {
   if (!email) return '未知发件人'
   return email.split('@')[0]
+}
+
+// 格式化邮件地址数组
+const formatEmailArray = (emails: string[]) => {
+  if (!emails || emails.length === 0) return ''
+  return emails.join(', ')
 }
 
 // 格式化日期

@@ -107,9 +107,9 @@ export interface Email {
   mailboxId: number
   subject: string
   fromEmail: string
-  toEmails: string
-  ccEmail?: string
-  bccEmail?: string
+  toEmails: string[]
+  ccEmails?: string[]
+  bccEmails?: string[]
   content: string
   contentType: 'text' | 'html'
   attachments?: Attachment[]
@@ -185,7 +185,7 @@ export interface EmailListParams {
   messageId?: string
   subject?: string
   fromEmail?: string
-  toEmails?: string
+  toEmails?: string[]
   direction?: 'sent' | 'received'
   isRead?: boolean
   isStarred?: boolean
@@ -394,9 +394,9 @@ export interface EmailSendRequest {
   mailboxId: number
   subject: string
   fromEmail: string
-  toEmail: string
-  ccEmail?: string
-  bccEmail?: string
+  toEmail: string[]
+  ccEmail?: string[]
+  bccEmail?: string[]
   content: string
   contentType: 'text' | 'html'
   attachments?: string

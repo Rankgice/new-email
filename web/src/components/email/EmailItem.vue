@@ -162,7 +162,7 @@ const isSelected = ref(props.selected)
 const getDisplayName = () => {
   if (props.emailType === 'sent') {
     // 已发送邮件显示收件人
-    const firstRecipient = props.email.toEmails?.split(',')[0]?.trim()
+    const firstRecipient = props.email.toEmails?.[0]
     return firstRecipient?.split('@')[0] || '未知收件人'
   } else {
     // 收件箱邮件显示发件人
@@ -173,7 +173,7 @@ const getDisplayName = () => {
 // 获取显示邮箱
 const getDisplayEmail = () => {
   if (props.emailType === 'sent') {
-    return props.email.toEmails?.split(',')[0]?.trim() || ''
+    return props.email.toEmails?.[0] || ''
   } else {
     return props.email.fromEmail || ''
   }
