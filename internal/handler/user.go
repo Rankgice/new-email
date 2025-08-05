@@ -230,21 +230,13 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
 		return
 	}
-
-	// 更新用户信息
-	updateData := map[string]interface{}{}
-	if req.Nickname != "" {
-		updateData["nickname"] = req.Nickname
-	}
-	if req.Avatar != "" {
-		updateData["avatar"] = req.Avatar
-	}
-
-	if len(updateData) > 0 {
-		if err := h.svcCtx.UserModel.MapUpdate(nil, userId, updateData); err != nil {
-			c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
-			return
-		}
+	if err := h.svcCtx.UserModel.Update(nil, &model.User{
+		Id:       userId,
+		Nickname: req.Nickname,
+		Avatar:   req.Avatar,
+	}); err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
+		return
 	}
 
 	c.JSON(http.StatusOK, result.SimpleResult("更新成功"))
@@ -293,8 +285,9 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	}
 
 	// 更新密码
-	if err := h.svcCtx.UserModel.MapUpdate(nil, userId, map[string]interface{}{
-		"password": hashedPassword,
+	if err := h.svcCtx.UserModel.Update(nil, &model.User{
+		Id:       userId,
+		Password: hashedPassword,
 	}); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return

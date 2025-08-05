@@ -53,15 +53,6 @@ func (m *UserModel) Update(tx *gorm.DB, user *User) error {
 	return db.Updates(user).Error
 }
 
-// MapUpdate 更新用户（使用map）
-func (m *UserModel) MapUpdate(tx *gorm.DB, id int64, data map[string]interface{}) error {
-	db := m.db
-	if tx != nil {
-		db = tx
-	}
-	return db.Model(&User{}).Where("id = ?", id).Updates(data).Error
-}
-
 // Save 保存用户
 func (m *UserModel) Save(tx *gorm.DB, user *User) error {
 	db := m.db

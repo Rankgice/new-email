@@ -78,9 +78,6 @@ export interface ApiKey {
 export interface UserProfileUpdateRequest {
   nickname?: string
   avatar?: string
-  bio?: string
-  timezone?: string
-  language?: string
 }
 
 // 安全设置更新请求

@@ -106,35 +106,6 @@
           :left-icon="UserIcon"
           :error="errors.nickname"
         />
-
-        <!-- 语言 -->
-        <Select
-          v-model="form.language"
-          label="语言"
-          :options="languageOptions"
-          :left-icon="LanguageIcon"
-        />
-
-        <!-- 时区 -->
-        <Select
-          v-model="form.timezone"
-          label="时区"
-          :options="timezoneOptions"
-          :left-icon="ClockIcon"
-        />
-      </div>
-
-      <!-- 个人简介 -->
-      <div class="mt-6">
-        <Textarea
-          v-model="form.bio"
-          label="个人简介"
-          placeholder="介绍一下自己..."
-          :rows="4"
-          :max-length="500"
-          show-count
-          :error="errors.bio"
-        />
       </div>
     </GlassCard>
 
@@ -167,17 +138,13 @@ import { useNotification } from '@/composables/useNotification'
 import GlassCard from '@/components/ui/GlassCard.vue'
 import Button from '@/components/ui/Button.vue'
 import Input from '@/components/ui/Input.vue'
-import Select from '@/components/ui/Select.vue'
-import Textarea from '@/components/ui/Textarea.vue'
 
 import {
   UserIcon,
   EnvelopeIcon,
   CameraIcon,
   PhotoIcon,
-  TrashIcon,
-  LanguageIcon,
-  ClockIcon
+  TrashIcon
 } from '@heroicons/vue/24/outline'
 
 // 状态管理
@@ -187,8 +154,7 @@ const { showSuccess, showError } = useNotification()
 // 响应式数据
 const loading = ref(false)
 const errors = reactive({
-  nickname: '',
-  bio: ''
+  nickname: ''
 })
 
 // 表单数据
@@ -196,9 +162,6 @@ const form = reactive({
   username: '',
   email: '',
   nickname: '',
-  bio: '',
-  language: 'zh-CN',
-  timezone: 'Asia/Shanghai',
   avatar: ''
 })
 
@@ -208,22 +171,7 @@ const userInitials = computed(() => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 })
 
-// 语言选项
-const languageOptions = [
-  { label: '简体中文', value: 'zh-CN' },
-  { label: 'English', value: 'en-US' },
-  { label: '繁體中文', value: 'zh-TW' },
-  { label: '日本語', value: 'ja-JP' }
-]
 
-// 时区选项
-const timezoneOptions = [
-  { label: '北京时间 (UTC+8)', value: 'Asia/Shanghai' },
-  { label: '东京时间 (UTC+9)', value: 'Asia/Tokyo' },
-  { label: '纽约时间 (UTC-5)', value: 'America/New_York' },
-  { label: '伦敦时间 (UTC+0)', value: 'Europe/London' },
-  { label: '洛杉矶时间 (UTC-8)', value: 'America/Los_Angeles' }
-]
 
 // 生命周期
 onMounted(() => {
@@ -237,10 +185,6 @@ const loadUserProfile = () => {
     form.email = authStore.user.email
     form.nickname = authStore.user.nickname || ''
     form.avatar = authStore.user.avatar || ''
-    // 从用户设置中加载其他信息
-    if (authStore.user.settings) {
-      form.language = authStore.user.settings.language || 'zh-CN'
-    }
   }
 }
 
@@ -296,12 +240,6 @@ const validateForm = () => {
     isValid = false
   }
 
-  // 验证个人简介
-  if (form.bio && form.bio.length > 500) {
-    errors.bio = '个人简介不能超过500个字符'
-    isValid = false
-  }
-
   return isValid
 }
 
@@ -313,9 +251,6 @@ const saveProfile = async () => {
     
     await userSettingsApi.updateProfile({
       nickname: form.nickname,
-      bio: form.bio,
-      timezone: form.timezone,
-      language: form.language,
       avatar: form.avatar
     })
 
