@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime"
 	"net/mail"
 	"strings"
 	"time"
@@ -105,12 +106,18 @@ func (s *SMTPSession) Data(r io.Reader) error {
 	}
 	log.Printf("📊 邮件数据大小: %d 字节", len(body))
 
+	// MIME 头解码器， 解码标题
+	decoder := new(mime.WordDecoder)
+	subject, err := decoder.DecodeHeader(msg.Header.Get("Subject"))
+	if err != nil {
+		subject = msg.Header.Get("Subject") // 解码失败就用原文
+	}
 	// 创建存储邮件对象
 	storedMail := &StoredMail{
 		MessageID:   generateMessageID(s.backend.domain),
 		From:        s.from,
 		To:          s.to,
-		Subject:     msg.Header.Get("Subject"),
+		Subject:     subject,
 		Body:        string(body),
 		ContentType: msg.Header.Get("Content-Type"),
 		Size:        len(body),
