@@ -37,7 +37,8 @@
 - **SQLite/MySQL** - 数据库
 - **JWT** - 身份认证
 - **Zap** - 日志框架
-
+ minio   
+- docker run -d --name minio -p 9000:9000 -p 9001:9001 -v /opt/minio/data:/data -v /opt/minio/config:/root/.minio -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin quay.io/minio/minio server /data --console-address ":9001"
 ### 前端
 - **Vue 3.3+** - 渐进式 JavaScript 框架
 - **TypeScript 5.0+** - JavaScript 的超集

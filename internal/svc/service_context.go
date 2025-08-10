@@ -2,6 +2,8 @@ package svc
 
 import (
 	"fmt"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"gorm.io/gorm/logger"
 	"log"
 	"new-email/internal/config"
@@ -22,6 +24,7 @@ type ServiceContext struct {
 	// 服务管理器
 	ServiceManager *service.ServiceManager
 
+	minioClient *minio.Client
 	// Model层实例
 	UserModel            *model.UserModel
 	AdminModel           *model.AdminModel
@@ -47,6 +50,12 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		log.Printf("初始化默认数据失败: %v", err)
 	}
 
+	// 初始化minio
+	minioClient, err := initMinio(c)
+	if err != nil {
+		log.Fatalln("初始化minio失败", "error", err.Error())
+	}
+
 	// 初始化服务管理器
 	serviceManager := initServiceManager(c)
 
@@ -56,6 +65,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		DB:             db,
 		ServiceManager: serviceManager,
 
+		minioClient: minioClient,
 		// 初始化所有Model实例
 		UserModel:            model.NewUserModel(db),
 		AdminModel:           model.NewAdminModel(db),
@@ -65,6 +75,17 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		EmailAttachmentModel: model.NewEmailAttachmentModel(db),
 		ApiKeyModel:          model.NewApiKeyModel(db),
 	}
+}
+
+func initMinio(c config.Config) (*minio.Client, error) {
+	minioClient, err := minio.New(c.Minio.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(c.Minio.AccessKeyId, c.Minio.SecretAccessKey, ""),
+		Secure: c.Minio.UseSSl,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return minioClient, nil
 }
 
 // initDatabase 初始化数据库连接
