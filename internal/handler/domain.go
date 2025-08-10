@@ -119,23 +119,6 @@ func (h *DomainHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	currentUserId := middleware.GetCurrentUserId(c)
-	if currentUserId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentUserId,
-			Action:     "create_domain",
-			Resource:   "domain",
-			ResourceId: domain.Id,
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
 	resp := types.DomainResp{
 		Id:          domain.Id,
 		Name:        domain.Name,
@@ -193,23 +176,6 @@ func (h *DomainHandler) Update(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	currentUserId := middleware.GetCurrentUserId(c)
-	if currentUserId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentUserId,
-			Action:     "update_domain",
-			Resource:   "domain",
-			ResourceId: req.Id,
-			Method:     "PUT",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
 	c.JSON(http.StatusOK, result.SimpleResult("更新成功"))
 }
 
@@ -240,23 +206,6 @@ func (h *DomainHandler) Delete(c *gin.Context) {
 	if err := h.svcCtx.DomainModel.Delete(domain); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorDelete.AddError(err))
 		return
-	}
-
-	// 记录操作日志
-	currentUserId := middleware.GetCurrentUserId(c)
-	if currentUserId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentUserId,
-			Action:     "delete_domain",
-			Resource:   "domain",
-			ResourceId: domainId,
-			Method:     "DELETE",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
 	}
 
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
@@ -295,23 +244,6 @@ func (h *DomainHandler) Verify(c *gin.Context) {
 	}); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
-	}
-
-	// 记录操作日志
-	currentUserId := middleware.GetCurrentUserId(c)
-	if currentUserId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentUserId,
-			Action:     "verify_domain",
-			Resource:   "domain",
-			ResourceId: domainId,
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
 	}
 
 	message := "DNS验证成功"
@@ -381,9 +313,6 @@ func (h *DomainHandler) BatchOperation(c *gin.Context) {
 
 	var successCount, failCount int
 	var errors []string
-
-	// 获取当前管理员ID
-	currentAdminId := middleware.GetCurrentUserId(c)
 
 	switch req.Operation {
 	case "enable":
@@ -461,22 +390,6 @@ func (h *DomainHandler) BatchOperation(c *gin.Context) {
 	default:
 		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("不支持的操作类型"))
 		return
-	}
-
-	// 记录操作日志
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     fmt.Sprintf("batch_%s_domain", req.Operation),
-			Resource:   "domain",
-			ResourceId: 0, // 批量操作没有单一资源ID
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
 	}
 
 	// 返回操作结果

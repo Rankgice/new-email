@@ -1,9 +1,6 @@
 package handler
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"new-email/internal/middleware"
@@ -36,10 +33,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	// 如果提供了验证码，则验证邮箱验证码
 	if req.Code != "" {
-		if err := h.verifyEmailCode(req.Email, req.Code); err != nil {
-			c.JSON(http.StatusOK, result.ErrorSimpleResult("验证码验证失败: "+err.Error()))
-			return
-		}
+
 	}
 
 	// 检查用户名是否已存在
@@ -86,33 +80,6 @@ func (h *UserHandler) Register(c *gin.Context) {
 		"username": user.Username,
 		"email":    user.Email,
 	}))
-}
-
-// verifyEmailCode 验证邮箱验证码
-func (h *UserHandler) verifyEmailCode(email, code string) error {
-	// 查找未使用的验证码
-	verificationCode, err := h.svcCtx.VerificationCodeModel.FindByCode(code)
-	if err != nil {
-		return fmt.Errorf("验证码不存在")
-	}
-
-	// 检查验证码是否已使用
-	if verificationCode.IsUsed {
-		return fmt.Errorf("验证码已使用")
-	}
-
-	// 检查验证码是否过期
-	if time.Now().After(verificationCode.ExpiresAt) {
-		return fmt.Errorf("验证码已过期")
-	}
-
-	// 标记验证码为已使用
-	verificationCode.IsUsed = true
-	if err := h.svcCtx.VerificationCodeModel.Update(verificationCode); err != nil {
-		return fmt.Errorf("更新验证码状态失败")
-	}
-
-	return nil
 }
 
 // Login 用户登录
@@ -298,26 +265,8 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 
 // Logout 用户登出
 func (h *UserHandler) Logout(c *gin.Context) {
-	// 获取当前用户ID
-	userId := middleware.GetCurrentUserId(c)
 
-	// 记录操作日志
-	if userId > 0 {
-		log := &model.OperationLog{
-			UserId:    userId,
-			Action:    "logout",
-			Resource:  "user",
-			Method:    "POST",
-			Path:      c.Request.URL.Path,
-			Ip:        c.ClientIP(),
-			UserAgent: c.Request.UserAgent(),
-			Status:    http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
-	// 在实际项目中，这里可以将token加入黑名单
-	// 或者清除服务端的session信息
+	// 在实际项目中，这里可以删除redis中的token
 
 	c.JSON(http.StatusOK, result.SimpleResult("登出成功"))
 }

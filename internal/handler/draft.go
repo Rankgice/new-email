@@ -154,20 +154,6 @@ func (h *DraftHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "create_draft",
-		Resource:   "draft",
-		ResourceId: draft.Id,
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	// 返回创建的草稿信息
 	resp := types.DraftResp{
 		Id:          draft.Id,
@@ -255,20 +241,6 @@ func (h *DraftHandler) Update(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "update_draft",
-		Resource:   "draft",
-		ResourceId: draft.Id,
-		Method:     "PUT",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	// 返回更新后的草稿信息
 	resp := types.DraftResp{
 		Id:          draft.Id,
@@ -328,20 +300,6 @@ func (h *DraftHandler) Delete(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, result.ErrorDelete.AddError(err))
 		return
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "delete_draft",
-		Resource:   "draft",
-		ResourceId: draft.Id,
-		Method:     "DELETE",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
 }
@@ -469,20 +427,6 @@ func (h *DraftHandler) Send(c *gin.Context) {
 		EmailId: email.Id,
 		SentAt:  time.Now(),
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "send_draft",
-		Resource:   "draft",
-		ResourceId: draft.Id,
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SuccessResult(sendResp))
 }

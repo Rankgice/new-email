@@ -422,23 +422,6 @@ func (h *AdminHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	currentAdminId := middleware.GetCurrentUserId(c)
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     "create_user",
-			Resource:   "user",
-			ResourceId: user.Id,
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
 	// 返回创建的用户信息（不包含密码）
 	resp := types.UserResp{
 		Id:        user.Id,
@@ -531,23 +514,6 @@ func (h *AdminHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	currentAdminId := middleware.GetCurrentUserId(c)
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     "update_user",
-			Resource:   "user",
-			ResourceId: user.Id,
-			Method:     "PUT",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
 	// 返回更新后的用户信息
 	resp := types.UserResp{
 		Id:        user.Id,
@@ -594,23 +560,6 @@ func (h *AdminHandler) DeleteUser(c *gin.Context) {
 	if err := h.svcCtx.UserModel.Delete(user); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorDelete.AddError(err))
 		return
-	}
-
-	// 记录操作日志
-	currentAdminId := middleware.GetCurrentUserId(c)
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     "delete_user",
-			Resource:   "user",
-			ResourceId: userId,
-			Method:     "DELETE",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
 	}
 
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
@@ -736,22 +685,6 @@ func (h *AdminHandler) BatchOperationUsers(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     fmt.Sprintf("batch_%s_user", req.Operation),
-			Resource:   "user",
-			ResourceId: 0, // 批量操作没有单一资源ID
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
 	// 返回操作结果
 	resp := types.BatchOperationResp{
 		Total:        len(req.Ids),
@@ -792,23 +725,6 @@ func (h *AdminHandler) ImportUsers(c *gin.Context) {
 	// 2. 验证数据格式
 	// 3. 批量创建用户
 	// 4. 返回导入结果
-
-	// 记录操作日志
-	currentAdminId := middleware.GetCurrentUserId(c)
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     "import_users",
-			Resource:   "user",
-			ResourceId: 0,
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
 
 	// 模拟导入结果
 	resp := types.ImportUsersResp{
@@ -863,23 +779,6 @@ func (h *AdminHandler) ExportUsers(c *gin.Context) {
 	// 1. 根据格式生成文件内容
 	// 2. 设置响应头
 	// 3. 返回文件流
-
-	// 记录操作日志
-	currentAdminId := middleware.GetCurrentUserId(c)
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     "export_users",
-			Resource:   "user",
-			ResourceId: 0,
-			Method:     "GET",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
 
 	// 模拟导出结果
 	resp := types.ExportUsersResp{
@@ -1007,23 +906,6 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	currentAdminId := middleware.GetCurrentUserId(c)
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     "create_admin",
-			Resource:   "admin",
-			ResourceId: admin.Id,
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
 	resp := types.AdminResp{
 		Id:        admin.Id,
 		Username:  admin.Username,
@@ -1105,23 +987,6 @@ func (h *AdminHandler) UpdateAdmin(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	currentAdminId := middleware.GetCurrentUserId(c)
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     "update_admin",
-			Resource:   "admin",
-			ResourceId: req.Id,
-			Method:     "PUT",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
 	c.JSON(http.StatusOK, result.SimpleResult("更新成功"))
 }
 
@@ -1173,22 +1038,6 @@ func (h *AdminHandler) DeleteAdmin(c *gin.Context) {
 	if err := h.svcCtx.AdminModel.Delete(admin); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorDelete.AddError(err))
 		return
-	}
-
-	// 记录操作日志
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     "delete_admin",
-			Resource:   "admin",
-			ResourceId: adminId,
-			Method:     "DELETE",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
 	}
 
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
@@ -1314,22 +1163,6 @@ func (h *AdminHandler) BatchOperationAdmins(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     fmt.Sprintf("batch_%s_admin", req.Operation),
-			Resource:   "admin",
-			ResourceId: 0, // 批量操作没有单一资源ID
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
 	// 返回操作结果
 	resp := types.BatchOperationResp{
 		Total:        len(req.Ids),
@@ -1411,23 +1244,6 @@ func (h *AdminHandler) UpdateSystemSettings(c *gin.Context) {
 	//     c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 	//     return
 	// }
-
-	// 记录操作日志
-	currentAdminId := middleware.GetCurrentUserId(c)
-	if currentAdminId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentAdminId,
-			Action:     "update_system_settings",
-			Resource:   "system_settings",
-			ResourceId: 1, // 模拟ID
-			Method:     "PUT",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
 
 	c.JSON(http.StatusOK, result.SimpleResult("系统设置更新成功"))
 }
@@ -1667,20 +1483,6 @@ func (h *AdminHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "admin_create_user",
-		Resource:   "user",
-		ResourceId: user.Id,
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	// 返回创建的用户信息
 	resp := types.UserResp{
 		Id:        user.Id,
@@ -1758,20 +1560,6 @@ func (h *AdminHandler) Update(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "admin_update_user",
-		Resource:   "user",
-		ResourceId: user.Id,
-		Method:     "PUT",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	// 返回更新后的用户信息
 	resp := types.UserResp{
 		Id:          user.Id,
@@ -1831,20 +1619,6 @@ func (h *AdminHandler) Delete(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, result.ErrorDelete.AddError(err))
 		return
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "admin_delete_user",
-		Resource:   "user",
-		ResourceId: userId,
-		Method:     "DELETE",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
 }

@@ -259,20 +259,6 @@ func (h *EmailHandler) Send(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "send_email",
-		Resource:   "email",
-		ResourceId: email.Id,
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	// 模拟发送成功
 	sendResp := types.EmailSendResp{
 		Success: true,
@@ -359,20 +345,6 @@ func (h *EmailHandler) MarkRead(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "mark_read_email",
-		Resource:   "email",
-		ResourceId: emailId,
-		Method:     "PUT",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	c.JSON(http.StatusOK, result.SimpleResult("标记成功"))
 }
 
@@ -432,24 +404,6 @@ func (h *EmailHandler) MarkStar(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	action := "unstar_email"
-	if req.IsStarred {
-		action = "star_email"
-	}
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     action,
-		Resource:   "email",
-		ResourceId: emailId,
-		Method:     "PUT",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	message := "取消星标成功"
 	if req.IsStarred {
 		message = "标记星标成功"
@@ -501,20 +455,6 @@ func (h *EmailHandler) Delete(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorDelete.AddError(err))
 		return
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "delete_email",
-		Resource:   "email",
-		ResourceId: emailId,
-		Method:     "DELETE",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
 }
@@ -649,20 +589,6 @@ func (h *EmailHandler) BatchOperation(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorSimpleResult("不支持的操作类型"))
 		return
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "batch_" + req.Operation + "_email",
-		Resource:   "email",
-		ResourceId: 0, // 批量操作没有单一资源ID
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	// 返回操作结果
 	resp := types.BatchOperationResp{
@@ -810,20 +736,6 @@ func (h *EmailHandler) Export(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorSimpleResult("导出失败: "+err.Error()))
 		return
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "export_emails",
-		Resource:   "email",
-		ResourceId: 0,
-		Method:     "GET",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	// 返回导出结果
 	resp := types.EmailExportResp{
