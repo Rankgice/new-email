@@ -30,7 +30,6 @@ type ServiceContext struct {
 	EmailModel           *model.EmailModel
 	EmailAttachmentModel *model.EmailAttachmentModel
 	ApiKeyModel          *model.ApiKeyModel
-	EmailDraftModel      *model.EmailDraftModel
 }
 
 // NewServiceContext 创建服务上下文
@@ -65,7 +64,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		EmailModel:           model.NewEmailModel(db),
 		EmailAttachmentModel: model.NewEmailAttachmentModel(db),
 		ApiKeyModel:          model.NewApiKeyModel(db),
-		EmailDraftModel:      model.NewEmailDraftModel(db),
 	}
 }
 
@@ -168,7 +166,6 @@ func autoMigrate(db *gorm.DB) error {
 		&model.Email{},
 		&model.EmailAttachment{},
 		&model.ApiKey{},
-		&model.EmailDraft{},
 	)
 
 	if err != nil {

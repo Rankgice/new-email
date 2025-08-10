@@ -24,7 +24,6 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 	commonHandler := handler.NewCommonHandler(svcCtx)
 	mailboxHandler := handler.NewMailboxHandler(svcCtx)
 	emailHandler := handler.NewEmailHandler(svcCtx)
-	draftHandler := handler.NewDraftHandler(svcCtx)
 	apiKeyHandler := handler.NewApiKeyHandler(svcCtx)
 	domainHandler := handler.NewDomainHandler(svcCtx)
 	apiHandler := handler.NewApiHandler(svcCtx)
@@ -79,18 +78,6 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 				email.POST("/batch", emailHandler.BatchOperation)
 				email.GET("/export", emailHandler.Export)
 				email.GET("/download/:filename", emailHandler.Download)
-			}
-
-			// 草稿管理
-			draft := user.Group("/drafts")
-			{
-				draft.GET("", draftHandler.List)
-				draft.GET("/:id", draftHandler.GetById)
-				draft.POST("", draftHandler.Create)
-				draft.PUT("/:id", draftHandler.Update)
-				draft.DELETE("/:id", draftHandler.Delete)
-				draft.POST("/:id/send", draftHandler.Send)
-				draft.POST("/autosave", draftHandler.AutoSave)
 			}
 
 			// API密钥管理
