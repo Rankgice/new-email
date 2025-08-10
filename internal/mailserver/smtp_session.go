@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/emersion/go-message"
 	"github.com/emersion/go-smtp"
 )
 
@@ -89,17 +90,8 @@ func (s *SMTPSession) Data(r io.Reader) error {
 		return fmt.Errorf("no recipients specified")
 	}
 
-	// 读取邮件数据
-	data, err := io.ReadAll(r)
-	if err != nil {
-		log.Printf("❌ 读取邮件数据失败: %v", err)
-		return fmt.Errorf("failed to read message data: %v", err)
-	}
-
-	log.Printf("📊 邮件数据大小: %d 字节", len(data))
-
 	// 解析邮件
-	msg, err := mail.ReadMessage(strings.NewReader(string(data)))
+	msg, err := message.Read(r)
 	if err != nil {
 		log.Printf("❌ 解析邮件失败: %v", err)
 		return fmt.Errorf("failed to parse message: %v", err)
@@ -111,6 +103,7 @@ func (s *SMTPSession) Data(r io.Reader) error {
 		log.Printf("❌ 读取邮件正文失败: %v", err)
 		return fmt.Errorf("failed to read message body: %v", err)
 	}
+	log.Printf("📊 邮件数据大小: %d 字节", len(body))
 
 	// 创建存储邮件对象
 	storedMail := &StoredMail{
@@ -120,7 +113,7 @@ func (s *SMTPSession) Data(r io.Reader) error {
 		Subject:     msg.Header.Get("Subject"),
 		Body:        string(body),
 		ContentType: msg.Header.Get("Content-Type"),
-		Size:        len(data),
+		Size:        len(body),
 		Received:    time.Now(),
 		IsRead:      false,
 		Folder:      "INBOX",
