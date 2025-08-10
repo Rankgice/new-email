@@ -65,10 +65,11 @@ type MySQLConfig struct {
 }
 
 type MinioConfig struct {
-	Endpoint        string `yaml:"endpoint"`
-	AccessKeyId     string `yaml:"access_key_id"`
-	SecretAccessKey string `yaml:"secret_access_key"`
-	UseSSl          bool   `yaml:"use_ssl"`
+	Endpoint        string   `yaml:"endpoint"`
+	AccessKeyId     string   `yaml:"access_key_id"`
+	SecretAccessKey string   `yaml:"secret_access_key"`
+	UseSSl          bool     `yaml:"use_ssl"`
+	Buckets         []string `yaml:"buckets"`
 }
 
 // JWTConfig JWT配置

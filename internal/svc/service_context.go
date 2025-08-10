@@ -1,6 +1,7 @@
 package svc
 
 import (
+	"context"
 	"fmt"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -11,6 +12,7 @@ import (
 	"new-email/internal/service"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -77,6 +79,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 }
 
+// initMinio 初始化minio
 func initMinio(c config.Config) (*minio.Client, error) {
 	minioClient, err := minio.New(c.Minio.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(c.Minio.AccessKeyId, c.Minio.SecretAccessKey, ""),
@@ -84,6 +87,18 @@ func initMinio(c config.Config) (*minio.Client, error) {
 	})
 	if err != nil {
 		return nil, err
+	}
+	// 初始化桶
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	for _, bucketName := range c.Minio.Buckets {
+		if exists, err := minioClient.BucketExists(ctx, bucketName); err != nil {
+			return nil, err
+		} else if !exists {
+			if err := minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: "us-east-1"}); err != nil {
+				return nil, err
+			}
+		}
 	}
 	return minioClient, nil
 }
