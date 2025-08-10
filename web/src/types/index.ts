@@ -399,7 +399,14 @@ export interface EmailSendRequest {
   bccEmail?: string[]
   content: string
   contentType: 'text' | 'html'
-  attachments?: string
+  attachments?: AttachmentData[]
+}
+
+export interface AttachmentData {
+  filename: string
+  contentType: string
+  data: string // Base64编码的文件数据
+  size: number
 }
 
 export interface EmailSendResponse {

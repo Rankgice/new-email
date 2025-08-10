@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/base64"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -223,6 +224,25 @@ func (h *EmailHandler) Send(c *gin.Context) {
 
 	smtpService := service.NewSMTPService(smtpConfig)
 
+	// 处理附件
+	var attachments []service.EmailAttachment
+	if len(req.Attachments) > 0 {
+		for _, att := range req.Attachments {
+			// 解码Base64数据
+			data, err := base64.StdEncoding.DecodeString(att.Data)
+			if err != nil {
+				c.JSON(http.StatusOK, result.ErrorSimpleResult("附件数据格式错误: "+err.Error()))
+				return
+			}
+
+			attachments = append(attachments, service.EmailAttachment{
+				Filename:    att.Filename,
+				ContentType: att.ContentType,
+				Data:        data,
+			})
+		}
+	}
+
 	// 构建邮件消息
 	emailMessage := service.EmailMessage{
 		From:        mailbox.Email,
@@ -232,6 +252,7 @@ func (h *EmailHandler) Send(c *gin.Context) {
 		Subject:     req.Subject,
 		Body:        req.Content,
 		ContentType: req.ContentType,
+		Attachments: attachments,
 	}
 
 	// 发送邮件
@@ -259,7 +280,25 @@ func (h *EmailHandler) Send(c *gin.Context) {
 		return
 	}
 
-	// 模拟发送成功
+	// 保存附件记录
+	if len(req.Attachments) > 0 {
+		for _, att := range req.Attachments {
+			attachment := &model.EmailAttachment{
+				EmailId:  email.Id,
+				Filename: att.Filename,
+				FilePath: "", // 由于我们使用MIME直接发送，不需要存储文件路径
+				FileSize: att.Size,
+				MimeType: att.ContentType,
+			}
+
+			if err := h.svcCtx.EmailAttachmentModel.Create(attachment); err != nil {
+				// 记录错误但不影响邮件发送成功的响应
+				fmt.Printf("Failed to save attachment record: %v\n", err)
+			}
+		}
+	}
+
+	// 发送成功响应
 	sendResp := types.EmailSendResp{
 		Success: true,
 		Message: "邮件发送成功",
