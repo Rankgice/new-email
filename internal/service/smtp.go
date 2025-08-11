@@ -2,9 +2,9 @@ package service
 
 import (
 	"crypto/tls"
-	"fmt"
-	"net/smtp"
-	"strings"
+	"io"
+
+	"github.com/go-mail/mail/v2"
 )
 
 // SMTPConfig SMTP配置
@@ -49,151 +49,97 @@ type EmailAttachment struct {
 
 // SendEmail 发送邮件
 func (s *SMTPService) SendEmail(message EmailMessage) error {
-	// 构建邮件地址
-	addr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
+	// 创建邮件消息
+	m := mail.NewMessage()
 
-	// 设置认证
-	auth := smtp.PlainAuth("", s.config.Username, s.config.Password, s.config.Host)
+	// 设置发件人
+	m.SetHeader("From", message.From)
 
-	// 构建收件人列表
-	recipients := make([]string, 0)
-	recipients = append(recipients, message.To...)
-	recipients = append(recipients, message.Cc...)
-	recipients = append(recipients, message.Bcc...)
+	// 设置收件人
+	if len(message.To) > 0 {
+		m.SetHeader("To", message.To...)
+	}
 
-	// 构建邮件内容
-	emailBody := s.buildEmailBody(message)
+	// 设置抄送
+	if len(message.Cc) > 0 {
+		m.SetHeader("Cc", message.Cc...)
+	}
+
+	// 设置密送
+	if len(message.Bcc) > 0 {
+		m.SetHeader("Bcc", message.Bcc...)
+	}
+
+	// 设置主题
+	m.SetHeader("Subject", message.Subject)
+
+	// 设置邮件内容
+	contentType := message.ContentType
+	if contentType == "" {
+		contentType = "text/plain"
+	}
+
+	if contentType == "text/html" {
+		m.SetBody("text/html", message.Body)
+	} else {
+		m.SetBody("text/plain", message.Body)
+	}
+
+	// 添加附件
+	for _, attachment := range message.Attachments {
+		m.Attach(attachment.Filename, mail.SetCopyFunc(func(w io.Writer) error {
+			_, err := w.Write(attachment.Data)
+			return err
+		}))
+	}
+
+	// 创建SMTP拨号器
+	d := mail.NewDialer(s.config.Host, s.config.Port, s.config.Username, s.config.Password)
+
+	// 配置TLS
+	if s.config.UseTLS {
+		d.TLSConfig = &tls.Config{
+			InsecureSkipVerify: false,
+			ServerName:         s.config.Host,
+		}
+	} else {
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		d.StartTLSPolicy = mail.NoStartTLS
+	}
 
 	// 发送邮件
-	if s.config.UseTLS {
-		return s.sendWithTLS(addr, auth, message.From, recipients, []byte(emailBody))
-	} else {
-		return smtp.SendMail(addr, auth, message.From, recipients, []byte(emailBody))
-	}
+	return d.DialAndSend(m)
 }
 
-// sendWithTLS 使用TLS发送邮件
-func (s *SMTPService) sendWithTLS(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
-	// 创建TLS连接
-	tlsConfig := &tls.Config{
-		InsecureSkipVerify: false,
-		ServerName:         s.config.Host,
+// TestConnection 测试SMTP连接
+func (s *SMTPService) TestConnection() error {
+	// 如果没有配置主机，跳过测试
+	if s.config.Host == "" {
+		return nil
 	}
 
-	conn, err := tls.Dial("tcp", addr, tlsConfig)
+	// 创建SMTP拨号器
+	d := mail.NewDialer(s.config.Host, s.config.Port, s.config.Username, s.config.Password)
+
+	// 配置TLS
+	if s.config.UseTLS {
+		d.TLSConfig = &tls.Config{
+			InsecureSkipVerify: false,
+			ServerName:         s.config.Host,
+		}
+	} else {
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		d.StartTLSPolicy = mail.NoStartTLS
+	}
+
+	// 测试连接
+	conn, err := d.Dial()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	// 创建SMTP客户端
-	client, err := smtp.NewClient(conn, s.config.Host)
-	if err != nil {
-		return err
-	}
-	defer client.Quit()
-
-	// 认证
-	if auth != nil {
-		if err = client.Auth(auth); err != nil {
-			return err
-		}
-	}
-
-	// 设置发件人
-	if err = client.Mail(from); err != nil {
-		return err
-	}
-
-	// 设置收件人
-	for _, addr := range to {
-		if err = client.Rcpt(addr); err != nil {
-			return err
-		}
-	}
-
-	// 发送邮件内容
-	w, err := client.Data()
-	if err != nil {
-		return err
-	}
-	defer w.Close()
-
-	_, err = w.Write(msg)
-	return err
-}
-
-// buildEmailBody 构建邮件内容
-func (s *SMTPService) buildEmailBody(message EmailMessage) string {
-	var body strings.Builder
-
-	// 邮件头
-	body.WriteString(fmt.Sprintf("From: %s\r\n", message.From))
-	body.WriteString(fmt.Sprintf("To: %s\r\n", strings.Join(message.To, ", ")))
-
-	if len(message.Cc) > 0 {
-		body.WriteString(fmt.Sprintf("Cc: %s\r\n", strings.Join(message.Cc, ", ")))
-	}
-
-	body.WriteString(fmt.Sprintf("Subject: %s\r\n", message.Subject))
-	body.WriteString("MIME-Version: 1.0\r\n")
-
-	// 内容类型
-	if message.ContentType == "" {
-		message.ContentType = "text/plain"
-	}
-	body.WriteString(fmt.Sprintf("Content-Type: %s; charset=UTF-8\r\n", message.ContentType))
-	body.WriteString("\r\n")
-
-	// 邮件正文
-	body.WriteString(message.Body)
-
-	return body.String()
-}
-
-// TestConnection 测试SMTP连接
-func (s *SMTPService) TestConnection() error {
-	addr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
-	auth := smtp.PlainAuth("", s.config.Username, s.config.Password, s.config.Host)
-
-	if s.config.UseTLS {
-		// 测试TLS连接
-		tlsConfig := &tls.Config{
-			InsecureSkipVerify: false,
-			ServerName:         s.config.Host,
-		}
-
-		conn, err := tls.Dial("tcp", addr, tlsConfig)
-		if err != nil {
-			return err
-		}
-		defer conn.Close()
-
-		client, err := smtp.NewClient(conn, s.config.Host)
-		if err != nil {
-			return err
-		}
-		defer client.Quit()
-
-		// 测试认证
-		if auth != nil {
-			return client.Auth(auth)
-		}
-		return nil
-	} else {
-		// 测试普通连接
-		client, err := smtp.Dial(addr)
-		if err != nil {
-			return err
-		}
-		defer client.Quit()
-
-		// 测试认证
-		if auth != nil {
-			return client.Auth(auth)
-		}
-		return nil
-	}
+	return nil
 }
 
 // GetSMTPConfig 获取SMTP配置

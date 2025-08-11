@@ -50,69 +50,8 @@ import EmailItem from './EmailItem.vue'
 import Button from '@/components/ui/Button.vue'
 import { InboxIcon } from '@heroicons/vue/24/outline'
 
-// 模拟邮件数据
-const emails = ref<Email[]>([
-  {
-    id: '1',
-    subject: '关于下周会议安排的通知',
-    content: '各位同事，希望这封邮件能够找到您身体健康。我写信是为了通知您下周的重要会议安排...',
-    from: { email: 'manager@company.com', name: '李经理' },
-    to: [{ email: 'user@company.com', name: '张三' }],
-    isRead: false,
-    isStarred: true,
-    isImportant: true,
-    folder: {
-      id: 'inbox',
-      name: '收件箱',
-      type: 'inbox',
-      unreadCount: 12,
-      totalCount: 156
-    },
-    createdAt: '2024-01-15T09:15:00Z',
-    updatedAt: '2024-01-15T09:15:00Z',
-    size: 2048
-  },
-  {
-    id: '2',
-    subject: '项目进度更新报告',
-    content: '本周项目进展顺利，已完成主要功能开发，正在进行测试阶段...',
-    from: { email: 'developer@company.com', name: '王开发' },
-    to: [{ email: 'user@company.com', name: '张三' }],
-    isRead: true,
-    isStarred: false,
-    isImportant: false,
-    folder: {
-      id: 'inbox',
-      name: '收件箱',
-      type: 'inbox',
-      unreadCount: 12,
-      totalCount: 156
-    },
-    createdAt: '2024-01-14T14:30:00Z',
-    updatedAt: '2024-01-14T14:30:00Z',
-    size: 1536
-  },
-  {
-    id: '3',
-    subject: '系统维护通知',
-    content: '为了提升系统性能，我们将在本周末进行系统维护，预计维护时间为...',
-    from: { email: 'admin@company.com', name: '系统管理员' },
-    to: [{ email: 'user@company.com', name: '张三' }],
-    isRead: false,
-    isStarred: false,
-    isImportant: true,
-    folder: {
-      id: 'inbox',
-      name: '收件箱',
-      type: 'inbox',
-      unreadCount: 12,
-      totalCount: 156
-    },
-    createdAt: '2024-01-13T16:45:00Z',
-    updatedAt: '2024-01-13T16:45:00Z',
-    size: 1024
-  }
-])
+// 邮件数据（不使用模拟数据）
+const emails = ref<Email[]>([])
 
 const hasMore = ref(true)
 const isLoadingMore = ref(false)

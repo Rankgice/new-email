@@ -37,7 +37,8 @@
 - **SQLite/MySQL** - 数据库
 - **JWT** - 身份认证
 - **Zap** - 日志框架
-
+ minio   
+- docker run -d --name minio -p 9000:9000 -p 9001:9001 -v /opt/minio/data:/data -v /opt/minio/config:/root/.minio -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin quay.io/minio/minio server /data --console-address ":9001"
 ### 前端
 - **Vue 3.3+** - 渐进式 JavaScript 框架
 - **TypeScript 5.0+** - JavaScript 的超集
@@ -48,9 +49,10 @@
 - **@headlessui/vue** - 无样式 UI 组件
 
 ### 邮件处理
-- **go-mail** - SMTP发送
-- **go-imap** - IMAP接收
-- **go-message** - 邮件解析
+- **emersion/go-smtp** - 专业SMTP服务端实现
+- **emersion/go-imap** - IMAP接收
+- **emersion/go-message** - 邮件解析
+- **go-mail** - SMTP客户端发送
 
 ## 📦 快速开始
 
@@ -110,6 +112,65 @@ npm run dev
 - 管理员面板: http://localhost:8081/admin
 - 用户面板: http://localhost:8081/user
 - API文档: http://localhost:8081/api/health
+
+## 📧 邮件系统架构
+
+本项目采用现代化的邮件处理架构，使用以下专业库：
+
+### 🚀 核心框架
+- **SMTP服务端** → `emersion/go-smtp` - 专业的SMTP服务器实现
+- **SMTP客户端** → `go-mail/mail` - 强大的SMTP邮件发送库
+- **IMAP接收** → `emersion/go-imap` - 专业的IMAP客户端库
+- **邮件解析** → `emersion/go-message` - 完整的邮件解析库
+
+### ✨ 技术优势
+
+#### 📧 SMTP服务端 (emersion/go-smtp)
+- **专业实现**: 完整支持SMTP协议规范
+- **高性能**: 异步处理和连接管理
+- **安全认证**: 支持PLAIN认证和扩展认证
+- **邮件存储**: 集成数据库存储和邮件管理
+- **错误处理**: 完善的错误处理和日志记录
+
+#### 📤 邮件发送 (go-mail/mail)
+- **简洁API**: 提供直观的邮件构建接口
+- **完整支持**: HTML邮件、附件、抄送密送
+- **自动TLS**: 智能处理加密连接
+- **错误处理**: 详细的错误信息和重试机制
+
+#### 📥 邮件接收 (emersion/go-imap)
+- **标准兼容**: 完整支持IMAP4rev1协议
+- **高性能**: 异步处理和连接池
+- **功能完整**: 邮箱管理、搜索、标记等
+- **安全连接**: 支持TLS/SSL加密
+
+#### 🔍 邮件解析 (emersion/go-message)
+- **格式支持**: RFC 5322邮件格式完整解析
+- **多媒体**: 支持多部分邮件和附件
+- **字符集**: 自动处理各种字符编码
+- **头部解析**: 完整的邮件头信息提取
+
+### 📋 配置示例
+
+在 `etc/config.yaml` 中配置邮件服务器：
+
+```yaml
+# SMTP服务配置（用于发送邮件）
+smtp:
+  host: "smtp.gmail.com"
+  port: 587
+  username: "your-email@gmail.com"
+  password: "your-app-password"
+  use_tls: true
+
+# IMAP服务配置（用于接收邮件）
+imap:
+  host: "imap.gmail.com"
+  port: 993
+  username: "your-email@gmail.com"
+  password: "your-app-password"
+  use_tls: true
+```
 
 ## ⚙️ 配置说明
 
@@ -363,17 +424,41 @@ go mod tidy
 go run main.go
 ```
 
-### 4. 测试服务
+### 4. 测试SMTP服务器
 
-运行服务演示程序：
+测试emersion/go-smtp SMTP服务器：
 
 ```bash
-go run examples/service_demo.go
+# 启动邮件系统
+go run main.go
+
+# 查看SMTP服务器日志确认启动成功
+# SMTP服务器将在587端口启动
+# IMAP服务器将在993端口启动
+```
+
+### 5. 运行测试
+
+运行项目测试：
+
+```bash
+# 运行所有测试
+go test ./test/... -v
+
+# 运行特定测试
+go test ./test/api/... -v
 ```
 
 ## 📋 服务功能说明
 
-### SMTP邮件发送
+### SMTP服务端 (内置邮件服务器)
+- 基于emersion/go-smtp专业库实现
+- 支持标准SMTP协议 (RFC 5321)
+- 用户认证和权限管理
+- 邮件接收和数据库存储
+- 监听端口: 587 (可配置)
+
+### SMTP邮件发送 (客户端)
 - 支持Gmail、Outlook、企业邮箱等
 - 自动TLS加密
 - HTML和纯文本邮件

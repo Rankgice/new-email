@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import { emailApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import type { Email, EmailListParams } from '@/types'
@@ -182,9 +182,7 @@ const hasMore = ref(true)
 // 查询参数
 const queryParams = reactive<EmailListParams>({
   page: 1,
-  limit: 10,
-  sortBy: 'createdAt',
-  sortOrder: 'desc'
+  pageSize: 10
 })
 
 // 计算属性
@@ -193,27 +191,21 @@ const isAllSelected = computed(() => {
 })
 
 // 监听邮箱ID变化
-watch(() => props.mailboxId, () => {
-  if (props.mailboxId) {
-    resetAndLoad()
+watch(() => props.mailboxId, (newMailboxId) => {
+  if (newMailboxId) {
+    // 重置状态并加载邮件
+    emails.value = []
+    selectedEmails.value = []
+    currentPage.value = 1
+    hasMore.value = true
+    // 使用nextTick确保在下一个tick中调用loadEmails
+    nextTick(() => {
+      loadEmails()
+    })
   }
 }, { immediate: true })
 
-// 生命周期
-onMounted(() => {
-  if (props.mailboxId) {
-    loadEmails()
-  }
-})
-
-// 方法
-const resetAndLoad = () => {
-  emails.value = []
-  selectedEmails.value = []
-  currentPage.value = 1
-  hasMore.value = true
-  loadEmails()
-}
+// 注意：移除onMounted中的重复调用，因为watch已经处理了初始化
 
 const loadEmails = async (append = false) => {
   if (!props.mailboxId) return
@@ -227,73 +219,43 @@ const loadEmails = async (append = false) => {
     }
 
     const params = {
-      ...queryParams,
       page: append ? currentPage.value + 1 : 1,
-      mailboxId: props.mailboxId
+      pageSize: queryParams.pageSize,
+      mailboxId: props.mailboxId,
+      direction: 'received' // 收件箱只显示接收的邮件
     }
 
+    console.log('MailboxEmailList API params:', params)
     const response = await emailApi.getInboxEmails(params)
+    console.log('MailboxEmailList API response:', response)
 
-    if (append) {
-      emails.value.push(...response.data)
-      currentPage.value++
+    if (response.success && response.data) {
+      const emailList = response.data.list || response.data || []
+
+      if (append) {
+        emails.value.push(...emailList)
+        currentPage.value++
+      } else {
+        emails.value = emailList
+      }
+
+      totalCount.value = response.data.total || emailList.length
+      hasMore.value = emailList.length === queryParams.pageSize
     } else {
-      emails.value = response.data
+      if (!append) {
+        emails.value = []
+      }
+      totalCount.value = 0
+      hasMore.value = false
     }
-
-    totalCount.value = response.total
-    hasMore.value = response.data.length === queryParams.limit
   } catch (error) {
     console.error('Failed to load emails:', error)
     showError('加载邮件失败')
 
-    // 提供模拟数据用于测试
+    // 不使用模拟数据，保持空状态
     if (!append) {
-      emails.value = [
-        {
-          id: `email-${props.mailboxId}-1`,
-          mailboxId: props.mailboxId,
-          subject: `测试邮件 1 - 邮箱 ${props.mailboxId}`,
-          fromEmail: 'sender1@example.com',
-          toEmails: 'recipient@example.com',
-          body: '这是一封测试邮件的内容...',
-          isRead: false,
-          isStarred: true,
-          attachments: [],
-          from: {
-            email: 'sender1@example.com',
-            name: '发件人1'
-          },
-          to: [{
-            email: 'recipient@example.com',
-            name: '收件人'
-          }],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: `email-${props.mailboxId}-2`,
-          mailboxId: props.mailboxId,
-          subject: `测试邮件 2 - 邮箱 ${props.mailboxId}`,
-          fromEmail: 'sender2@example.com',
-          toEmails: 'recipient@example.com',
-          body: '这是另一封测试邮件的内容，包含更多文字用于测试预览功能...',
-          isRead: true,
-          isStarred: false,
-          attachments: [{ name: 'document.pdf', size: 1024 }],
-          from: {
-            email: 'sender2@example.com',
-            name: '发件人2'
-          },
-          to: [{
-            email: 'recipient@example.com',
-            name: '收件人'
-          }],
-          createdAt: new Date(Date.now() - 86400000).toISOString(), // 1天前
-          updatedAt: new Date(Date.now() - 86400000).toISOString()
-        }
-      ]
-      totalCount.value = emails.value.length
+      emails.value = []
+      totalCount.value = 0
       hasMore.value = false
     }
   } finally {
@@ -413,12 +375,14 @@ const getEmailPreview = (body: string) => {
 
 const formatDate = (dateString: string) => {
   if (!dateString) return ''
-  
+
   const date = new Date(dateString)
+  if (isNaN(date.getTime())) return '' // 检查日期是否有效
+
   const now = new Date()
   const diffTime = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) {
     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   } else if (diffDays === 1) {

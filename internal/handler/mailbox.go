@@ -178,20 +178,6 @@ func (h *MailboxHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "create_mailbox",
-		Resource:   "mailbox",
-		ResourceId: mailbox.Id,
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	// 返回创建的邮箱信息
 	c.JSON(http.StatusOK, result.SuccessResult(map[string]interface{}{
 		"id":    mailbox.Id,
@@ -285,20 +271,6 @@ func (h *MailboxHandler) Update(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "update_mailbox",
-		Resource:   "mailbox",
-		ResourceId: req.Id,
-		Method:     "PUT",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	c.JSON(http.StatusOK, result.SimpleResult("更新成功"))
 }
 
@@ -345,20 +317,6 @@ func (h *MailboxHandler) Delete(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorDelete.AddError(err))
 		return
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "delete_mailbox",
-		Resource:   "mailbox",
-		ResourceId: mailboxId,
-		Method:     "DELETE",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
 }
@@ -416,20 +374,6 @@ func (h *MailboxHandler) Sync(c *gin.Context) {
 	h.svcCtx.MailboxModel.MapUpdate(nil, req.Id, map[string]interface{}{
 		"last_sync_at": &now,
 	})
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "sync_mailbox",
-		Resource:   "mailbox",
-		ResourceId: req.Id,
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }

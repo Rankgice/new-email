@@ -229,9 +229,7 @@ const hasMore = ref(true)
 // 查询参数
 const queryParams = reactive<EmailListParams>({
   page: 1,
-  limit: 20,
-  sortBy: 'createdAt',
-  sortOrder: 'desc'
+  pageSize: 20
 })
 
 // 计算属性
@@ -255,23 +253,42 @@ const loadEmails = async (append = false) => {
     }
 
     const params = {
-      ...queryParams,
-      page: append ? currentPage.value + 1 : 1
+      page: append ? currentPage.value + 1 : 1,
+      pageSize: queryParams.pageSize
     }
 
     const response = await emailApi.getStarredEmails(params)
-    
-    if (append) {
-      emails.value.push(...response.data)
-      currentPage.value++
+    console.log('Starred emails API response:', response)
+
+    if (response.success && response.data) {
+      const emailList = response.data.list || response.data || []
+
+      if (append) {
+        emails.value.push(...emailList)
+        currentPage.value++
+      } else {
+        emails.value = emailList
+      }
+
+      totalCount.value = response.data.total || emailList.length
+      hasMore.value = emailList.length === queryParams.pageSize
     } else {
-      emails.value = response.data
+      if (!append) {
+        emails.value = []
+      }
+      totalCount.value = 0
+      hasMore.value = false
     }
-    
-    totalCount.value = response.total
-    hasMore.value = response.data.length === queryParams.limit
   } catch (error) {
+    console.error('Failed to load starred emails:', error)
     showError('加载星标邮件失败')
+
+    // 不使用模拟数据，保持空状态
+    if (!append) {
+      emails.value = []
+      totalCount.value = 0
+      hasMore.value = false
+    }
   } finally {
     loading.value = false
     loadingMore.value = false
@@ -406,11 +423,15 @@ const getEmailPreview = (body: string) => {
 }
 
 const formatDate = (dateString: string) => {
+  if (!dateString) return ''
+
   const date = new Date(dateString)
+  if (isNaN(date.getTime())) return '' // 检查日期是否有效
+
   const now = new Date()
   const diffTime = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) {
     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
   } else if (diffDays === 1) {

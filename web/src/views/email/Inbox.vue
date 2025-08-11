@@ -194,83 +194,29 @@ const loadMailboxes = async () => {
       mailboxes.value = []
     }
 
-    // 如果没有数据，添加一些模拟数据用于测试
-    if (mailboxes.value.length === 0) {
-      console.log('Using mock mailbox data for testing')
-      mailboxes.value = [
-        {
-          id: 1,
-          userId: 1,
-          domainId: 1,
-          email: 'test1@example.com',
-          name: '测试邮箱1',
-          autoReceive: true,
-          status: 1,
-          unreadCount: 5,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 2,
-          userId: 1,
-          domainId: 1,
-          email: 'test2@example.com',
-          name: '测试邮箱2',
-          autoReceive: true,
-          status: 1,
-          unreadCount: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 3,
-          userId: 1,
-          domainId: 1,
-          email: 'test3@example.com',
-          name: '测试邮箱3',
-          autoReceive: true,
-          status: 1,
-          unreadCount: 2,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ]
-    }
+    // 为每个邮箱加载未读邮件数
+    await loadUnreadCounts()
 
     console.log('Final mailboxes:', mailboxes.value)
   } catch (error) {
     console.error('Failed to load mailboxes:', error)
     showError('加载邮箱列表失败')
-
-    // 即使API失败，也提供模拟数据用于测试
-    mailboxes.value = [
-      {
-        id: 1,
-        userId: 1,
-        domainId: 1,
-        email: 'test1@example.com',
-        name: '测试邮箱1',
-        autoReceive: true,
-        status: 1,
-        unreadCount: 5,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        userId: 1,
-        domainId: 1,
-        email: 'test2@example.com',
-        name: '测试邮箱2',
-        autoReceive: true,
-        status: 1,
-        unreadCount: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ]
+    mailboxes.value = []
   } finally {
     loading.value = false
+  }
+}
+
+const loadUnreadCounts = async () => {
+  // 为每个邮箱获取未读邮件数
+  for (const mailbox of mailboxes.value) {
+    try {
+      // 这里可以调用API获取未读邮件数，暂时设置为0
+      mailbox.unreadCount = 0
+    } catch (error) {
+      console.error(`Failed to load unread count for mailbox ${mailbox.id}:`, error)
+      mailbox.unreadCount = 0
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/base64"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -65,24 +66,12 @@ func (h *EmailHandler) List(c *gin.Context) {
 			CreatedAtStart: req.CreatedAtStart,
 			CreatedAtEnd:   req.CreatedAtEnd,
 		},
-		MailboxId: 0, // 默认值
+		UserId:    currentUserId, // 设置当前用户ID
+		MailboxId: req.MailboxId, // 默认值
 		Subject:   req.Subject,
+		Direction: req.Direction,
 		FromEmail: req.FromEmail,
 		ToEmails:  req.ToEmail, // 使用ToEmails字段
-	}
-
-	// 处理可选的MailboxId参数
-	if req.MailboxId != nil {
-		params.MailboxId = *req.MailboxId
-	}
-
-	// 根据direction参数设置邮件类型
-	if req.Direction == "sent" {
-		params.Direction = "sent"
-	} else if req.Direction == "received" {
-		params.Direction = "inbox"
-	} else if req.Type != "" {
-		params.Direction = req.Type
 	}
 
 	// 查询邮件列表
@@ -97,6 +86,7 @@ func (h *EmailHandler) List(c *gin.Context) {
 	for _, email := range emails {
 		emailList = append(emailList, types.EmailResp{
 			Id:          email.Id,
+			UserId:      email.UserId, // 添加用户ID
 			MailboxId:   email.MailboxId,
 			Subject:     email.Subject,
 			FromEmail:   email.FromEmail,
@@ -214,7 +204,7 @@ func (h *EmailHandler) Send(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮件主题不能为空"))
 		return
 	}
-	if req.ToEmail == "" {
+	if len(req.ToEmail) == 0 {
 		c.JSON(http.StatusOK, result.ErrorSimpleResult("收件人不能为空"))
 		return
 	}
@@ -234,15 +224,35 @@ func (h *EmailHandler) Send(c *gin.Context) {
 
 	smtpService := service.NewSMTPService(smtpConfig)
 
+	// 处理附件
+	var attachments []service.EmailAttachment
+	if len(req.Attachments) > 0 {
+		for _, att := range req.Attachments {
+			// 解码Base64数据
+			data, err := base64.StdEncoding.DecodeString(att.Data)
+			if err != nil {
+				c.JSON(http.StatusOK, result.ErrorSimpleResult("附件数据格式错误: "+err.Error()))
+				return
+			}
+
+			attachments = append(attachments, service.EmailAttachment{
+				Filename:    att.Filename,
+				ContentType: att.ContentType,
+				Data:        data,
+			})
+		}
+	}
+
 	// 构建邮件消息
 	emailMessage := service.EmailMessage{
-		From:        req.FromEmail,
-		To:          splitEmails(req.ToEmail),
-		Cc:          splitEmails(req.CcEmail),
-		Bcc:         splitEmails(req.BccEmail),
+		From:        mailbox.Email,
+		To:          req.ToEmail,
+		Cc:          req.CcEmail,
+		Bcc:         req.BccEmail,
 		Subject:     req.Subject,
 		Body:        req.Content,
 		ContentType: req.ContentType,
+		Attachments: attachments,
 	}
 
 	// 发送邮件
@@ -253,9 +263,10 @@ func (h *EmailHandler) Send(c *gin.Context) {
 
 	// 创建邮件记录
 	email := &model.Email{
+		UserId:      currentUserId, // 添加用户ID
 		MailboxId:   req.MailboxId,
 		Subject:     req.Subject,
-		FromEmail:   req.FromEmail,
+		FromEmail:   mailbox.Email,
 		ToEmails:    req.ToEmail,  // 使用ToEmails字段
 		CcEmails:    req.CcEmail,  // 使用CcEmails字段
 		BccEmails:   req.BccEmail, // 使用BccEmails字段
@@ -269,21 +280,25 @@ func (h *EmailHandler) Send(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "send_email",
-		Resource:   "email",
-		ResourceId: email.Id,
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
+	// 保存附件记录
+	if len(req.Attachments) > 0 {
+		for _, att := range req.Attachments {
+			attachment := &model.EmailAttachment{
+				EmailId:  email.Id,
+				Filename: att.Filename,
+				FilePath: "", // 由于我们使用MIME直接发送，不需要存储文件路径
+				FileSize: att.Size,
+				MimeType: att.ContentType,
+			}
 
-	// 模拟发送成功
+			if err := h.svcCtx.EmailAttachmentModel.Create(attachment); err != nil {
+				// 记录错误但不影响邮件发送成功的响应
+				fmt.Printf("Failed to save attachment record: %v\n", err)
+			}
+		}
+	}
+
+	// 发送成功响应
 	sendResp := types.EmailSendResp{
 		Success: true,
 		Message: "邮件发送成功",
@@ -353,27 +368,21 @@ func (h *EmailHandler) MarkRead(c *gin.Context) {
 		return
 	}
 
-	// TODO: 标记为已读
-	// Email模型中没有Status字段，需要使用IsRead字段
-	// email.IsRead = true
-	// if err := h.svcCtx.EmailModel.Update(email); err != nil {
-	//     c.JSON(http.StatusOK, result.ErrorUpdate.AddError(err))
-	//     return
-	// }
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "mark_read_email",
-		Resource:   "email",
-		ResourceId: emailId,
-		Method:     "PUT",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
+	// 解析请求体
+	var req struct {
+		IsRead bool `json:"is_read"`
 	}
-	h.svcCtx.OperationLogModel.Create(log)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
+		return
+	}
+
+	// 标记为已读/未读
+	email.IsRead = req.IsRead
+	if err := h.svcCtx.EmailModel.Update(email); err != nil {
+		c.JSON(http.StatusOK, result.ErrorUpdate.AddError(err))
+		return
+	}
 
 	c.JSON(http.StatusOK, result.SimpleResult("标记成功"))
 }
@@ -389,7 +398,7 @@ func (h *EmailHandler) MarkStar(c *gin.Context) {
 	}
 
 	var req struct {
-		IsStarred bool `json:"isStarred"`
+		IsStarred bool `json:"is_starred"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
@@ -433,24 +442,6 @@ func (h *EmailHandler) MarkStar(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorUpdate.AddError(err))
 		return
 	}
-
-	// 记录操作日志
-	action := "unstar_email"
-	if req.IsStarred {
-		action = "star_email"
-	}
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     action,
-		Resource:   "email",
-		ResourceId: emailId,
-		Method:     "PUT",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	message := "取消星标成功"
 	if req.IsStarred {
@@ -503,20 +494,6 @@ func (h *EmailHandler) Delete(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorDelete.AddError(err))
 		return
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "delete_email",
-		Resource:   "email",
-		ResourceId: emailId,
-		Method:     "DELETE",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
 }
@@ -651,20 +628,6 @@ func (h *EmailHandler) BatchOperation(c *gin.Context) {
 		c.JSON(http.StatusOK, result.ErrorSimpleResult("不支持的操作类型"))
 		return
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "batch_" + req.Operation + "_email",
-		Resource:   "email",
-		ResourceId: 0, // 批量操作没有单一资源ID
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	// 返回操作结果
 	resp := types.BatchOperationResp{
@@ -813,20 +776,6 @@ func (h *EmailHandler) Export(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "export_emails",
-		Resource:   "email",
-		ResourceId: 0,
-		Method:     "GET",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	// 返回导出结果
 	resp := types.EmailExportResp{
 		FileName:    fileName,
@@ -866,16 +815,20 @@ func (h *EmailHandler) exportToCSV(emails []*model.Email, filePath string, inclu
 			strconv.FormatInt(email.MailboxId, 10),
 			email.Subject,
 			email.FromEmail,
-			email.ToEmails,
-			email.CcEmails,
-			email.BccEmails,
+		}
+
+		row = append(row, email.ToEmails...)
+		row = append(row, email.CcEmails...)
+		row = append(row, email.BccEmails...)
+
+		row = append(row,
 			email.Direction,
 			strconv.FormatBool(email.IsRead),
 			strconv.FormatBool(email.IsStarred),
 			formatTimePtr(email.SentAt),
 			formatTimePtr(email.ReceivedAt),
 			email.CreatedAt.Format("2006-01-02 15:04:05"),
-		}
+		)
 
 		if includeContent {
 			row = append(row, email.ContentType, email.Content)
@@ -992,7 +945,7 @@ func (h *EmailHandler) buildEMLContent(email *model.Email) string {
 	builder.WriteString(fmt.Sprintf("From: %s <%s>\n", email.FromName, email.FromEmail))
 	builder.WriteString(fmt.Sprintf("To: %s\n", email.ToEmails))
 
-	if email.CcEmails != "" {
+	if len(email.CcEmails) != 0 {
 		builder.WriteString(fmt.Sprintf("Cc: %s\n", email.CcEmails))
 	}
 

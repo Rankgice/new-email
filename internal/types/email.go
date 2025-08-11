@@ -18,7 +18,8 @@ type EmailCreateReq struct {
 
 // EmailListReq 邮件列表请求
 type EmailListReq struct {
-	MailboxId      *int64    `json:"mailboxId" form:"mailboxId"`           // 邮箱ID
+	UserId         int64     `json:"userId" form:"userId"`                 // 用户ID
+	MailboxId      int64     `json:"mailboxId" form:"mailboxId"`           // 邮箱ID
 	Subject        string    `json:"subject" form:"subject"`               // 邮件主题（模糊搜索）
 	FromEmail      string    `json:"fromEmail" form:"fromEmail"`           // 发件人邮箱
 	ToEmail        string    `json:"toEmail" form:"toEmail"`               // 收件人邮箱
@@ -33,12 +34,13 @@ type EmailListReq struct {
 // EmailResp 邮件响应
 type EmailResp struct {
 	Id          int64     `json:"id"`          // 邮件ID
+	UserId      int64     `json:"userId"`      // 用户ID
 	MailboxId   int64     `json:"mailboxId"`   // 邮箱ID
 	Subject     string    `json:"subject"`     // 邮件主题
 	FromEmail   string    `json:"fromEmail"`   // 发件人邮箱
-	ToEmail     string    `json:"toEmail"`     // 收件人邮箱
-	CcEmail     string    `json:"ccEmail"`     // 抄送邮箱
-	BccEmail    string    `json:"bccEmail"`    // 密送邮箱
+	ToEmail     []string  `json:"toEmail"`     // 收件人邮箱
+	CcEmail     []string  `json:"ccEmail"`     // 抄送邮箱
+	BccEmail    []string  `json:"bccEmail"`    // 密送邮箱
 	Content     string    `json:"content"`     // 邮件内容
 	ContentType string    `json:"contentType"` // 内容类型
 	Attachments string    `json:"attachments"` // 附件信息
@@ -50,15 +52,22 @@ type EmailResp struct {
 
 // EmailSendReq 发送邮件请求
 type EmailSendReq struct {
-	MailboxId   int64  `json:"mailboxId"`                             // 邮箱ID
-	Subject     string `json:"subject" binding:"required,max=200"`    // 邮件主题
-	FromEmail   string `json:"fromEmail" binding:"required,email"`    // 发件人邮箱
-	ToEmail     string `json:"toEmail" binding:"required"`            // 收件人邮箱（多个用逗号分隔）
-	CcEmail     string `json:"ccEmail"`                               // 抄送邮箱（多个用逗号分隔）
-	BccEmail    string `json:"bccEmail"`                              // 密送邮箱（多个用逗号分隔）
-	Content     string `json:"content" binding:"required"`            // 邮件内容
-	ContentType string `json:"contentType" binding:"oneof=text html"` // 内容类型：text, html
-	Attachments string `json:"attachments"`                           // 附件信息（JSON格式）
+	MailboxId   int64            `json:"mailboxId"`                             // 邮箱ID
+	Subject     string           `json:"subject" binding:"required,max=200"`    // 邮件主题
+	ToEmail     []string         `json:"toEmail" binding:"required"`            // 收件人邮箱（多个用逗号分隔）
+	CcEmail     []string         `json:"ccEmail"`                               // 抄送邮箱（多个用逗号分隔）
+	BccEmail    []string         `json:"bccEmail"`                              // 密送邮箱（多个用逗号分隔）
+	Content     string           `json:"content" binding:"required"`            // 邮件内容
+	ContentType string           `json:"contentType" binding:"oneof=text html"` // 内容类型：text, html
+	Attachments []AttachmentData `json:"attachments"`                           // 附件信息
+}
+
+// AttachmentData 附件数据
+type AttachmentData struct {
+	Filename    string `json:"filename"`    // 文件名
+	ContentType string `json:"contentType"` // MIME类型
+	Data        string `json:"data"`        // Base64编码的文件数据
+	Size        int64  `json:"size"`        // 文件大小
 }
 
 // EmailSendResp 发送邮件响应

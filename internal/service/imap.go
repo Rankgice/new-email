@@ -3,13 +3,10 @@ package service
 import (
 	"crypto/tls"
 	"fmt"
-	"io"
-	"log"
 	"time"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
-	"github.com/emersion/go-message/mail"
 )
 
 // IMAPConfig IMAP配置
@@ -23,14 +20,16 @@ type IMAPConfig struct {
 
 // IMAPService IMAP服务
 type IMAPService struct {
-	config IMAPConfig
-	client *client.Client
+	config        IMAPConfig
+	client        *client.Client
+	messageParser *MessageParser
 }
 
 // NewIMAPService 创建IMAP服务
 func NewIMAPService(config IMAPConfig) *IMAPService {
 	return &IMAPService{
-		config: config,
+		config:        config,
+		messageParser: NewMessageParser(),
 	}
 }
 
@@ -104,6 +103,11 @@ func (s *IMAPService) Disconnect() error {
 
 // TestConnection 测试IMAP连接
 func (s *IMAPService) TestConnection() error {
+	// 如果没有配置主机，跳过测试
+	if s.config.Host == "" {
+		return nil
+	}
+
 	if err := s.Connect(); err != nil {
 		return err
 	}
@@ -244,34 +248,48 @@ func (s *IMAPService) FetchEmailBody(uid uint32) (string, error) {
 		return "", fmt.Errorf("无法获取邮件内容")
 	}
 
-	// 读取邮件内容
-	mr, err := mail.CreateReader(r)
+	// 使用新的邮件解析器
+	parsed, err := s.messageParser.ParseMessage(r)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("解析邮件失败: %v", err)
 	}
 
-	// 读取邮件正文
-	for {
-		p, err := mr.NextPart()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			log.Printf("解析邮件部分失败: %v", err)
-			continue
-		}
+	// 返回文本内容
+	return s.messageParser.ExtractTextContent(parsed), nil
+}
 
-		switch h := p.Header.(type) {
-		case *mail.InlineHeader:
-			// 这是邮件正文
-			b, _ := io.ReadAll(p.Body)
-			return string(b), nil
-		case *mail.AttachmentHeader:
-			// 这是附件，跳过
-			_ = h
-		}
+// GetParsedEmail 获取解析后的完整邮件
+func (s *IMAPService) GetParsedEmail(uid uint32) (*ParsedMessage, error) {
+	if s.client == nil {
+		return nil, fmt.Errorf("未连接到IMAP服务器")
 	}
 
-	return "", nil
+	seqset := new(imap.SeqSet)
+	seqset.AddNum(uid)
+
+	messages := make(chan *imap.Message, 1)
+	done := make(chan error, 1)
+	go func() {
+		done <- s.client.UidFetch(seqset, []imap.FetchItem{imap.FetchRFC822}, messages)
+	}()
+
+	msg := <-messages
+	if msg == nil {
+		return nil, fmt.Errorf("邮件不存在")
+	}
+
+	if err := <-done; err != nil {
+		return nil, err
+	}
+
+	// 解析邮件内容
+	r := msg.GetBody(&imap.BodySectionName{})
+	if r == nil {
+		return nil, fmt.Errorf("无法获取邮件内容")
+	}
+
+	// 使用新的邮件解析器
+	return s.messageParser.ParseMessage(r)
 }
 
 // MarkAsRead 标记邮件为已读

@@ -90,9 +90,41 @@ class ApiClient {
   }
 
   // GET 请求
-  async get<T = any>(endpoint: string, params?: Record<string, any>, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
-    const url = params ? `${endpoint}?${new URLSearchParams(params)}` : endpoint
-    return this.request<T>(url, { method: 'GET' }, options?.headers)
+  async get<T = any>(endpoint: string, paramsOrOptions?: Record<string, any> | { params?: Record<string, any>, headers?: Record<string, string> }, options?: { headers?: Record<string, string> }): Promise<ApiResponse<T>> {
+    let url = endpoint
+    let headers = options?.headers
+
+    // 处理参数：支持两种调用方式
+    // 1. get(url, params, options)
+    // 2. get(url, { params, headers })
+    let queryParams: Record<string, any> | undefined
+
+    if (paramsOrOptions) {
+      if (paramsOrOptions.params !== undefined) {
+        // 第二种调用方式：{ params: {...}, headers: {...} }
+        queryParams = paramsOrOptions.params
+        headers = paramsOrOptions.headers || headers
+      } else {
+        // 第一种调用方式：直接传递params
+        queryParams = paramsOrOptions
+      }
+    }
+
+    if (queryParams) {
+      // 过滤掉undefined和null值，并确保所有值都是字符串
+      const cleanParams: Record<string, string> = {}
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          cleanParams[key] = String(value)
+        }
+      })
+
+      if (Object.keys(cleanParams).length > 0) {
+        url = `${endpoint}?${new URLSearchParams(cleanParams)}`
+      }
+    }
+
+    return this.request<T>(url, { method: 'GET' }, { headers })
   }
 
   // POST 请求
@@ -254,8 +286,8 @@ export const emailApi = {
     apiClient.upload<{ url: string; filename: string; size: number }>('/user/attachments', file),
 
   // 草稿管理
-  getDrafts: () =>
-    apiClient.get<PaginatedResponse<Email>>('/user/drafts'),
+  getDrafts: (params?: EmailListParams) =>
+    apiClient.get<PaginatedResponse<Email>>('/user/drafts', params ? { params } : undefined),
 
   saveDraft: (draftData: any) =>
     apiClient.post<Email>('/user/drafts', draftData),

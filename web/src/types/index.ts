@@ -78,9 +78,6 @@ export interface ApiKey {
 export interface UserProfileUpdateRequest {
   nickname?: string
   avatar?: string
-  bio?: string
-  timezone?: string
-  language?: string
 }
 
 // 安全设置更新请求
@@ -106,12 +103,13 @@ export interface NotificationSettingsUpdateRequest {
 // 邮件相关类型
 export interface Email {
   id: string
+  userId: number
   mailboxId: number
   subject: string
   fromEmail: string
-  toEmails: string
-  ccEmail?: string
-  bccEmail?: string
+  toEmails: string[]
+  ccEmails?: string[]
+  bccEmails?: string[]
   content: string
   contentType: 'text' | 'html'
   attachments?: Attachment[]
@@ -182,11 +180,12 @@ export interface PaginatedResponse<T> {
 
 // 邮件列表查询参数
 export interface EmailListParams {
+  userId?: number
   mailboxId?: number
   messageId?: string
   subject?: string
   fromEmail?: string
-  toEmails?: string
+  toEmails?: string[]
   direction?: 'sent' | 'received'
   isRead?: boolean
   isStarred?: boolean
@@ -395,12 +394,19 @@ export interface EmailSendRequest {
   mailboxId: number
   subject: string
   fromEmail: string
-  toEmail: string
-  ccEmail?: string
-  bccEmail?: string
+  toEmail: string[]
+  ccEmail?: string[]
+  bccEmail?: string[]
   content: string
   contentType: 'text' | 'html'
-  attachments?: string
+  attachments?: AttachmentData[]
+}
+
+export interface AttachmentData {
+  filename: string
+  contentType: string
+  data: string // Base64编码的文件数据
+  size: number
 }
 
 export interface EmailSendResponse {

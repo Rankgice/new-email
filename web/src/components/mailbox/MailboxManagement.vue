@@ -396,16 +396,20 @@ const toggleMailboxStatus = async (mailbox: Mailbox) => {
 }
 
 const saveMailbox = async (data: MailboxCreateRequest | MailboxUpdateRequest) => {
+  console.log('MailboxManagement.saveMailbox called with data:', data)
   try {
     let response
     if ('id' in data) {
       // 更新邮箱
+      console.log('Updating mailbox...')
       response = await mailboxApi.update(data as MailboxUpdateRequest)
     } else {
       // 创建邮箱
+      console.log('Creating mailbox...')
       response = await mailboxApi.create(data as MailboxCreateRequest)
     }
 
+    console.log('API response:', response)
     if (response.success) {
       showNotification({
         type: 'success',
@@ -415,6 +419,13 @@ const saveMailbox = async (data: MailboxCreateRequest | MailboxUpdateRequest) =>
       closeModal()
       loadMailboxes()
       loadStats()
+    } else {
+      console.log('API returned success=false:', response)
+      showNotification({
+        type: 'error',
+        title: '保存失败',
+        message: response.message || '无法保存邮箱'
+      })
     }
   } catch (error) {
     console.error('Failed to save mailbox:', error)

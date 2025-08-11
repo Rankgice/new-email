@@ -3,16 +3,16 @@ package service
 import (
 	"fmt"
 	"log"
-	"time"
 )
 
 // ServiceManager 服务管理器
 type ServiceManager struct {
-	SMTP    *SMTPService
-	IMAP    *IMAPService
-	SMS     *SMSService
-	Storage *StorageService
-	Cache   *CacheService
+	SMTP          *SMTPService
+	IMAP          *IMAPService
+	SMS           *SMSService
+	Storage       *StorageService
+	Cache         *CacheService
+	MessageParser *MessageParser
 }
 
 // ServiceConfig 服务配置
@@ -57,6 +57,10 @@ func NewServiceManager(config ServiceConfig) *ServiceManager {
 		manager.Cache = NewCacheService(config.Cache)
 		log.Printf("缓存服务已初始化: %s:%d", config.Cache.Host, config.Cache.Port)
 	}
+
+	// 初始化邮件解析器
+	manager.MessageParser = NewMessageParser()
+	log.Printf("邮件解析器已初始化")
 
 	return manager
 }
@@ -221,16 +225,6 @@ func (m *ServiceManager) Close() error {
 	return nil
 }
 
-// 邮件相关的便捷方法
-
-// SendEmail 发送邮件
-func (m *ServiceManager) SendEmail(message EmailMessage) error {
-	if m.SMTP == nil {
-		return fmt.Errorf("SMTP服务未配置")
-	}
-	return m.SMTP.SendEmail(message)
-}
-
 // SendVerificationEmail 发送验证码邮件
 func (m *ServiceManager) SendVerificationEmail(to, code string) error {
 	if m.SMTP == nil {
@@ -262,55 +256,10 @@ func (m *ServiceManager) FetchEmails(mailbox string, limit uint32) ([]*IMAPEmail
 	return m.IMAP.FetchEmails(mailbox, limit)
 }
 
-// 短信相关的便捷方法
-
-// SendSMS 发送短信
-func (m *ServiceManager) SendSMS(message SMSMessage) (*SMSResponse, error) {
-	if m.SMS == nil {
-		return nil, fmt.Errorf("SMS服务未配置")
-	}
-	return m.SMS.SendSMS(message)
-}
-
 // SendVerificationSMS 发送验证码短信
 func (m *ServiceManager) SendVerificationSMS(phone, code string) (*SMSResponse, error) {
 	if m.SMS == nil {
 		return nil, fmt.Errorf("SMS服务未配置")
 	}
 	return m.SMS.SendVerificationCode(phone, code)
-}
-
-// 缓存相关的便捷方法
-
-// SetCache 设置缓存
-func (m *ServiceManager) SetCache(key string, value interface{}, expiration ...interface{}) error {
-	if m.Cache == nil {
-		return fmt.Errorf("缓存服务未配置")
-	}
-
-	// 默认过期时间1小时
-	exp := 3600
-	if len(expiration) > 0 {
-		if e, ok := expiration[0].(int); ok {
-			exp = e
-		}
-	}
-
-	return m.Cache.Set(key, value, time.Duration(exp)*time.Second)
-}
-
-// GetCache 获取缓存
-func (m *ServiceManager) GetCache(key string, dest interface{}) error {
-	if m.Cache == nil {
-		return fmt.Errorf("缓存服务未配置")
-	}
-	return m.Cache.Get(key, dest)
-}
-
-// DeleteCache 删除缓存
-func (m *ServiceManager) DeleteCache(key string) error {
-	if m.Cache == nil {
-		return fmt.Errorf("缓存服务未配置")
-	}
-	return m.Cache.Delete(key)
 }

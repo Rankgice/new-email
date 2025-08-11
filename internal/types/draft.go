@@ -4,28 +4,28 @@ import "time"
 
 // DraftCreateReq 创建草稿请求
 type DraftCreateReq struct {
-	MailboxId   int64  `json:"mailboxId"`                             // 邮箱ID
-	Subject     string `json:"subject"`                               // 邮件主题
-	FromEmail   string `json:"fromEmail"`                             // 发件人邮箱（可选，从邮箱信息自动获取）
-	ToEmail     string `json:"toEmail"`                               // 收件人邮箱（多个用逗号分隔）
-	CcEmail     string `json:"ccEmail"`                               // 抄送邮箱（多个用逗号分隔）
-	BccEmail    string `json:"bccEmail"`                              // 密送邮箱（多个用逗号分隔）
-	Content     string `json:"content"`                               // 邮件内容
-	ContentType string `json:"contentType" binding:"oneof=text html"` // 内容类型：text, html
-	Attachments string `json:"attachments"`                           // 附件信息（JSON格式）
+	MailboxId   int64    `json:"mailboxId"`                             // 邮箱ID
+	Subject     string   `json:"subject"`                               // 邮件主题
+	FromEmail   string   `json:"fromEmail"`                             // 发件人邮箱（可选，从邮箱信息自动获取）
+	ToEmail     []string `json:"toEmail"`                               // 收件人邮箱
+	CcEmail     []string `json:"ccEmail"`                               // 抄送邮箱
+	BccEmail    []string `json:"bccEmail"`                              // 密送邮箱
+	Content     string   `json:"content"`                               // 邮件内容
+	ContentType string   `json:"contentType" binding:"oneof=text html"` // 内容类型：text, html
+	Attachments string   `json:"attachments"`                           // 附件信息（JSON格式）
 }
 
 // DraftUpdateReq 更新草稿请求
 type DraftUpdateReq struct {
-	MailboxId   int64  `json:"mailboxId"`                             // 邮箱ID
-	Subject     string `json:"subject"`                               // 邮件主题
-	FromEmail   string `json:"fromEmail"`                             // 发件人邮箱（可选，从邮箱信息自动获取）
-	ToEmail     string `json:"toEmail"`                               // 收件人邮箱（多个用逗号分隔）
-	CcEmail     string `json:"ccEmail"`                               // 抄送邮箱（多个用逗号分隔）
-	BccEmail    string `json:"bccEmail"`                              // 密送邮箱（多个用逗号分隔）
-	Content     string `json:"content"`                               // 邮件内容
-	ContentType string `json:"contentType" binding:"oneof=text html"` // 内容类型：text, html
-	Attachments string `json:"attachments"`                           // 附件信息（JSON格式）
+	MailboxId   int64    `json:"mailboxId"`                             // 邮箱ID
+	Subject     string   `json:"subject"`                               // 邮件主题
+	FromEmail   string   `json:"fromEmail"`                             // 发件人邮箱（可选，从邮箱信息自动获取）
+	ToEmail     []string `json:"toEmail"`                               // 收件人邮箱
+	CcEmail     []string `json:"ccEmail"`                               // 抄送邮箱
+	BccEmail    []string `json:"bccEmail"`                              // 密送邮箱
+	Content     string   `json:"content"`                               // 邮件内容
+	ContentType string   `json:"contentType" binding:"oneof=text html"` // 内容类型：text, html
+	Attachments string   `json:"attachments"`                           // 附件信息（JSON格式）
 }
 
 // DraftListReq 草稿列表请求
@@ -45,9 +45,9 @@ type DraftResp struct {
 	MailboxId   int64     `json:"mailboxId"`   // 邮箱ID
 	Subject     string    `json:"subject"`     // 邮件主题
 	FromEmail   string    `json:"fromEmail"`   // 发件人邮箱
-	ToEmail     string    `json:"toEmail"`     // 收件人邮箱
-	CcEmail     string    `json:"ccEmail"`     // 抄送邮箱
-	BccEmail    string    `json:"bccEmail"`    // 密送邮箱
+	ToEmail     []string  `json:"toEmail"`     // 收件人邮箱
+	CcEmail     []string  `json:"ccEmail"`     // 抄送邮箱
+	BccEmail    []string  `json:"bccEmail"`    // 密送邮箱
 	Content     string    `json:"content"`     // 邮件内容
 	ContentType string    `json:"contentType"` // 内容类型
 	Attachments string    `json:"attachments"` // 附件信息
@@ -65,14 +65,14 @@ type DraftSendResp struct {
 
 // DraftAutoSaveReq 草稿自动保存请求
 type DraftAutoSaveReq struct {
-	DraftId     *int64 `json:"draftId"`     // 草稿ID（可选，用于更新现有草稿）
-	MailboxId   int64  `json:"mailboxId"`   // 邮箱ID
-	Subject     string `json:"subject"`     // 邮件主题
-	ToEmail     string `json:"toEmail"`     // 收件人
-	CcEmail     string `json:"ccEmail"`     // 抄送
-	BccEmail    string `json:"bccEmail"`    // 密送
-	Content     string `json:"content"`     // 邮件内容
-	ContentType string `json:"contentType"` // 内容类型：text, html
+	DraftId     *int64   `json:"draftId"`     // 草稿ID（可选，用于更新现有草稿）
+	MailboxId   int64    `json:"mailboxId"`   // 邮箱ID
+	Subject     string   `json:"subject"`     // 邮件主题
+	ToEmail     []string `json:"toEmail"`     // 收件人
+	CcEmail     []string `json:"ccEmail"`     // 抄送
+	BccEmail    []string `json:"bccEmail"`    // 密送
+	Content     string   `json:"content"`     // 邮件内容
+	ContentType string   `json:"contentType"` // 内容类型：text, html
 }
 
 // DraftAutoSaveResp 草稿自动保存响应

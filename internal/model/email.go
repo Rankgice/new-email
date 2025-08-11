@@ -7,26 +7,27 @@ import (
 
 // Email 邮件模型
 type Email struct {
-	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`       // 邮件ID
-	MailboxId   int64          `gorm:"not null;index" json:"mailbox_id"`         // 邮箱ID
-	MessageId   string         `gorm:"size:255;index" json:"message_id"`         // 邮件消息ID
-	Subject     string         `gorm:"size:500" json:"subject"`                  // 邮件主题
-	FromEmail   string         `gorm:"size:100;index" json:"from_email"`         // 发件人邮箱
-	FromName    string         `gorm:"size:100" json:"from_name"`                // 发件人姓名
-	ToEmails    string         `gorm:"type:text" json:"to_emails"`               // 收件人列表（JSON格式）
-	CcEmails    string         `gorm:"type:text" json:"cc_emails"`               // 抄送列表（JSON格式）
-	BccEmails   string         `gorm:"type:text" json:"bcc_emails"`              // 密送列表（JSON格式）
-	ReplyTo     string         `gorm:"size:100" json:"reply_to"`                 // 回复地址
-	ContentType string         `gorm:"size:20;default:html" json:"content_type"` // 内容类型：html text
-	Content     string         `gorm:"type:longtext" json:"content"`             // 邮件内容
-	IsRead      bool           `gorm:"default:false" json:"is_read"`             // 是否已读
-	IsStarred   bool           `gorm:"default:false" json:"is_starred"`          // 是否标星
-	Direction   string         `gorm:"size:10;not null" json:"direction"`        // 方向：sent发送 received接收
-	SentAt      *time.Time     `json:"sent_at"`                                  // 发送时间
-	ReceivedAt  *time.Time     `json:"received_at"`                              // 接收时间
-	CreatedAt   time.Time      `json:"created_at"`                               // 创建时间
-	UpdatedAt   time.Time      `json:"updated_at"`                               // 更新时间
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`                           // 软删除时间
+	Id          int64          `gorm:"primaryKey;autoIncrement" json:"id"`          // 邮件ID
+	UserId      int64          `gorm:"not null;index" json:"user_id"`               // 用户ID
+	MailboxId   int64          `gorm:"not null;index" json:"mailbox_id"`            // 邮箱ID
+	MessageId   string         `gorm:"size:255;index" json:"message_id"`            // 邮件消息ID
+	Subject     string         `gorm:"size:500" json:"subject"`                     // 邮件主题
+	FromEmail   string         `gorm:"size:100;index" json:"from_email"`            // 发件人邮箱
+	FromName    string         `gorm:"size:100" json:"from_name"`                   // 发件人姓名
+	ToEmails    []string       `gorm:"type:json;serializer:json" json:"to_emails"`  // 收件人列表（JSON格式）
+	CcEmails    []string       `gorm:"type:json;serializer:json" json:"cc_emails"`  // 抄送列表（JSON格式）
+	BccEmails   []string       `gorm:"type:json;serializer:json" json:"bcc_emails"` // 密送列表（JSON格式）
+	ReplyTo     string         `gorm:"size:100" json:"reply_to"`                    // 回复地址
+	ContentType string         `gorm:"size:20;default:html" json:"content_type"`    // 内容类型：html text
+	Content     string         `gorm:"type:longtext" json:"content"`                // 邮件内容
+	IsRead      bool           `gorm:"default:false" json:"is_read"`                // 是否已读
+	IsStarred   bool           `gorm:"default:false" json:"is_starred"`             // 是否标星
+	Direction   string         `gorm:"size:10;not null" json:"direction"`           // 方向：sent发送 received接收
+	SentAt      *time.Time     `json:"sent_at"`                                     // 发送时间
+	ReceivedAt  *time.Time     `json:"received_at"`                                 // 接收时间
+	CreatedAt   time.Time      `json:"created_at"`                                  // 创建时间
+	UpdatedAt   time.Time      `json:"updated_at"`                                  // 更新时间
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`                              // 软删除时间
 }
 
 // TableName 指定表名
@@ -68,6 +69,9 @@ func (m *EmailModel) List(params EmailListParams) ([]*Email, int64, error) {
 	db := m.db.Model(&Email{})
 
 	// 添加查询条件
+	if params.UserId != 0 {
+		db = db.Where("user_id = ?", params.UserId)
+	}
 	if params.MailboxId != 0 {
 		db = db.Where("mailbox_id = ?", params.MailboxId)
 	}
@@ -190,6 +194,41 @@ func (m *EmailModel) MarkAsRead(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_read", true).Error
 }
 
+// CountByMailboxId 根据邮箱ID统计邮件数量
+func (m *EmailModel) CountByMailboxId(mailboxId int64) (int, error) {
+	var count int64
+	err := m.db.Model(&Email{}).Where("mailbox_id = ?", mailboxId).Count(&count).Error
+	return int(count), err
+}
+
+// GetByMailboxId 根据邮箱ID获取邮件列表
+func (m *EmailModel) GetByMailboxId(mailboxId int64, limit int) ([]*Email, error) {
+	var emails []*Email
+	query := m.db.Where("mailbox_id = ?", mailboxId).
+		Order("received_at DESC")
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	err := query.Find(&emails).Error
+	return emails, err
+}
+
+// GetByUserId 根据用户ID获取邮件列表
+func (m *EmailModel) GetByUserId(userId int64, limit int) ([]*Email, error) {
+	var emails []*Email
+	query := m.db.Where("user_id = ?", userId).
+		Order("received_at DESC")
+
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	err := query.Find(&emails).Error
+	return emails, err
+}
+
 // MarkAsUnread 标记邮件为未读
 func (m *EmailModel) MarkAsUnread(id int64) error {
 	return m.db.Model(&Email{}).Where("id = ?", id).Update("is_read", false).Error
@@ -236,8 +275,7 @@ func (m *EmailModel) CountByDirection(direction string) (int64, error) {
 func (m *EmailModel) CountByUserId(userId int64) (int64, error) {
 	var count int64
 	if err := m.db.Model(&Email{}).
-		Joins("JOIN mailbox ON email.mailbox_id = mailbox.id").
-		Where("mailbox.user_id = ?", userId).
+		Where("user_id = ?", userId).
 		Count(&count).Error; err != nil {
 		return 0, err
 	}

@@ -152,20 +152,6 @@ func (h *ApiKeyHandler) Create(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "create_api_key",
-		Resource:   "api_key",
-		ResourceId: apiKeyRecord.Id,
-		Method:     "POST",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	// 返回创建的API密钥信息（包含完整密钥，仅此一次显示）
 	resp := types.ApiKeyCreateResp{
 		Id:          apiKeyRecord.Id,
@@ -234,20 +220,6 @@ func (h *ApiKeyHandler) Update(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "update_api_key",
-		Resource:   "api_key",
-		ResourceId: apiKey.Id,
-		Method:     "PUT",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
-
 	// 返回更新后的API密钥信息（隐藏密钥）
 	maskedKey := ""
 	if len(apiKey.Key) > 12 {
@@ -311,20 +283,6 @@ func (h *ApiKeyHandler) Delete(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, result.ErrorDelete.AddError(err))
 		return
 	}
-
-	// 记录操作日志
-	log := &model.OperationLog{
-		UserId:     currentUserId,
-		Action:     "delete_api_key",
-		Resource:   "api_key",
-		ResourceId: apiKey.Id,
-		Method:     "DELETE",
-		Path:       c.Request.URL.Path,
-		Ip:         c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
-		Status:     http.StatusOK,
-	}
-	h.svcCtx.OperationLogModel.Create(log)
 
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
 }

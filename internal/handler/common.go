@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"new-email/internal/middleware"
-	"new-email/internal/model"
 	"new-email/internal/result"
 	"new-email/internal/svc"
 	"new-email/internal/types"
@@ -35,9 +33,6 @@ func (h *CommonHandler) SendCode(c *gin.Context) {
 		return
 	}
 
-	// 获取当前用户ID（可选，某些场景下可能不需要登录）
-	currentUserId := middleware.GetCurrentUserId(c)
-
 	// 生成验证码
 	code, err := h.generateVerificationCode(req.Length)
 	if err != nil {
@@ -47,22 +42,6 @@ func (h *CommonHandler) SendCode(c *gin.Context) {
 
 	// 计算过期时间
 	expiresAt := time.Now().Add(time.Duration(req.ExpireMinutes) * time.Minute)
-
-	// 保存验证码记录
-	verificationCode := &model.VerificationCode{
-		UserId:    0, // TODO: 需要根据实际业务逻辑设置UserId
-		EmailId:   0, // TODO: 需要根据实际业务逻辑设置EmailId
-		Code:      code,
-		Source:    req.Type, // 使用Type作为Source
-		Type:      "manual", // 手动生成的验证码
-		IsUsed:    false,
-		ExpiresAt: time.Now().Add(24 * time.Hour), // 24小时后过期
-	}
-
-	if err := h.svcCtx.VerificationCodeModel.Create(verificationCode); err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorAdd.AddError(err))
-		return
-	}
 
 	// 发送验证码
 	if req.Type == "email" {
@@ -82,116 +61,11 @@ func (h *CommonHandler) SendCode(c *gin.Context) {
 		return
 	}
 
-	// 记录操作日志
-	if currentUserId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentUserId,
-			Action:     "send_verification_code",
-			Resource:   "verification_code",
-			ResourceId: verificationCode.Id,
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
 	// 返回响应（不包含实际验证码）
 	resp := types.SendCodeResp{
 		Success:   true,
 		Message:   "验证码发送成功",
 		ExpiresAt: expiresAt,
-		CodeId:    verificationCode.Id,
-	}
-
-	c.JSON(http.StatusOK, result.SuccessResult(resp))
-}
-
-// VerifyCode 验证验证码
-func (h *CommonHandler) VerifyCode(c *gin.Context) {
-	var req types.VerifyCodeReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, result.ErrorBindingParam.AddError(err))
-		return
-	}
-
-	// 获取当前用户ID（可选）
-	currentUserId := middleware.GetCurrentUserId(c)
-
-	// 查询验证码记录
-	var verificationCode *model.VerificationCode
-	var err error
-
-	if req.CodeId > 0 {
-		// 通过ID查询
-		verificationCode, err = h.svcCtx.VerificationCodeModel.GetById(req.CodeId)
-	} else {
-		// TODO: 通过目标和类型查询最新的验证码
-		// 这个方法需要在VerificationCodeModel中实现
-		// verificationCode, err = h.svcCtx.VerificationCodeModel.GetLatestByTargetAndType(req.Target, req.Type)
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("暂不支持通过目标和类型查询验证码"))
-		return
-	}
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
-		return
-	}
-
-	if verificationCode == nil {
-		c.JSON(http.StatusNotFound, result.ErrorSimpleResult("验证码不存在"))
-		return
-	}
-
-	// 检查验证码是否已使用
-	if verificationCode.IsUsed {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("验证码已使用"))
-		return
-	}
-
-	// TODO: 检查验证码是否已过期
-	// VerificationCode模型中没有ExpiresAt字段，需要根据实际业务逻辑实现
-	// if time.Now().After(verificationCode.ExpiresAt) {
-	//     h.svcCtx.VerificationCodeModel.MarkAsExpired(verificationCode.Id)
-	//     c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("验证码已过期"))
-	//     return
-	// }
-
-	// 验证验证码
-	if verificationCode.Code != req.Code {
-		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("验证码错误"))
-		return
-	}
-
-	// 标记验证码为已使用
-	if err := h.svcCtx.VerificationCodeModel.MarkAsUsed(verificationCode.Id); err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
-		return
-	}
-
-	// 记录操作日志
-	if currentUserId > 0 {
-		log := &model.OperationLog{
-			UserId:     currentUserId,
-			Action:     "verify_code",
-			Resource:   "verification_code",
-			ResourceId: verificationCode.Id,
-			Method:     "POST",
-			Path:       c.Request.URL.Path,
-			Ip:         c.ClientIP(),
-			UserAgent:  c.Request.UserAgent(),
-			Status:     http.StatusOK,
-		}
-		h.svcCtx.OperationLogModel.Create(log)
-	}
-
-	// 返回验证成功响应
-	resp := types.VerifyCodeResp{
-		Success: true,
-		Message: "验证码验证成功",
-		CodeId:  verificationCode.Id,
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))

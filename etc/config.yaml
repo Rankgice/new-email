@@ -36,11 +36,11 @@ jwt:
 email:
   # 默认SMTP配置
   default_smtp:
-    host: "smtp.gmail.com"
+    host: "smtp.email.host"
     port: 587
     username: ""
     password: ""
-    use_tls: true
+    use_tls: false
   
   # 附件配置
   attachment:
@@ -65,20 +65,22 @@ log:
   max_age: 30  # days
 
 # SMTP服务配置（用于发送邮件）
+# 使用本地SMTP服务器
 smtp:
-  host: "smtp.gmail.com"
+  host: "smtp.email.host"  # 映射到127.0.0.1的本地服务器
   port: 587
-  username: ""
-  password: ""
-  use_tls: true
+  username: "test@localhost"  # 任意用户名
+  password: "password"  # 任意密码
+  use_tls: false
 
 # IMAP服务配置（用于接收邮件）
+# 使用本地IMAP服务器
 imap:
-  host: "imap.gmail.com"
+  host: "imap.email.host"  # 映射到127.0.0.1的本地服务器
   port: 993
-  username: ""
-  password: ""
-  use_tls: true
+  username: "test@localhost"  # 任意用户名
+  password: "password"  # 任意密码
+  use_tls: false
 
 # SMS服务配置（用于发送短信验证码）
 sms:
@@ -131,3 +133,10 @@ system:
     session_timeout: 3600  # 1小时
     max_login_attempts: 5
     lockout_duration: 300  # 5分钟
+minio:
+  endpoint: localhost:9000
+  access_key_id: minioadmin
+  secret_access_key: minioadmin
+  use_ssl: false
+  buckets:
+    - attachment

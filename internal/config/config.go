@@ -22,6 +22,7 @@ type Config struct {
 	Redis     RedisConfig     `yaml:"redis"`
 	RateLimit RateLimitConfig `yaml:"rate_limit"`
 	System    SystemConfig    `yaml:"system"`
+	Minio     MinioConfig     `yaml:"minio"`
 }
 
 // AppConfig 应用配置
@@ -61,6 +62,14 @@ type MySQLConfig struct {
 	Charset      string `yaml:"charset"`
 	MaxIdleConns int    `yaml:"max_idle_conns"`
 	MaxOpenConns int    `yaml:"max_open_conns"`
+}
+
+type MinioConfig struct {
+	Endpoint        string   `yaml:"endpoint"`
+	AccessKeyId     string   `yaml:"access_key_id"`
+	SecretAccessKey string   `yaml:"secret_access_key"`
+	UseSSl          bool     `yaml:"use_ssl"`
+	Buckets         []string `yaml:"buckets"`
 }
 
 // JWTConfig JWT配置
