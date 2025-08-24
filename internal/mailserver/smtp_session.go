@@ -112,6 +112,8 @@ func (s *SMTPSession) Data(r io.Reader) error {
 	if err != nil {
 		subject = msg.Header.Get("Subject") // 解码失败就用原文
 	}
+	// TODO 如果收件人不是自己，并且发件人是用户，应当直接转发
+
 	// 创建存储邮件对象
 	storedMail := &StoredMail{
 		MessageID:   generateMessageID(s.backend.domain),
