@@ -14,6 +14,7 @@ import (
 type MailStorage struct {
 	emailModel   *model.EmailModel
 	mailboxModel *model.MailboxModel
+	domainModel  *model.DomainModel
 }
 
 // StoredMail 存储的邮件
@@ -39,6 +40,7 @@ func NewMailStorage(db *gorm.DB) *MailStorage {
 	return &MailStorage{
 		emailModel:   model.NewEmailModel(db),
 		mailboxModel: model.NewMailboxModel(db),
+		domainModel:  model.NewDomainModel(db),
 	}
 }
 
