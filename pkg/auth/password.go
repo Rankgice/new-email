@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
@@ -16,9 +17,41 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 
-// CheckPassword 验证密码
+// CheckPassword 智能验证密码 - 自动检测哈希类型
 func CheckPassword(password, hash string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	// 检测哈希类型
+	if IsBcryptHash(hash) {
+		// bcrypt哈希验证
+		return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	} else if IsArgon2Hash(hash) {
+		// Argon2哈希验证
+		ok, err := VerifyPassword(password, hash)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("password verification failed")
+		}
+		return nil
+	} else {
+		// 未知哈希格式
+		return fmt.Errorf("unsupported hash format")
+	}
+}
+
+// IsBcryptHash 检查是否为bcrypt哈希
+func IsBcryptHash(hash string) bool {
+	// bcrypt哈希通常以$2a$、$2b$、$2x$或$2y$开头
+	return len(hash) > 10 && (strings.HasPrefix(hash, "$2a$") ||
+		strings.HasPrefix(hash, "$2b$") ||
+		strings.HasPrefix(hash, "$2x$") ||
+		strings.HasPrefix(hash, "$2y$"))
+}
+
+// IsArgon2Hash 检查是否为Argon2哈希
+func IsArgon2Hash(hash string) bool {
+	// Argon2哈希以$argon2id$开头
+	return strings.HasPrefix(hash, "$argon2id$")
 }
 
 // PasswordConfig 密码配置
@@ -84,4 +117,50 @@ func decodeHash(encodedHash string) (*PasswordConfig, []byte, []byte, error) {
 	config.KeyLength = uint32(len(hash))
 
 	return config, salt, hash, nil
+}
+
+// DefaultPasswordConfig 默认密码配置
+var DefaultPasswordConfig = &PasswordConfig{
+	Memory:      64 * 1024, // 64MB
+	Iterations:  3,
+	Parallelism: 2,
+	SaltLength:  16,
+	KeyLength:   32,
+}
+
+// HashPasswordArgon2 使用Argon2加密密码
+func HashPasswordArgon2(password string) (string, error) {
+	return HashPasswordWithConfig(password, DefaultPasswordConfig)
+}
+
+// HashPasswordWithConfig 使用指定配置加密密码
+func HashPasswordWithConfig(password string, config *PasswordConfig) (string, error) {
+	// 生成随机盐
+	salt, err := generateRandomBytes(config.SaltLength)
+	if err != nil {
+		return "", err
+	}
+
+	// 使用Argon2id生成哈希
+	hash := argon2.IDKey([]byte(password), salt, config.Iterations, config.Memory, config.Parallelism, config.KeyLength)
+
+	// 编码为base64
+	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
+	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
+
+	// 格式：$argon2id$v=19$m=65536,t=3,p=2$salt$hash
+	encodedHash := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s",
+		argon2.Version, config.Memory, config.Iterations, config.Parallelism, b64Salt, b64Hash)
+
+	return encodedHash, nil
+}
+
+// generateRandomBytes 生成随机字节
+func generateRandomBytes(n uint32) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }

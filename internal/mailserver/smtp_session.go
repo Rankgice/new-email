@@ -15,11 +15,14 @@ import (
 
 // SMTPSession 实现 smtp.Session 接口
 type SMTPSession struct {
-	backend    *SMTPBackend
-	conn       *smtp.Conn
-	from       string
-	to         []string
-	serverType SMTPServerType // 服务器类型
+	backend       *SMTPBackend
+	conn          *smtp.Conn
+	from          string
+	to            []string
+	serverType    SMTPServerType // 服务器类型
+	authenticated bool           // 认证状态
+	requireAuth   bool           // 是否要求认证
+	authUser      string         // 已认证的用户
 }
 
 // AuthPlain 处理PLAIN认证
@@ -50,6 +53,9 @@ func (s *SMTPSession) AuthPlain(username, password string) error {
 		return fmt.Errorf("invalid credentials")
 	}
 
+	// 认证成功
+	s.authenticated = true
+	s.authUser = username
 	log.Printf("✅ 认证成功: %s [%s]", username, serverTypeStr)
 	return nil
 }
@@ -62,6 +68,12 @@ func (s *SMTPSession) Mail(from string, opts *smtp.MailOptions) error {
 	}
 	log.Printf("📤 MAIL FROM: %s [%s]", from, serverTypeStr)
 
+	// MSA服务器必须要求认证
+	if s.requireAuth && !s.authenticated {
+		log.Printf("❌ MSA服务器要求认证，但未认证 [%s]", serverTypeStr)
+		return fmt.Errorf("authentication required")
+	}
+
 	// 验证发件人地址格式
 	if _, err := mail.ParseAddress(from); err != nil {
 		log.Printf("❌ 无效的发件人地址: %s, 错误: %v [%s]", from, err, serverTypeStr)
@@ -69,9 +81,10 @@ func (s *SMTPSession) Mail(from string, opts *smtp.MailOptions) error {
 	}
 
 	// MSA服务器需要验证发件人权限
-	if s.serverType == SMTPServerTypeSubmit {
-		// TODO: 验证用户是否有权限使用此发件人地址
+	if s.serverType == SMTPServerTypeSubmit && s.authenticated {
+		// TODO: 验证认证用户是否有权限使用此发件人地址
 		// 这里应该检查认证用户是否匹配发件人地址或有权限代发
+		log.Printf("🔍 验证发件人权限: %s (认证用户: %s)", from, s.authUser)
 	}
 
 	s.from = from
