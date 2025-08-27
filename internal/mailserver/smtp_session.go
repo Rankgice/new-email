@@ -62,7 +62,7 @@ func (s *SMTPSession) Auth(mech string) (sasl.Server, error) {
 			}
 
 			// 使用存储层验证凭据
-			if !s.backend.storage.ValidateCredentials(username, password) {
+			if !s.backend.storage.ValidatePassword(username, password) {
 				log.Printf("❌ 认证失败: 用户名或密码错误 %s [%s]", username, serverTypeStr)
 				return fmt.Errorf("invalid credentials")
 			}

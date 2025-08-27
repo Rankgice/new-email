@@ -190,6 +190,28 @@ func (s *MailStorage) MarkAsRead(mailboxEmail string, messageID string) error {
 	return s.emailModel.MarkAsRead(mail.ID)
 }
 
+// ValidatePassword 验证邮箱密码
+func (s *MailStorage) ValidatePassword(email, password string) bool {
+	mailbox, err := s.findMailboxByEmail(email)
+	if err != nil {
+		log.Printf("验证凭据失败: %v", err)
+		return false
+	}
+	if mailbox == nil {
+		log.Printf("邮箱不存在: %s", email)
+		return false
+	}
+
+	// 使用安全的密码验证
+	if password != mailbox.Password {
+		log.Printf("密码验证失败 %s: %v", email, err)
+		return false
+	}
+
+	log.Printf("✅ 邮箱凭据验证成功: %s", email)
+	return true
+}
+
 // ValidateCredentials 验证邮箱凭据
 func (s *MailStorage) ValidateCredentials(email, password string) bool {
 	mailbox, err := s.findMailboxByEmail(email)
