@@ -205,41 +205,90 @@ func (s *SMTPSession) Data(r io.Reader) error {
 
 	// 根据服务器类型进行不同处理
 	if s.serverType == SMTPServerTypeSubmit {
-		// MSA: 用户提交的邮件，需要添加发送者信息和DKIM签名
+		// MSA: 用户提交的邮件，需要处理转发逻辑
 		log.Printf("📤 处理用户提交邮件: %s", subject)
-		// TODO: 添加DKIM签名、设置发送时间等
+
+		// TODO: 实现邮件转发逻辑
+		// 分离本地和外部收件人
+		localRecipients := []string{}
+		externalRecipients := []string{}
+
+		for _, recipient := range s.to {
+			if s.isLocalDomain(recipient) {
+				localRecipients = append(localRecipients, recipient)
+			} else {
+				externalRecipients = append(externalRecipients, recipient)
+			}
+		}
+
+		log.Printf("📬 本地收件人: %v", localRecipients)
+		log.Printf("🌐 外部收件人: %v", externalRecipients)
+
+		// 暂时只处理本地收件人，外部转发功能待实现
+		if len(externalRecipients) > 0 {
+			log.Printf("⚠️  外部邮件转发功能尚未完全实现，收件人: %v", externalRecipients)
+			// 暂时不返回错误，让邮件能够正常接收
+		}
+
+		// 创建存储邮件对象（包含所有收件人）
+		storedMail := &StoredMail{
+			MessageID:   generateMessageID(s.backend.domain),
+			From:        s.from,
+			To:          s.to, // 存储所有收件人
+			Subject:     subject,
+			Body:        string(body),
+			ContentType: msg.Header.Get("Content-Type"),
+			Size:        len(body),
+			Received:    time.Now(),
+			IsRead:      false,
+			Folder:      "INBOX",
+		}
+
+		// 存储邮件
+		if err := s.backend.storage.StoreMail(storedMail); err != nil {
+			log.Printf("❌ 存储邮件失败: %v [%s]", err, serverTypeStr)
+			return fmt.Errorf("failed to store message: %v", err)
+		}
+
+		log.Printf("✅ 邮件存储成功: %s [%s]", storedMail.MessageID, serverTypeStr)
+		log.Printf("📧 发件人: %s", s.from)
+		log.Printf("📧 收件人: %v", s.to)
+		log.Printf("📧 主题: %s", storedMail.Subject)
+
+		return nil
+
 	} else {
 		// MTA: 接收的外部邮件，需要进行垃圾邮件检查
 		log.Printf("📥 处理接收邮件: %s", subject)
 		// TODO: 垃圾邮件检查、病毒扫描等
+
+		// 创建存储邮件对象
+		storedMail := &StoredMail{
+			MessageID:   generateMessageID(s.backend.domain),
+			From:        s.from,
+			To:          s.to,
+			Subject:     subject,
+			Body:        string(body),
+			ContentType: msg.Header.Get("Content-Type"),
+			Size:        len(body),
+			Received:    time.Now(),
+			IsRead:      false,
+			Folder:      "INBOX",
+		}
+
+		// 存储邮件
+		if err := s.backend.storage.StoreMail(storedMail); err != nil {
+			log.Printf("❌ 存储邮件失败: %v [%s]", err, serverTypeStr)
+			return fmt.Errorf("failed to store message: %v", err)
+		}
+
+		log.Printf("✅ 邮件存储成功: %s [%s]", storedMail.MessageID, serverTypeStr)
+		log.Printf("📧 发件人: %s", s.from)
+		log.Printf("📧 收件人: %v", s.to)
+		log.Printf("📧 主题: %s", storedMail.Subject)
+
+		return nil
 	}
-
-	// 创建存储邮件对象
-	storedMail := &StoredMail{
-		MessageID:   generateMessageID(s.backend.domain),
-		From:        s.from,
-		To:          s.to,
-		Subject:     subject,
-		Body:        string(body),
-		ContentType: msg.Header.Get("Content-Type"),
-		Size:        len(body),
-		Received:    time.Now(),
-		IsRead:      false,
-		Folder:      "INBOX",
-	}
-
-	// 存储邮件
-	if err := s.backend.storage.StoreMail(storedMail); err != nil {
-		log.Printf("❌ 存储邮件失败: %v [%s]", err, serverTypeStr)
-		return fmt.Errorf("failed to store message: %v", err)
-	}
-
-	log.Printf("✅ 邮件存储成功: %s [%s]", storedMail.MessageID, serverTypeStr)
-	log.Printf("📧 发件人: %s", s.from)
-	log.Printf("📧 收件人: %v", s.to)
-	log.Printf("📧 主题: %s", storedMail.Subject)
-
-	return nil
 }
 
 // Reset 重置会话状态
