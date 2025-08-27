@@ -28,10 +28,15 @@ type SMTPSession struct {
 
 // AuthMechanisms 返回支持的认证机制
 func (s *SMTPSession) AuthMechanisms() []string {
+	serverTypeStr := "MTA(接收)"
+	if s.serverType == SMTPServerTypeSubmit {
+		serverTypeStr = "MSA(提交)"
+	}
+
 	// 目前只支持PLAIN认证机制
 	mechanisms := []string{"PLAIN"}
 
-	log.Printf("🔐 支持的认证机制: %v", mechanisms)
+	log.Printf("🔐 AuthMechanisms被调用 [%s]: 返回支持的认证机制 %v", serverTypeStr, mechanisms)
 	return mechanisms
 }
 
@@ -42,7 +47,7 @@ func (s *SMTPSession) Auth(mech string) (sasl.Server, error) {
 		serverTypeStr = "MSA(提交)"
 	}
 
-	log.Printf("🔐 请求认证机制 [%s]: %s", serverTypeStr, mech)
+	log.Printf("🔐 Auth方法被调用 [%s]: 请求认证机制 %s", serverTypeStr, mech)
 
 	switch strings.ToUpper(mech) {
 	case "PLAIN":

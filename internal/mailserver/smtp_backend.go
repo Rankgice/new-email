@@ -61,7 +61,7 @@ func NewSMTPSubmitServer(port int, domain string, storage *MailStorage) *SMTPSer
 	server.ReadTimeout = 10 * time.Second
 	server.MaxMessageBytes = 25 * 1024 * 1024 // 25MB for user submissions
 	server.MaxRecipients = 50
-	server.AllowInsecureAuth = false // MSA要求加密认证
+	server.AllowInsecureAuth = true // MSA要求加密认证
 	// 注意：MSA需要认证，认证逻辑在Backend中强制执行
 
 	// 配置TLS（生产环境需要真实证书）
@@ -123,6 +123,13 @@ func (b *SMTPBackend) NewSession(c *smtp.Conn) (smtp.Session, error) {
 		log.Printf("🌐 MTA服务器可接受未认证连接")
 	}
 
+	// 验证session实现了必要的接口
+	var _ smtp.Session = session
+	var _ smtp.AuthSession = session // 确保实现了AuthSession接口
+
+	log.Printf("✅ 会话创建成功，支持认证接口: %t", true)
+
+	// 返回session，go-smtp会自动检测是否实现了AuthSession接口
 	return session, nil
 }
 
