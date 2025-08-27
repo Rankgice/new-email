@@ -7,6 +7,7 @@ import (
 
 	"gorm.io/gorm"
 	"new-email/internal/model"
+	"new-email/pkg/auth"
 )
 
 // MailStorage 邮件存储
@@ -201,8 +202,14 @@ func (s *MailStorage) ValidateCredentials(email, password string) bool {
 		return false
 	}
 
-	// 简单的密码验证（实际项目中应该使用加密）
-	return mailbox.Password == password
+	// 使用安全的密码验证
+	if err := auth.CheckPassword(password, mailbox.Password); err != nil {
+		log.Printf("密码验证失败 %s: %v", email, err)
+		return false
+	}
+
+	log.Printf("✅ 邮箱凭据验证成功: %s", email)
+	return true
 }
 
 // findMailboxByEmail 根据邮箱地址查找邮箱

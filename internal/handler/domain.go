@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"new-email/internal/constant"
 	"new-email/internal/middleware"
@@ -10,6 +11,7 @@ import (
 	"new-email/internal/svc"
 	"new-email/internal/types"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -231,30 +233,132 @@ func (h *DomainHandler) Verify(c *gin.Context) {
 		return
 	}
 
-	// TODO: 实现DNS验证逻辑
-	// 这里应该检查域名的DNS记录是否正确配置
-	// 包括MX记录、SPF记录、DKIM记录、DMARC记录等
+	// 执行DNS验证
+	verified, verifyResults := h.verifyDomainDNS(domain.Name)
 
-	// 暂时模拟验证成功
-	verified := true
-
-	// 更新验证状态
-	if err := h.svcCtx.DomainModel.MapUpdate(nil, domainId, map[string]interface{}{
+	// 更新验证状态和DNS记录
+	updateData := map[string]interface{}{
 		"dns_verified": verified,
-	}); err != nil {
+	}
+
+	// 如果验证成功，生成并保存DNS记录
+	if verified {
+		// 生成SPF记录
+		spfRecord := "v=spf1 mx a -all"
+		updateData["spf_record"] = spfRecord
+
+		// 生成DMARC记录
+		dmarcRecord := "v=DMARC1; p=quarantine; rua=mailto:dmarc@" + domain.Name
+		updateData["dmarc_record"] = dmarcRecord
+
+		// 生成DKIM记录（简化版）
+		dkimRecord := "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC..." // 示例公钥
+		updateData["dkim_record"] = dkimRecord
+	}
+
+	if err := h.svcCtx.DomainModel.MapUpdate(nil, domainId, updateData); err != nil {
 		c.JSON(http.StatusInternalServerError, result.ErrorUpdate.AddError(err))
 		return
 	}
 
 	message := "DNS验证成功"
 	if !verified {
-		message = "DNS验证失败"
+		message = "DNS验证失败: " + strings.Join(verifyResults.Errors, "; ")
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(map[string]interface{}{
 		"verified": verified,
 		"message":  message,
+		"details":  verifyResults,
 	}))
+}
+
+// DNSVerifyResult DNS验证结果
+type DNSVerifyResult struct {
+	MXRecords   []string `json:"mx_records"`
+	SPFRecord   string   `json:"spf_record"`
+	DKIMRecord  string   `json:"dkim_record"`
+	DMARCRecord string   `json:"dmarc_record"`
+	HasMX       bool     `json:"has_mx"`
+	HasSPF      bool     `json:"has_spf"`
+	HasDKIM     bool     `json:"has_dkim"`
+	HasDMARC    bool     `json:"has_dmarc"`
+	Errors      []string `json:"errors"`
+	Warnings    []string `json:"warnings"`
+}
+
+// verifyDomainDNS 验证域名DNS配置
+func (h *DomainHandler) verifyDomainDNS(domainName string) (bool, *DNSVerifyResult) {
+	result := &DNSVerifyResult{
+		MXRecords: make([]string, 0),
+		Errors:    make([]string, 0),
+		Warnings:  make([]string, 0),
+	}
+
+	// 1. 检查MX记录
+	mxRecords, err := net.LookupMX(domainName)
+	if err != nil {
+		result.Errors = append(result.Errors, fmt.Sprintf("MX记录查询失败: %v", err))
+	} else if len(mxRecords) == 0 {
+		result.Errors = append(result.Errors, "未找到MX记录")
+	} else {
+		result.HasMX = true
+		for _, mx := range mxRecords {
+			result.MXRecords = append(result.MXRecords, fmt.Sprintf("%s (优先级:%d)", mx.Host, mx.Pref))
+		}
+	}
+
+	// 2. 检查SPF记录
+	txtRecords, err := net.LookupTXT(domainName)
+	if err != nil {
+		result.Errors = append(result.Errors, fmt.Sprintf("TXT记录查询失败: %v", err))
+	} else {
+		for _, txt := range txtRecords {
+			if strings.HasPrefix(txt, "v=spf1") {
+				result.HasSPF = true
+				result.SPFRecord = txt
+				break
+			}
+		}
+		if !result.HasSPF {
+			result.Warnings = append(result.Warnings, "未找到SPF记录，建议添加")
+		}
+	}
+
+	// 3. 检查DKIM记录（检查default选择器）
+	dkimDomain := "default._domainkey." + domainName
+	dkimRecords, err := net.LookupTXT(dkimDomain)
+	if err != nil {
+		result.Warnings = append(result.Warnings, "未找到DKIM记录，建议配置")
+	} else {
+		for _, txt := range dkimRecords {
+			if strings.HasPrefix(txt, "v=DKIM1") {
+				result.HasDKIM = true
+				result.DKIMRecord = txt
+				break
+			}
+		}
+	}
+
+	// 4. 检查DMARC记录
+	dmarcDomain := "_dmarc." + domainName
+	dmarcRecords, err := net.LookupTXT(dmarcDomain)
+	if err != nil {
+		result.Warnings = append(result.Warnings, "未找到DMARC记录，建议配置")
+	} else {
+		for _, txt := range dmarcRecords {
+			if strings.HasPrefix(txt, "v=DMARC1") {
+				result.HasDMARC = true
+				result.DMARCRecord = txt
+				break
+			}
+		}
+	}
+
+	// 验证通过条件：必须有MX记录
+	verified := result.HasMX
+
+	return verified, result
 }
 
 // GetById 根据ID获取域名信息
