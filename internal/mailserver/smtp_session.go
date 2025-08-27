@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/emersion/go-message"
+	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 )
 
-// SMTPSession 实现 smtp.Session 接口
+// SMTPSession 实现 smtp.Session 和 smtp.AuthSession 接口
 type SMTPSession struct {
 	backend       *SMTPBackend
 	conn          *smtp.Conn
@@ -25,39 +26,58 @@ type SMTPSession struct {
 	authUser      string         // 已认证的用户
 }
 
-// AuthPlain 处理PLAIN认证
-func (s *SMTPSession) AuthPlain(username, password string) error {
-	// 记录认证请求
+// AuthMechanisms 返回支持的认证机制
+func (s *SMTPSession) AuthMechanisms() []string {
+	// 目前只支持PLAIN认证机制
+	mechanisms := []string{"PLAIN"}
+
+	log.Printf("🔐 支持的认证机制: %v", mechanisms)
+	return mechanisms
+}
+
+// Auth 处理指定的认证机制
+func (s *SMTPSession) Auth(mech string) (sasl.Server, error) {
 	serverTypeStr := "MTA(接收)"
 	if s.serverType == SMTPServerTypeSubmit {
 		serverTypeStr = "MSA(提交)"
 	}
-	log.Printf("🔐 SMTP认证请求 [%s]: %s", serverTypeStr, username)
 
-	// MTA服务器(25端口)通常不需要认证，但如果有认证请求也要处理
-	// MSA服务器(587端口)必须要求认证
-	if s.serverType == SMTPServerTypeReceive {
-		// MTA: 可选认证，主要用于中继控制
-		log.Printf("⚠️  MTA服务器收到认证请求，将验证但不强制要求")
+	log.Printf("🔐 请求认证机制 [%s]: %s", serverTypeStr, mech)
+
+	switch strings.ToUpper(mech) {
+	case "PLAIN":
+		// 创建PLAIN认证服务器
+		return sasl.NewPlainServer(func(identity, username, password string) error {
+			log.Printf("🔐 PLAIN认证请求 [%s]: identity=%s, username=%s", serverTypeStr, identity, username)
+
+			// 验证邮箱格式
+			if !strings.Contains(username, "@") {
+				log.Printf("❌ 认证失败: 无效的邮箱格式 %s [%s]", username, serverTypeStr)
+				return fmt.Errorf("invalid email format")
+			}
+
+			// 使用存储层验证凭据
+			if !s.backend.storage.ValidateCredentials(username, password) {
+				log.Printf("❌ 认证失败: 用户名或密码错误 %s [%s]", username, serverTypeStr)
+				return fmt.Errorf("invalid credentials")
+			}
+
+			// 认证成功
+			s.authenticated = true
+			s.authUser = username
+			log.Printf("✅ PLAIN认证成功: %s [%s]", username, serverTypeStr)
+			return nil
+		}), nil
+
+	case "LOGIN":
+		// LOGIN认证机制 - 暂时不支持，因为go-sasl没有直接的NewLoginServer
+		log.Printf("⚠️  LOGIN认证机制暂不支持，请使用PLAIN认证 [%s]", serverTypeStr)
+		return nil, fmt.Errorf("LOGIN authentication not supported, please use PLAIN")
+
+	default:
+		log.Printf("❌ 不支持的认证机制: %s [%s]", mech, serverTypeStr)
+		return nil, fmt.Errorf("unsupported authentication mechanism: %s", mech)
 	}
-
-	// 验证邮箱格式
-	if !strings.Contains(username, "@") {
-		log.Printf("❌ 认证失败: 无效的邮箱格式 %s [%s]", username, serverTypeStr)
-		return fmt.Errorf("invalid email format")
-	}
-
-	// 使用存储层验证凭据
-	if !s.backend.storage.ValidateCredentials(username, password) {
-		log.Printf("❌ 认证失败: 用户名或密码错误 %s [%s]", username, serverTypeStr)
-		return fmt.Errorf("invalid credentials")
-	}
-
-	// 认证成功
-	s.authenticated = true
-	s.authUser = username
-	log.Printf("✅ 认证成功: %s [%s]", username, serverTypeStr)
-	return nil
 }
 
 // Mail 处理MAIL FROM命令
