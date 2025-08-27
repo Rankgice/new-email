@@ -55,10 +55,11 @@ func NewMailServer(config Config, db *gorm.DB) *MailServer {
 // Start 启动邮件服务器
 func (s *MailServer) Start() error {
 	log.Printf("🚀 启动邮件服务器...")
-	log.Printf("📧 SMTP接收服务器 (MTA): localhost:%d", s.config.SMTPReceivePort)
-	log.Printf("📤 SMTP提交服务器 (MSA): localhost:%d", s.config.SMTPSubmitPort)
+	log.Printf("📧 SMTP接收服务器 (MTA): localhost:%d - 用于接收外部邮件", s.config.SMTPReceivePort)
+	log.Printf("📤 SMTP提交服务器 (MSA): localhost:%d - 用于用户认证提交", s.config.SMTPSubmitPort)
 	log.Printf("📬 IMAP服务器: localhost:%d", s.config.IMAPPort)
 	log.Printf("🌐 域名: %s", s.config.Domain)
+	log.Printf("⚠️  外部邮件应连接到端口%d，用户提交应连接到端口%d", s.config.SMTPReceivePort, s.config.SMTPSubmitPort)
 
 	// 启动SMTP接收服务器 (25端口)
 	s.wg.Add(1)
@@ -88,14 +89,18 @@ func (s *MailServer) Start() error {
 	}()
 
 	// 等待服务器启动
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
-	// 测试端口是否可用
-	if err := s.testPorts(); err != nil {
-		return err
-	}
+	// 测试端口是否可用（可选，可能导致连接冲突）
+	// if err := s.testPorts(); err != nil {
+	//     return err
+	// }
 
-	log.Printf("✅ 邮件服务器启动成功")
+	log.Printf("✅ 邮件服务器启动完成")
+	log.Printf("💡 使用说明:")
+	log.Printf("   - 外部邮件服务器发送到: localhost:%d (无需认证)", s.config.SMTPReceivePort)
+	log.Printf("   - 用户邮件客户端连接: localhost:%d (需要认证)", s.config.SMTPSubmitPort)
+	log.Printf("   - IMAP邮件访问: localhost:%d", s.config.IMAPPort)
 	return nil
 }
 

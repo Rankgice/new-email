@@ -46,10 +46,10 @@ func main() {
 
 	// 启动邮件服务器（使用emersion/go-smtp）
 	mailServerConfig := mailserver.Config{
-		SMTPReceivePort: 25,          // 接收外部邮件 (MTA)
-		SMTPSubmitPort:  587,         // 用户提交邮件 (MSA)
-		IMAPPort:        993,         // IMAP访问
-		Domain:          "localhost", // 应该使用实际域名
+		SMTPReceivePort: 25,           // 接收外部邮件 (MTA)
+		SMTPSubmitPort:  587,          // 用户提交邮件 (MSA)
+		IMAPPort:        993,          // IMAP访问
+		Domain:          "email.host", // 本地邮件域名，应该与DNS MX记录匹配
 	}
 	mailServer := mailserver.NewMailServer(mailServerConfig, svcCtx.DB)
 	if err := mailServer.Start(); err != nil {

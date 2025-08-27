@@ -102,6 +102,12 @@ func (s *SMTPSession) Rcpt(to string, opts *smtp.RcptOptions) error {
 	}
 	log.Printf("📥 RCPT TO: %s [%s]", to, serverTypeStr)
 
+	// MSA服务器必须要求认证
+	if s.requireAuth && !s.authenticated {
+		log.Printf("❌ MSA服务器要求认证，但未认证 [%s]", serverTypeStr)
+		return fmt.Errorf("authentication required")
+	}
+
 	// 验证收件人地址格式
 	if _, err := mail.ParseAddress(to); err != nil {
 		log.Printf("❌ 无效的收件人地址: %s, 错误: %v [%s]", to, err, serverTypeStr)
@@ -110,9 +116,12 @@ func (s *SMTPSession) Rcpt(to string, opts *smtp.RcptOptions) error {
 
 	// MTA服务器需要检查是否为本地域名
 	if s.serverType == SMTPServerTypeReceive {
-		// TODO: 检查收件人是否为本地域名的邮箱
-		// 如果不是本地域名，应该拒绝接收（防止成为开放中继）
-		log.Printf("🔍 MTA检查收件人域名: %s", to)
+		// 检查收件人是否为本地域名的邮箱
+		if !s.isLocalDomain(to) {
+			log.Printf("❌ 收件人不属于本地域名，拒绝接收: %s", to)
+			return fmt.Errorf("relay not permitted")
+		}
+		log.Printf("✅ MTA确认本地域名邮箱: %s", to)
 	}
 
 	// 检查是否超过最大收件人数量
@@ -229,9 +238,40 @@ func (s *SMTPSession) Logout() error {
 	return nil
 }
 
-// generateMessageID 生成消息ID
+// isLocalDomain 检查是否为本地域名
+func (s *SMTPSession) isLocalDomain(email string) bool {
+	// 提取邮箱的域名部分
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return false
+	}
+	domain := strings.ToLower(parts[1])
+
+	// 检查是否为服务器域名
+	serverDomain := strings.ToLower(s.backend.domain)
+	if domain == serverDomain {
+		log.Printf("✅ 匹配服务器域名: %s", domain)
+
+		// 进一步检查邮箱是否存在于数据库中
+		if s.backend.storage.isMailboxExists(email) {
+			log.Printf("✅ 邮箱存在于数据库: %s", email)
+			return true
+		} else {
+			log.Printf("⚠️  域名匹配但邮箱不存在: %s", email)
+			// 对于自建邮箱，即使邮箱不存在也应该接收（可以后续创建）
+			return true
+		}
+	}
+
+	// TODO: 这里应该查询数据库中配置的其他本地域名列表
+	// 暂时只检查服务器配置的域名
+	log.Printf("❌ 域名不匹配: %s vs %s", domain, serverDomain)
+	return false
+}
+
+// generateMessageID 生成邮件ID
 func generateMessageID(domain string) string {
-	return fmt.Sprintf("<%d@%s>", time.Now().UnixNano(), domain)
+	return fmt.Sprintf("<%d.%d@%s>", time.Now().Unix(), time.Now().Nanosecond(), domain)
 }
 
 // formatHeaders 格式化邮件头

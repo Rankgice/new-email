@@ -222,3 +222,13 @@ func (s *MailStorage) GetMailboxes(email string) ([]string, error) {
 	// 对于简单实现，只返回INBOX
 	return []string{"INBOX"}, nil
 }
+
+// isMailboxExists 检查邮箱是否存在
+func (s *MailStorage) isMailboxExists(email string) bool {
+	mailbox, err := s.findMailboxByEmail(email)
+	if err != nil {
+		log.Printf("检查邮箱存在性时出错: %v", err)
+		return false
+	}
+	return mailbox != nil
+}
