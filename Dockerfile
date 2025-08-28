@@ -72,10 +72,15 @@ RUN mkdir -p data/attachments data/logs data/uploads && \
 USER appuser
 
 # 暴露端口
-EXPOSE 8080    # Web管理界面和API
-EXPOSE 25      # SMTP接收端口 (MTA) - 接收外部邮件
-EXPOSE 587     # SMTP提交端口 (MSA) - 用户发送邮件  
-EXPOSE 993     # IMAP端口 (SSL) - 邮件客户端访问
+
+# Web管理界面和API
+EXPOSE 8080
+# SMTP接收端口 (MTA) - 接收外部邮件
+EXPOSE 25
+# SMTP提交端口 (MSA) - 用户发送邮件
+EXPOSE 587
+# IMAP端口 (SSL) - 邮件客户端访问
+EXPOSE 993
 
 # 健康检查（使用curl替代wget）
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
