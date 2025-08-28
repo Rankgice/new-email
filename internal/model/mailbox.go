@@ -1,8 +1,8 @@
 package model
 
 import (
+	"github.com/rankgice/new-email/internal/constant"
 	"gorm.io/gorm"
-	"new-email/internal/constant"
 	"time"
 )
 

@@ -1,9 +1,9 @@
 package router
 
 import (
-	"new-email/internal/handler"
-	"new-email/internal/middleware"
-	"new-email/internal/svc"
+	"github.com/rankgice/new-email/internal/handler"
+	"github.com/rankgice/new-email/internal/middleware"
+	"github.com/rankgice/new-email/internal/svc"
 
 	"github.com/gin-gonic/gin"
 )

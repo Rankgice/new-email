@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/rankgice/new-email/internal/model"
+	"github.com/rankgice/new-email/pkg/auth"
 	"gorm.io/gorm"
-	"new-email/internal/model"
-	"new-email/pkg/auth"
 )
 
 // MailStorage 邮件存储

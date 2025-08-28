@@ -1,4 +1,4 @@
-module new-email
+module github.com/rankgice/new-email
 
 go 1.23.0
 

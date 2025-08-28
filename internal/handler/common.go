@@ -3,11 +3,11 @@ package handler
 import (
 	"crypto/rand"
 	"fmt"
+	"github.com/rankgice/new-email/internal/result"
+	"github.com/rankgice/new-email/internal/svc"
+	"github.com/rankgice/new-email/internal/types"
 	"math/big"
 	"net/http"
-	"new-email/internal/result"
-	"new-email/internal/svc"
-	"new-email/internal/types"
 	"time"
 
 	"github.com/gin-gonic/gin"
