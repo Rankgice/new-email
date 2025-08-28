@@ -9,122 +9,50 @@ services:
     container_name: email-system
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - "8080:8080"    # Web管理界面和API
+      - "25:25"        # SMTP接收端口 (MTA) - 接收外部邮件
+      - "587:587"      # SMTP提交端口 (MSA) - 用户发送邮件
+      - "993:993"      # IMAP端口 (SSL) - 邮件客户端访问
     volumes:
       - ./data:/app/data
       - ./etc:/app/etc
       - ./logs:/app/data/logs
     environment:
       - TZ=Asia/Shanghai
+      - MINIO_ENDPOINT=minio:9000
     depends_on:
-      - mysql
-      - redis
+      minio:
+        condition: service_healthy
     networks:
       - email-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # MySQL数据库（可选，如果使用MySQL）
-  mysql:
-    image: mysql:8.0
-    container_name: email-mysql
+  # MinIO对象存储（用于文件存储）
+  minio:
+    image: minio/minio:latest
+    container_name: email-minio
     restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: root123456
-      MYSQL_DATABASE: email_system
-      MYSQL_USER: email_user
-      MYSQL_PASSWORD: email_pass
-      TZ: Asia/Shanghai
     ports:
-      - "3306:3306"
+      - "9000:9000"
+      - "9001:9001"
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    command: --default-authentication-plugin=mysql_native_password
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
     networks:
       - email-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
-      timeout: 10s
+      timeout: 20s
       retries: 3
-
-  # Redis缓存（可选）
-  redis:
-    image: redis:7-alpine
-    container_name: email-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes --requirepass redis123456
-    networks:
-      - email-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Nginx反向代理（可选）
-  nginx:
-    image: nginx:alpine
-    container_name: email-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - ./logs/nginx:/var/log/nginx
-    depends_on:
-      - email-system
-    networks:
-      - email-network
-
-  # 监控服务（可选）
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: email-prometheus
-    restart: unless-stopped
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    networks:
-      - email-network
-
-  # Grafana仪表板（可选）
-  grafana:
-    image: grafana/grafana:latest
-    container_name: email-grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123456
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
-    depends_on:
-      - prometheus
-    networks:
-      - email-network
 
 # 网络配置
 networks:
@@ -133,11 +61,5 @@ networks:
 
 # 数据卷
 volumes:
-  mysql_data:
-    driver: local
-  redis_data:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
+  minio_data:
     driver: local
