@@ -22,12 +22,11 @@ logs/
 .DS_Store
 Thumbs.db
 
-# 依赖目录
+# 前端相关（CI/CD构建时排除）
+web/
 node_modules/
-web/node_modules/
 
 # 构建产物
-web/dist/
 *.exe
 *.dll
 *.so
@@ -56,4 +55,6 @@ backup/
 vendor/
 
 # 其他
-docker-compose.override.yml 
+docker-compose.override.yml
+Dockerfile
+Dockerfile.backend 

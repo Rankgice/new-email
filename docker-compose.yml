@@ -1,7 +1,10 @@
 version: '3.8'
 
+# 完整版本 - 包含前端构建
+# 如需纯后端部署，请使用预构建镜像或CI/CD流水线
+
 services:
-  # 邮件管理系统主服务
+  # 邮件管理系统主服务（包含前端构建）
   email-system:
     build:
       context: .
