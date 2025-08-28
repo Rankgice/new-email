@@ -18,7 +18,7 @@ COPY web/ ./
 RUN npm run build
 
 # Go应用构建阶段
-FROM golang:1.21-alpine AS backend-builder
+FROM golang:1.24-alpine AS backend-builder
 
 # 设置工作目录
 WORKDIR /app
