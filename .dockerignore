@@ -55,6 +55,4 @@ backup/
 vendor/
 
 # 其他
-docker-compose.override.yml
-Dockerfile
-Dockerfile.backend 
+docker-compose.override.yml 

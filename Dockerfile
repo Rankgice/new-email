@@ -1,15 +1,16 @@
 # 邮件系统后端 Dockerfile（支持CGO和SQLite）
 
 # 构建阶段
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24-bullseye AS builder
 
-# 更新包索引并安装构建依赖
-RUN apk update && apk add --no-cache \
+# 安装构建依赖
+RUN apt-get update && apt-get install -y \
     gcc \
-    musl-dev \
-    sqlite-dev \
+    libc6-dev \
+    libsqlite3-dev \
     git \
-    ca-certificates
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app
@@ -26,26 +27,26 @@ COPY . .
 # 构建Go应用（启用CGO以支持SQLite）
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build \
     -a -installsuffix cgo \
-    -ldflags '-extldflags "-static"' \
     -o email-system main.go
 
 # 运行阶段
-FROM alpine:latest
+FROM debian:bullseye-slim
 
 # 安装运行时依赖
-RUN apk update && apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     ca-certificates \
     tzdata \
     curl \
-    sqlite
+    sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # 设置时区
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN echo 'Asia/Shanghai' > /etc/timezone
 
 # 创建非root用户
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+RUN groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -m appuser
 
 # 设置工作目录
 WORKDIR /app
