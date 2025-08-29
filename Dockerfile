@@ -1,10 +1,43 @@
-# 邮件系统后端 Dockerfile（不包含前端）
+# 邮件系统后端 Dockerfile（支持CGO和SQLite）
+
+# 构建阶段
+FROM golang:1.24-alpine AS builder
+
+# 更新包索引并安装构建依赖
+RUN apk update && apk add --no-cache \
+    gcc \
+    musl-dev \
+    sqlite-dev \
+    git \
+    ca-certificates
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制 go mod 文件
+COPY go.mod go.sum ./
+
+# 下载依赖
+RUN go mod download
+
+# 复制源代码
+COPY . .
+
+# 构建Go应用（启用CGO以支持SQLite）
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build \
+    -a -installsuffix cgo \
+    -ldflags '-extldflags "-static"' \
+    -o email-system main.go
 
 # 运行阶段
 FROM alpine:latest
 
-# 安装必要的包（包括sqlite、curl用于健康检查）
-RUN apk --no-cache add ca-certificates tzdata curl sqlite
+# 安装运行时依赖
+RUN apk update && apk add --no-cache \
+    ca-certificates \
+    tzdata \
+    curl \
+    sqlite
 
 # 设置时区
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
@@ -17,8 +50,8 @@ RUN addgroup -g 1001 -S appgroup && \
 # 设置工作目录
 WORKDIR /app
 
-# 从构建上下文复制Go二进制文件（由CI/CD预先构建）
-COPY email-system .
+# 从构建阶段复制二进制文件
+COPY --from=builder /app/email-system .
 
 # 复制配置文件
 COPY etc ./etc
@@ -31,17 +64,9 @@ RUN mkdir -p data/attachments data/logs data/uploads && \
 USER appuser
 
 # 暴露端口
+EXPOSE 8080 25 587 993
 
-# Web管理界面和API
-EXPOSE 8080
-# SMTP接收端口 (MTA) - 接收外部邮件
-EXPOSE 25
-# SMTP提交端口 (MSA) - 用户发送邮件
-EXPOSE 587
-# IMAP端口 (SSL) - 邮件客户端访问
-EXPOSE 993
-
-# 健康检查（使用curl）
+# 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/api/health || exit 1
 
