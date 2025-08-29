@@ -134,7 +134,7 @@ system:
     max_login_attempts: 5
     lockout_duration: 300  # 5分钟
 minio:
-  endpoint: localhost:9000
+  endpoint: minio:9000
   access_key_id: minioadmin
   secret_access_key: minioadmin
   use_ssl: false

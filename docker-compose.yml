@@ -15,9 +15,8 @@ services:
       - "587:587"      # SMTP提交端口 (MSA) - 用户发送邮件
       - "993:993"      # IMAP端口 (SSL) - 邮件客户端访问
     volumes:
-      - ./data:/app/data
-      - ./etc:/app/etc
-      - ./logs:/app/data/logs
+      - email_data:/app/data
+      - email_etc:/app/etc
     environment:
       - TZ=Asia/Shanghai
       - MINIO_ENDPOINT=minio:9000
@@ -63,4 +62,8 @@ networks:
 # 数据卷
 volumes:
   minio_data:
+    driver: local
+  email_data:
+    driver: local
+  email_etc:
     driver: local
