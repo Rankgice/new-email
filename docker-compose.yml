@@ -6,9 +6,7 @@ version: '3.8'
 services:
   # 邮件管理系统主服务（包含前端构建）
   email-system:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/rankgice/new-email/app:latest
     container_name: email-system
     restart: unless-stopped
     ports:
