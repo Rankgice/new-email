@@ -5,14 +5,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/rankgice/new-email/internal/model"
+	"github.com/rankgice/new-email/pkg/auth"
 	"gorm.io/gorm"
-	"new-email/internal/model"
 )
 
 // MailStorage 邮件存储
 type MailStorage struct {
 	emailModel   *model.EmailModel
 	mailboxModel *model.MailboxModel
+	domainModel  *model.DomainModel
 }
 
 // StoredMail 存储的邮件
@@ -38,6 +40,7 @@ func NewMailStorage(db *gorm.DB) *MailStorage {
 	return &MailStorage{
 		emailModel:   model.NewEmailModel(db),
 		mailboxModel: model.NewMailboxModel(db),
+		domainModel:  model.NewDomainModel(db),
 	}
 }
 
@@ -189,6 +192,28 @@ func (s *MailStorage) MarkAsRead(mailboxEmail string, messageID string) error {
 	return s.emailModel.MarkAsRead(mail.ID)
 }
 
+// ValidatePassword 验证邮箱密码
+func (s *MailStorage) ValidatePassword(email, password string) bool {
+	mailbox, err := s.findMailboxByEmail(email)
+	if err != nil {
+		log.Printf("验证凭据失败: %v", err)
+		return false
+	}
+	if mailbox == nil {
+		log.Printf("邮箱不存在: %s", email)
+		return false
+	}
+
+	// 使用安全的密码验证
+	if password != mailbox.Password {
+		log.Printf("密码验证失败 %s: %v", email, err)
+		return false
+	}
+
+	log.Printf("✅ 邮箱凭据验证成功: %s", email)
+	return true
+}
+
 // ValidateCredentials 验证邮箱凭据
 func (s *MailStorage) ValidateCredentials(email, password string) bool {
 	mailbox, err := s.findMailboxByEmail(email)
@@ -201,8 +226,14 @@ func (s *MailStorage) ValidateCredentials(email, password string) bool {
 		return false
 	}
 
-	// 简单的密码验证（实际项目中应该使用加密）
-	return mailbox.Password == password
+	// 使用安全的密码验证
+	if err := auth.CheckPassword(password, mailbox.Password); err != nil {
+		log.Printf("密码验证失败 %s: %v", email, err)
+		return false
+	}
+
+	log.Printf("✅ 邮箱凭据验证成功: %s", email)
+	return true
 }
 
 // findMailboxByEmail 根据邮箱地址查找邮箱
@@ -214,4 +245,14 @@ func (s *MailStorage) findMailboxByEmail(email string) (*model.Mailbox, error) {
 func (s *MailStorage) GetMailboxes(email string) ([]string, error) {
 	// 对于简单实现，只返回INBOX
 	return []string{"INBOX"}, nil
+}
+
+// isMailboxExists 检查邮箱是否存在
+func (s *MailStorage) isMailboxExists(email string) bool {
+	mailbox, err := s.findMailboxByEmail(email)
+	if err != nil {
+		log.Printf("检查邮箱存在性时出错: %v", err)
+		return false
+	}
+	return mailbox != nil
 }

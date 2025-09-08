@@ -1,9 +1,10 @@
 package router
 
 import (
-	"new-email/internal/handler"
-	"new-email/internal/middleware"
-	"new-email/internal/svc"
+	"github.com/rankgice/new-email/internal/handler"
+	"github.com/rankgice/new-email/internal/middleware"
+	"github.com/rankgice/new-email/internal/svc"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,10 +14,60 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 	// 全局中间件
 	r.Use(middleware.CorsMiddleware())
 
-	// 静态文件服务
-	r.Static("/static", "./web/dist/static")
-	r.StaticFile("/", "./web/dist/index.html")
-	r.StaticFile("/favicon.ico", "./web/dist/favicon.ico")
+	// 健康检查端点
+	r.GET("/api/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "ok",
+			"message": "邮件系统运行正常",
+			"version": "1.0.0",
+		})
+	})
+
+	// API状态页面（简单的HTML页面）
+	r.GET("/", func(c *gin.Context) {
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.String(http.StatusOK, `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>邮件管理系统</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .status { color: #28a745; font-size: 24px; }
+        .info { margin: 20px 0; }
+        .endpoint { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>邮件管理系统</h1>
+        <div class="status">✅ 系统运行正常</div>
+        
+        <div class="info">
+            <h3>邮件服务端口</h3>
+            <div class="endpoint">SMTP接收: 25端口 (MTA)</div>
+            <div class="endpoint">SMTP提交: 587端口 (MSA)</div>
+            <div class="endpoint">IMAP访问: 993端口 (SSL)</div>
+        </div>
+        
+        <div class="info">
+            <h3>API接口</h3>
+            <div class="endpoint">健康检查: <a href="/api/health">/api/health</a></div>
+            <div class="endpoint">用户登录: POST /api/public/user/login</div>
+            <div class="endpoint">管理员登录: POST /api/public/admin/login</div>
+        </div>
+        
+        <div class="info">
+            <h3>使用说明</h3>
+            <p>这是一个纯API模式的邮件系统，请使用邮件客户端或API调用来操作。</p>
+            <p>前端界面需要单独部署。</p>
+        </div>
+    </div>
+</body>
+</html>`)
+	})
 
 	// 创建handler实例
 	userHandler := handler.NewUserHandler(svcCtx)
@@ -159,8 +210,12 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 		}
 	}
 
-	// 前端路由（SPA）
+	// 404处理
 	r.NoRoute(func(c *gin.Context) {
-		c.File("./web/dist/index.html")
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "Not Found",
+			"message": "请求的资源不存在",
+			"path":    c.Request.URL.Path,
+		})
 	})
 }

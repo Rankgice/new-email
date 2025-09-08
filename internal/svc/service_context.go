@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/rankgice/new-email/internal/config"
+	"github.com/rankgice/new-email/internal/model"
+	"github.com/rankgice/new-email/internal/service"
+	"github.com/rankgice/new-email/pkg/auth"
 	"gorm.io/gorm/logger"
 	"log"
-	"new-email/internal/config"
-	"new-email/internal/model"
-	"new-email/internal/service"
 	"os"
 	"path/filepath"
 	"time"
@@ -238,6 +239,67 @@ func initDefaultData(db *gorm.DB, c config.Config) error {
 		}
 
 		log.Printf("✅ 创建默认管理员成功: %s", defaultAdmin.Username)
+	}
+
+	// 创建默认域名（如果不存在）
+	var domainCount int64
+	if err := db.Model(&model.Domain{}).Where("name = ?", "email.host").Count(&domainCount).Error; err != nil {
+		return err
+	}
+
+	var defaultDomainId int64
+	if domainCount == 0 {
+		defaultDomain := &model.Domain{
+			Name:        "email.host",
+			Status:      1, // 启用
+			DnsVerified: 1, // 假设已验证
+			SpfRecord:   "v=spf1 mx a -all",
+			DmarcRecord: "v=DMARC1; p=quarantine; rua=mailto:dmarc@email.host",
+		}
+
+		if err := db.Create(defaultDomain).Error; err != nil {
+			return fmt.Errorf("创建默认域名失败: %v", err)
+		}
+
+		defaultDomainId = defaultDomain.Id
+		log.Printf("✅ 创建默认域名成功: %s", defaultDomain.Name)
+	} else {
+		// 获取现有域名ID
+		var domain model.Domain
+		if err := db.Where("name = ?", "email.host").First(&domain).Error; err != nil {
+			return err
+		}
+		defaultDomainId = domain.Id
+	}
+
+	// 创建测试邮箱（如果不存在）
+	var mailboxCount int64
+	if err := db.Model(&model.Mailbox{}).Where("email = ?", "test@email.host").Count(&mailboxCount).Error; err != nil {
+		return err
+	}
+
+	if mailboxCount == 0 {
+		// 加密测试密码
+		hashedPassword, err := auth.HashPassword("test123")
+		if err != nil {
+			return fmt.Errorf("密码加密失败: %v", err)
+		}
+
+		testMailbox := &model.Mailbox{
+			UserId:      1, // 假设用户ID为1
+			DomainId:    defaultDomainId,
+			Email:       "test@email.host",
+			Password:    hashedPassword,
+			Type:        "imap",
+			Status:      1, // 启用
+			AutoReceive: true,
+		}
+
+		if err := db.Create(testMailbox).Error; err != nil {
+			return fmt.Errorf("创建测试邮箱失败: %v", err)
+		}
+
+		log.Printf("✅ 创建测试邮箱成功: %s (密码: test123)", testMailbox.Email)
 	}
 
 	log.Println("✅ 默认数据初始化完成")

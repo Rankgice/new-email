@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"errors"
+	"github.com/rankgice/new-email/internal/constant"
+	"github.com/rankgice/new-email/internal/result"
+	"github.com/rankgice/new-email/internal/svc"
+	"github.com/rankgice/new-email/pkg/auth"
 	"net/http"
-	"new-email/internal/constant"
-	"new-email/internal/result"
-	"new-email/internal/svc"
-	"new-email/pkg/auth"
 	"strconv"
 	"strings"
 	"time"

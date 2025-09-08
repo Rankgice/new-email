@@ -36,10 +36,10 @@ jwt:
 email:
   # 默认SMTP配置
   default_smtp:
-    host: "smtp.email.host"
+    host: "localhost"
     port: 587
-    username: ""
-    password: ""
+    username: "test@email.host"
+    password: "test123"
     use_tls: false
   
   # 附件配置
@@ -67,10 +67,10 @@ log:
 # SMTP服务配置（用于发送邮件）
 # 使用本地SMTP服务器
 smtp:
-  host: "smtp.email.host"  # 映射到127.0.0.1的本地服务器
+  host: "localhost"  # 连接到本地MSA服务器
   port: 587
-  username: "test@localhost"  # 任意用户名
-  password: "password"  # 任意密码
+  username: "test@email.host"  # 使用我们创建的测试账户
+  password: "test123"  # 对应的密码
   use_tls: false
 
 # IMAP服务配置（用于接收邮件）
@@ -134,7 +134,7 @@ system:
     max_login_attempts: 5
     lockout_duration: 300  # 5分钟
 minio:
-  endpoint: localhost:9000
+  endpoint: minio:9000
   access_key_id: minioadmin
   secret_access_key: minioadmin
   use_ssl: false

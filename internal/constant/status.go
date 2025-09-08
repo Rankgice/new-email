@@ -147,7 +147,10 @@ const (
 
 // 默认值
 const (
-	DefaultSMTPPort = 587
-	DefaultIMAPPort = 993
-	DefaultTimeout  = 30 // 秒
+	DefaultSMTPReceivePort = 25  // MTA - 接收外部邮件
+	DefaultSMTPSubmitPort  = 587 // MSA - 用户提交邮件
+	DefaultIMAPPort        = 993 // IMAP访问 (SSL)
+	DefaultIMAPPlainPort   = 143 // IMAP访问 (明文)
+	DefaultSMTPSPort       = 465 // SMTP over SSL
+	DefaultTimeout         = 30  // 秒
 )

@@ -3,12 +3,12 @@ package handler
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"github.com/rankgice/new-email/internal/middleware"
+	"github.com/rankgice/new-email/internal/model"
+	"github.com/rankgice/new-email/internal/result"
+	"github.com/rankgice/new-email/internal/svc"
+	"github.com/rankgice/new-email/internal/types"
 	"net/http"
-	"new-email/internal/middleware"
-	"new-email/internal/model"
-	"new-email/internal/result"
-	"new-email/internal/svc"
-	"new-email/internal/types"
 	"strconv"
 	"time"
 

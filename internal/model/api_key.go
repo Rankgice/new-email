@@ -2,7 +2,7 @@ package model
 
 import (
 	"errors"
-	"new-email/internal/constant"
+	"github.com/rankgice/new-email/internal/constant"
 	"time"
 
 	"gorm.io/gorm"
