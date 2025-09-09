@@ -252,7 +252,7 @@ func (s *SMTPSession) Data(r io.Reader) error {
 				Size:        len(body),
 				Received:    time.Now(),
 				IsRead:      false,
-				Folder:      "INBOX",
+				Folder:      "Sent", // 用户提交的邮件应存储在Sent文件夹
 			}
 
 			if err := s.backend.storage.StoreMail(localMail); err != nil {
@@ -282,7 +282,7 @@ func (s *SMTPSession) Data(r io.Reader) error {
 			Size:        len(body),
 			Received:    time.Now(),
 			IsRead:      false,
-			Folder:      "INBOX",
+			Folder:      "INBOX", // 接收的外部邮件应存储在INBOX文件夹
 		}
 
 		// 存储邮件
