@@ -79,9 +79,11 @@ func NewSMTPSubmitServer(port int, domain string, storage *MailStorage, tlsCertP
 	if tlsCertPath != "" && tlsKeyPath != "" {
 		cert, err := tls.LoadX509KeyPair(tlsCertPath, tlsKeyPath)
 		if err != nil {
-			log.Fatalf("无法加载MSA的TLS证书: %v", err)
+			log.Printf("❌ 无法加载MSA的TLS证书: %v. MSA服务器将允许不安全的认证。", err)
+			server.AllowInsecureAuth = true // 证书加载失败时允许不安全认证
+		} else {
+			server.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cert}}
 		}
-		server.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cert}}
 	} else {
 		log.Printf("⚠️  MSA服务器未配置TLS证书，将允许不安全的认证")
 		server.AllowInsecureAuth = true

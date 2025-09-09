@@ -3,6 +3,11 @@ package svc
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rankgice/new-email/internal/config"
@@ -10,10 +15,6 @@ import (
 	"github.com/rankgice/new-email/internal/service"
 	"github.com/rankgice/new-email/pkg/auth"
 	"gorm.io/gorm/logger"
-	"log"
-	"os"
-	"path/filepath"
-	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -176,6 +177,11 @@ func initServiceManager(c config.Config) *service.ServiceManager {
 
 	// 创建服务管理器
 	manager := service.NewServiceManager(serviceConfig)
+
+	// 如果Redis未启用，则将CacheService设置为nil
+	if !c.Redis.Enabled {
+		manager.Cache = nil
+	}
 
 	return manager
 }

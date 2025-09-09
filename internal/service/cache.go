@@ -11,6 +11,7 @@ import (
 
 // CacheConfig 缓存配置
 type CacheConfig struct {
+	Enabled  bool   `json:"enabled"` // 新增Enabled字段
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
 	Password string `json:"password"`

@@ -53,7 +53,7 @@ func NewServiceManager(config ServiceConfig) *ServiceManager {
 	}
 
 	// 初始化缓存服务
-	if config.Cache.Host != "" {
+	if config.Cache.Enabled && config.Cache.Host != "" {
 		manager.Cache = NewCacheService(config.Cache)
 		log.Printf("缓存服务已初始化: %s:%d", config.Cache.Host, config.Cache.Port)
 	}
