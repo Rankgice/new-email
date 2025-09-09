@@ -63,8 +63,3 @@ func (s *IMAPServer) Start(ctx context.Context) error {
 func (s *IMAPServer) Stop() error {
 	return s.server.Close()
 }
-
-// GetServer 获取服务器实例（用于测试）
-func (s *IMAPServer) GetServer() *server.Server {
-	return s.server
-}
