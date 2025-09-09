@@ -15,6 +15,7 @@ type MailStorage struct {
 	emailModel   *model.EmailModel
 	mailboxModel *model.MailboxModel
 	domainModel  *model.DomainModel
+	domain       string
 }
 
 // StoredMail 存储的邮件
@@ -33,15 +34,69 @@ type StoredMail struct {
 	IsRead      bool      `json:"is_read"`
 	Folder      string    `json:"folder"`
 	MailboxID   int64     `json:"mailbox_id"`
+	Username    string    `json:"username"` // 新增
+	Mailbox     string    `json:"mailbox"`  // 新增
 }
 
 // NewMailStorage 创建邮件存储
-func NewMailStorage(db *gorm.DB) *MailStorage {
+func NewMailStorage(db *gorm.DB, domain string) *MailStorage {
 	return &MailStorage{
 		emailModel:   model.NewEmailModel(db),
 		mailboxModel: model.NewMailboxModel(db),
 		domainModel:  model.NewDomainModel(db),
+		domain:       domain,
 	}
+}
+
+// SaveMail (用于APPEND)
+func (s *MailStorage) SaveMail(mail *StoredMail) error {
+	// 1. 根据用户名查找邮箱
+	mailbox, err := s.findMailboxByEmail(mail.Username)
+	if err != nil {
+		log.Printf("为APPEND查找邮箱失败 %s: %v", mail.Username, err)
+		return err
+	}
+	if mailbox == nil {
+		log.Printf("APPEND时邮箱不存在: %s", mail.Username)
+		return fmt.Errorf("邮箱 %s 不存在", mail.Username)
+	}
+
+	// 2. 确定邮件方向
+	direction := "received"
+	// 如果发件人是自己，则认为是已发送邮件
+	if mail.From == mail.Username {
+		direction = "sent"
+	}
+
+	// 3. 创建邮件记录
+	email := &model.Email{
+		UserId:      mailbox.UserId,
+		MailboxId:   mailbox.Id,
+		MessageId:   mail.MessageID,
+		Subject:     mail.Subject,
+		FromEmail:   mail.From,
+		ToEmails:    mail.To,
+		CcEmails:    mail.Cc,
+		BccEmails:   mail.Bcc,
+		Content:     mail.Body, // 存储原始邮件体
+		ContentType: mail.ContentType,
+		IsRead:      mail.IsRead,
+		IsStarred:   false,
+		Folder:      mail.Mailbox, // 存入指定的文件夹
+		Direction:   direction,
+		ReceivedAt:  &mail.Received,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	// 4. 保存到数据库
+	if err := s.emailModel.Create(email); err != nil {
+		log.Printf("APPEND存储邮件失败: %v", err)
+		return err
+	}
+
+	log.Printf("✅ 邮件已通过APPEND存储到邮箱: %s, 文件夹: %s", mail.Username, mail.Mailbox)
+	return nil
 }
 
 // StoreMail 存储邮件

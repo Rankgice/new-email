@@ -1,8 +1,9 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // Email 邮件模型
@@ -23,6 +24,7 @@ type Email struct {
 	IsRead      bool           `gorm:"default:false" json:"is_read"`                // 是否已读
 	IsStarred   bool           `gorm:"default:false" json:"is_starred"`             // 是否标星
 	Direction   string         `gorm:"size:10;not null" json:"direction"`           // 方向：sent发送 received接收
+	Folder      string         `gorm:"size:50;default:'INBOX'" json:"folder"`       // 文件夹
 	SentAt      *time.Time     `json:"sent_at"`                                     // 发送时间
 	ReceivedAt  *time.Time     `json:"received_at"`                                 // 接收时间
 	CreatedAt   time.Time      `json:"created_at"`                                  // 创建时间

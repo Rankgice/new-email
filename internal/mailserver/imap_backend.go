@@ -3,6 +3,7 @@ package mailserver
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 	"time"
@@ -68,25 +69,39 @@ func (u *CustomUser) Username() string {
 
 // ListMailboxes 列出邮箱文件夹
 func (u *CustomUser) ListMailboxes(subscribed bool) ([]backend.Mailbox, error) {
-	// 对于简单实现，只返回INBOX
-	return []backend.Mailbox{
-		&CustomMailbox{
-			name:    "INBOX",
+	// 定义标准邮箱文件夹
+	mailboxes := []string{"INBOX", "Sent", "Drafts", "Trash"}
+
+	var result []backend.Mailbox
+	for _, name := range mailboxes {
+		result = append(result, &CustomMailbox{
+			name:    name,
 			user:    u,
 			storage: u.storage,
-		},
-	}, nil
+		})
+	}
+
+	return result, nil
 }
 
 // GetMailbox 获取邮箱
 func (u *CustomUser) GetMailbox(name string) (backend.Mailbox, error) {
-	if name == "INBOX" {
+	// 检查是否是支持的标准文件夹
+	supportedMailboxes := map[string]bool{
+		"INBOX":  true,
+		"Sent":   true,
+		"Drafts": true,
+		"Trash":  true,
+	}
+
+	if supportedMailboxes[name] {
 		return &CustomMailbox{
 			name:    name,
 			user:    u,
 			storage: u.storage,
 		}, nil
 	}
+
 	return nil, errors.New("邮箱不存在")
 }
 
@@ -272,9 +287,61 @@ func (mb *CustomMailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria)
 	return results, nil
 }
 
-// CreateMessage 创建消息
+// CreateMessage 创建消息 (APPEND)
 func (mb *CustomMailbox) CreateMessage(flags []string, date time.Time, body imap.Literal) error {
-	return errors.New("不支持创建消息")
+	// 1. 读取邮件内容
+	buf := new(strings.Builder)
+	if _, err := io.Copy(buf, body); err != nil {
+		log.Printf("读取邮件正文失败: %v", err)
+		return err
+	}
+	rawBody := buf.String()
+
+	// 2. 解析邮件
+	// 注意：这里的解析是简化的，实际应用中需要更健壮的MIME解析库
+	// 暂时我们只将原始邮件内容存起来
+	from, to, subject := parseEmailHeaders(rawBody)
+
+	// 3. 存储邮件
+	storedMail := &StoredMail{
+		From:      from,
+		To:        []string{to},
+		Subject:   subject,
+		Body:      rawBody,
+		Received:  date,
+		IsRead:    false, // 新邮件默认为未读
+		Mailbox:   mb.name,
+		Username:  mb.user.Username(),
+		MessageID: fmt.Sprintf("<%d.%s>", time.Now().UnixNano(), mb.user.storage.domain),
+	}
+
+	// 4. 调用storage层保存
+	if err := mb.storage.SaveMail(storedMail); err != nil {
+		log.Printf("保存邮件失败: %v", err)
+		return err
+	}
+
+	log.Printf("成功追加邮件到 %s 文件夹，用户: %s", mb.name, mb.user.Username())
+	return nil
+}
+
+// parseEmailHeaders 是一个简化的邮件头解析函数
+func parseEmailHeaders(rawBody string) (from, to, subject string) {
+	lines := strings.Split(rawBody, "\r\n")
+	for _, line := range lines {
+		if strings.HasPrefix(strings.ToLower(line), "from: ") {
+			from = strings.TrimSpace(line[6:])
+		} else if strings.HasPrefix(strings.ToLower(line), "to: ") {
+			to = strings.TrimSpace(line[4:])
+		} else if strings.HasPrefix(strings.ToLower(line), "subject: ") {
+			subject = strings.TrimSpace(line[9:])
+		}
+		// 遇到空行，说明邮件头结束
+		if line == "" {
+			break
+		}
+	}
+	return
 }
 
 // UpdateMessagesFlags 更新消息标志

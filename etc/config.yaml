@@ -80,7 +80,9 @@ imap:
   port: 993
   username: "test@email.host"  # 任意用户名
   password: "123456"  # 任意密码
-  use_tls: false
+  use_tls: true
+  tls_cert_path: "cert.pem"
+  tls_key_path: "key.pem"
 
 # SMS服务配置（用于发送短信验证码）
 sms:

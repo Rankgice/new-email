@@ -18,6 +18,8 @@ type Config struct {
 	IMAPPort        int    `yaml:"imap_port"`         // 993端口 - IMAP访问
 	Domain          string `yaml:"domain"`
 	DatabasePath    string `yaml:"database_path"`
+	TLSCertPath     string `yaml:"tls_cert_path"` // TLS证书路径
+	TLSKeyPath      string `yaml:"tls_key_path"`  // TLS密钥路径
 }
 
 // MailServer 邮件服务器
@@ -36,7 +38,7 @@ type MailServer struct {
 func NewMailServer(config Config, db *gorm.DB) *MailServer {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	storage := NewMailStorage(db)
+	storage := NewMailStorage(db, config.Domain)
 
 	return &MailServer{
 		config:  config,
@@ -48,7 +50,7 @@ func NewMailServer(config Config, db *gorm.DB) *MailServer {
 		// 创建提交服务器 (587端口 - MSA功能)
 		smtpSubmitServer: NewSMTPSubmitServer(config.SMTPSubmitPort, config.Domain, storage),
 		// IMAP服务器
-		imapServer: NewIMAPServer(config.IMAPPort, config.Domain, storage),
+		imapServer: NewIMAPServer(config, storage),
 	}
 }
 
