@@ -56,6 +56,16 @@ func main() {
 		log.Fatal("邮件服务器启动失败：", err)
 	}
 
+	// 测试所有连接
+	results := svcCtx.ServiceManager.TestAllConnections()
+	for serviceName, err := range results {
+		if err != nil {
+			log.Printf("服务 %s 连接失败: %v", serviceName, err)
+		} else {
+			log.Printf("服务 %s 连接成功", serviceName)
+		}
+	}
+
 	log.Printf("🚀 邮件管理系统启动成功")
 	log.Printf("📱 管理端: http://localhost:%d/admin", port)
 	log.Printf("👤 用户端: http://localhost:%d/user", port)

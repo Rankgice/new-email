@@ -177,16 +177,6 @@ func initServiceManager(c config.Config) *service.ServiceManager {
 	// 创建服务管理器
 	manager := service.NewServiceManager(serviceConfig)
 
-	// 测试所有连接
-	results := manager.TestAllConnections()
-	for serviceName, err := range results {
-		if err != nil {
-			log.Printf("服务 %s 连接失败: %v", serviceName, err)
-		} else {
-			log.Printf("服务 %s 连接成功", serviceName)
-		}
-	}
-
 	return manager
 }
 

@@ -78,8 +78,8 @@ smtp:
 imap:
   host: "imap.email.host"  # 映射到127.0.0.1的本地服务器
   port: 993
-  username: "test@localhost"  # 任意用户名
-  password: "password"  # 任意密码
+  username: "test@email.host"  # 任意用户名
+  password: "123456"  # 任意密码
   use_tls: false
 
 # SMS服务配置（用于发送短信验证码）
@@ -134,7 +134,7 @@ system:
     max_login_attempts: 5
     lockout_duration: 300  # 5分钟
 minio:
-  endpoint: minio:9000
+  endpoint: 127.0.0.1:9000
   access_key_id: minioadmin
   secret_access_key: minioadmin
   use_ssl: false
