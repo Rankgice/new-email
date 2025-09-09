@@ -127,6 +127,7 @@ func (s *SMTPService) TestConnection() error {
 			InsecureSkipVerify: true, // 允许跳过证书验证，仅用于开发测试
 			ServerName:         s.config.Host,
 		}
+		d.StartTLSPolicy = mail.MandatoryStartTLS // 明确要求STARTTLS
 	} else {
 		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 		d.StartTLSPolicy = mail.NoStartTLS
@@ -146,6 +147,6 @@ func (s *SMTPService) TestConnection() error {
 func (s *SMTPService) GetSMTPConfig() SMTPConfig {
 	// 返回配置副本，隐藏密码
 	config := s.config
-	config.Password = "***"
+	config.Password = "***" // 隐藏密码
 	return config
 }
