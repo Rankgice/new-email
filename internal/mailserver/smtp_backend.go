@@ -169,13 +169,7 @@ func (s *SMTPServer) Start(ctx context.Context) error {
 
 	// 在goroutine中启动服务器
 	go func() {
-		var err error
-		if useTLS {
-			err = s.server.ListenAndServeTLS()
-		} else {
-			err = s.server.ListenAndServe()
-		}
-		if err != nil {
+		if err := s.server.ListenAndServe(); err != nil {
 			log.Printf("❌ SMTP%s错误: %v", serverTypeStr, err)
 		}
 	}()
