@@ -59,7 +59,7 @@ log:
 # SMTP服务配置（用于发送邮件）
 # 使用本地SMTP服务器
 smtp:
-  host: "localhost"  # 连接到本地MSA服务器
+  host: "smtp.email.host"  # 连接到本地MSA服务器
   port: 587
   receive_port: 25
   username: "test@email.host"  # 使用我们创建的测试账户
