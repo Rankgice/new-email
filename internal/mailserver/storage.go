@@ -260,7 +260,7 @@ func (s *MailStorage) ValidatePassword(email, password string) bool {
 	}
 
 	// 使用安全的密码验证
-	if password != mailbox.Password {
+	if err := auth.CheckPassword(password, mailbox.Password); err != nil {
 		log.Printf("密码验证失败 %s: %v", email, err)
 		return false
 	}

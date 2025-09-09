@@ -88,11 +88,12 @@ type EmailConfig struct {
 
 // SMTPConfig SMTP配置
 type SMTPConfig struct {
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	UseTLS   bool   `yaml:"use_tls"`
+	Host        string `yaml:"host"`
+	Port        int    `yaml:"port"`
+	ReceivePort int    `yaml:"receive_port"`
+	Username    string `yaml:"username"`
+	Password    string `yaml:"password"`
+	UseTLS      bool   `yaml:"use_tls"`
 }
 
 // AttachmentConfig 附件配置
