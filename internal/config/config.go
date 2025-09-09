@@ -81,9 +81,8 @@ type JWTConfig struct {
 
 // EmailConfig 邮件配置
 type EmailConfig struct {
-	DefaultSMTP SMTPConfig       `yaml:"default_smtp"`
-	Attachment  AttachmentConfig `yaml:"attachment"`
-	Receive     ReceiveConfig    `yaml:"receive"`
+	Attachment AttachmentConfig `yaml:"attachment"`
+	Receive    ReceiveConfig    `yaml:"receive"`
 }
 
 // SMTPConfig SMTP配置

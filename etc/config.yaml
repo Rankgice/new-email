@@ -34,14 +34,6 @@ jwt:
 
 # 邮件配置
 email:
-  # 默认SMTP配置
-  default_smtp:
-    host: "localhost"
-    port: 587
-    username: "test@email.host"
-    password: "test123"
-    use_tls: false
-  
   # 附件配置
   attachment:
     max_size: 10485760  # 10MB
@@ -69,9 +61,10 @@ log:
 smtp:
   host: "localhost"  # 连接到本地MSA服务器
   port: 587
+  receive_port: 25
   username: "test@email.host"  # 使用我们创建的测试账户
-  password: "test123"  # 对应的密码
-  use_tls: false
+  password: "123456"  # 对应的密码
+  use_tls: true
 
 # IMAP服务配置（用于接收邮件）
 # 使用本地IMAP服务器
