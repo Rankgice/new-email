@@ -46,9 +46,9 @@ func NewMailServer(config Config, db *gorm.DB) *MailServer {
 		ctx:     ctx,
 		cancel:  cancel,
 		// 创建接收服务器 (25端口 - MTA功能)
-		smtpReceiveServer: NewSMTPReceiveServer(config.SMTPReceivePort, config.Domain, storage),
+		smtpReceiveServer: NewSMTPReceiveServer(config.SMTPReceivePort, config.Domain, storage, config.TLSCertPath, config.TLSKeyPath),
 		// 创建提交服务器 (587端口 - MSA功能)
-		smtpSubmitServer: NewSMTPSubmitServer(config.SMTPSubmitPort, config.Domain, storage),
+		smtpSubmitServer: NewSMTPSubmitServer(config.SMTPSubmitPort, config.Domain, storage, config.TLSCertPath, config.TLSKeyPath),
 		// IMAP服务器
 		imapServer: NewIMAPServer(config, storage),
 	}

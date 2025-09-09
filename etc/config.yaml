@@ -65,6 +65,8 @@ smtp:
   username: "test@email.host"  # 使用我们创建的测试账户
   password: "123456"  # 对应的密码
   use_tls: true
+  tls_cert_path: "./data/tls/cert.pem"
+  tls_key_path: "./data/tls/key.pem"
 
 # IMAP服务配置（用于接收邮件）
 # 使用本地IMAP服务器

@@ -20,15 +20,17 @@ const (
 
 // SMTPServer SMTP服务器
 type SMTPServer struct {
-	port       int
-	domain     string
-	storage    *MailStorage
-	server     *smtp.Server
-	serverType SMTPServerType // 服务器类型
+	port        int
+	domain      string
+	storage     *MailStorage
+	server      *smtp.Server
+	serverType  SMTPServerType // 服务器类型
+	tlsCertPath string
+	tlsKeyPath  string
 }
 
 // NewSMTPReceiveServer 创建SMTP接收服务器 (MTA - 25端口)
-func NewSMTPReceiveServer(port int, domain string, storage *MailStorage) *SMTPServer {
+func NewSMTPReceiveServer(port int, domain string, storage *MailStorage, tlsCertPath, tlsKeyPath string) *SMTPServer {
 	backend := NewSMTPBackend(domain, storage, SMTPServerTypeReceive)
 
 	server := smtp.NewServer(backend)
@@ -39,19 +41,29 @@ func NewSMTPReceiveServer(port int, domain string, storage *MailStorage) *SMTPSe
 	server.MaxMessageBytes = 50 * 1024 * 1024 // 50MB for external emails
 	server.MaxRecipients = 100
 	server.AllowInsecureAuth = true // MTA可以接受非加密连接
-	// 注意：MTA通常不需要认证，认证逻辑在Backend中处理
+
+	// 配置TLS
+	if tlsCertPath != "" && tlsKeyPath != "" {
+		cert, err := tls.LoadX509KeyPair(tlsCertPath, tlsKeyPath)
+		if err != nil {
+			log.Fatalf("无法加载MTA的TLS证书: %v", err)
+		}
+		server.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cert}}
+	}
 
 	return &SMTPServer{
-		port:       port,
-		domain:     domain,
-		storage:    storage,
-		server:     server,
-		serverType: SMTPServerTypeReceive,
+		port:        port,
+		domain:      domain,
+		storage:     storage,
+		server:      server,
+		serverType:  SMTPServerTypeReceive,
+		tlsCertPath: tlsCertPath,
+		tlsKeyPath:  tlsKeyPath,
 	}
 }
 
 // NewSMTPSubmitServer 创建SMTP提交服务器 (MSA - 587端口)
-func NewSMTPSubmitServer(port int, domain string, storage *MailStorage) *SMTPServer {
+func NewSMTPSubmitServer(port int, domain string, storage *MailStorage, tlsCertPath, tlsKeyPath string) *SMTPServer {
 	backend := NewSMTPBackend(domain, storage, SMTPServerTypeSubmit)
 
 	server := smtp.NewServer(backend)
@@ -61,25 +73,29 @@ func NewSMTPSubmitServer(port int, domain string, storage *MailStorage) *SMTPSer
 	server.ReadTimeout = 10 * time.Second
 	server.MaxMessageBytes = 25 * 1024 * 1024 // 25MB for user submissions
 	server.MaxRecipients = 50
-	server.AllowInsecureAuth = true // MSA要求加密认证
-	// 注意：MSA需要认证，认证逻辑在Backend中强制执行
+	server.AllowInsecureAuth = false // MSA通常强制加密认证
 
-	// 配置TLS（生产环境需要真实证书）
-	// 这里使用自签名证书用于开发测试
-	tlsConfig := &tls.Config{
-		ServerName: domain,
-		// 生产环境应该加载真实的SSL证书
-		// Certificates: []tls.Certificate{cert},
+	// 配置TLS
+	if tlsCertPath != "" && tlsKeyPath != "" {
+		cert, err := tls.LoadX509KeyPair(tlsCertPath, tlsKeyPath)
+		if err != nil {
+			log.Fatalf("无法加载MSA的TLS证书: %v", err)
+		}
+		server.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cert}}
+	} else {
+		log.Printf("⚠️  MSA服务器未配置TLS证书，将允许不安全的认证")
+		server.AllowInsecureAuth = true
 	}
-	server.TLSConfig = tlsConfig
 	server.EnableSMTPUTF8 = true // 支持UTF8邮件地址
 
 	return &SMTPServer{
-		port:       port,
-		domain:     domain,
-		storage:    storage,
-		server:     server,
-		serverType: SMTPServerTypeSubmit,
+		port:        port,
+		domain:      domain,
+		storage:     storage,
+		server:      server,
+		serverType:  SMTPServerTypeSubmit,
+		tlsCertPath: tlsCertPath,
+		tlsKeyPath:  tlsKeyPath,
 	}
 }
 
@@ -140,12 +156,24 @@ func (s *SMTPServer) Start(ctx context.Context) error {
 		serverTypeStr = "提交服务器(MSA)"
 	}
 
-	log.Printf("✅ SMTP%s启动成功，监听端口: %d", serverTypeStr, s.port)
+	useTLS := s.tlsCertPath != "" && s.tlsKeyPath != ""
+
+	if useTLS {
+		log.Printf("✅ SMTP%s (TLS) 启动成功，监听端口: %d", serverTypeStr, s.port)
+	} else {
+		log.Printf("⚠️ SMTP%s (非TLS) 启动成功，监听端口: %d", serverTypeStr, s.port)
+	}
 	log.Printf("🌐 SMTP域名: %s", s.domain)
 
 	// 在goroutine中启动服务器
 	go func() {
-		if err := s.server.ListenAndServe(); err != nil {
+		var err error
+		if useTLS {
+			err = s.server.ListenAndServeTLS()
+		} else {
+			err = s.server.ListenAndServe()
+		}
+		if err != nil {
 			log.Printf("❌ SMTP%s错误: %v", serverTypeStr, err)
 		}
 	}()
