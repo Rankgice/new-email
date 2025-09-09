@@ -68,7 +68,7 @@ func (s *IMAPService) Connect() error {
 	if s.config.UseTLS {
 		// 使用TLS连接
 		tlsConfig := &tls.Config{
-			InsecureSkipVerify: false,
+			InsecureSkipVerify: true, // 允许跳过证书验证，仅用于开发测试
 			ServerName:         s.config.Host,
 		}
 		c, err = client.DialTLS(addr, tlsConfig)

@@ -168,11 +168,13 @@ type SecurityConfig struct {
 
 // IMAPConfig IMAP配置
 type IMAPConfig struct {
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	UseTLS   bool   `yaml:"use_tls"`
+	Host        string `yaml:"host"`
+	Port        int    `yaml:"port"`
+	Username    string `yaml:"username"`
+	Password    string `yaml:"password"`
+	UseTLS      bool   `yaml:"use_tls"`
+	TLSCertPath string `yaml:"tls_cert_path"` // TLS证书路径
+	TLSKeyPath  string `yaml:"tls_key_path"`  // TLS密钥路径
 }
 
 // SMSConfig SMS配置

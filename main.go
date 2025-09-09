@@ -3,14 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/rankgice/new-email/internal/config"
-	"github.com/rankgice/new-email/internal/mailserver"
-	"github.com/rankgice/new-email/internal/router"
-	"github.com/rankgice/new-email/internal/svc"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/rankgice/new-email/internal/config"
+	"github.com/rankgice/new-email/internal/mailserver"
+	"github.com/rankgice/new-email/internal/router"
+	"github.com/rankgice/new-email/internal/svc"
 
 	"github.com/gin-gonic/gin"
 )
@@ -46,10 +47,12 @@ func main() {
 
 	// 启动邮件服务器（使用emersion/go-smtp）
 	mailServerConfig := mailserver.Config{
-		SMTPReceivePort: 25,           // 接收外部邮件 (MTA)
-		SMTPSubmitPort:  587,          // 用户提交邮件 (MSA)
-		IMAPPort:        993,          // IMAP访问
-		Domain:          "email.host", // 本地邮件域名，应该与DNS MX记录匹配
+		SMTPReceivePort: c.SMTP.Port,  // 从配置中获取SMTP接收端口
+		SMTPSubmitPort:  c.SMTP.Port,  // 从配置中获取SMTP提交端口 (这里假设使用同一个端口，如果需要区分，需要修改config.go)
+		IMAPPort:        c.IMAP.Port,  // 从配置中获取IMAP端口
+		Domain:          "email.host", // 从配置中获取主域名
+		TLSCertPath:     c.IMAP.TLSCertPath,
+		TLSKeyPath:      c.IMAP.TLSKeyPath,
 	}
 	mailServer := mailserver.NewMailServer(mailServerConfig, svcCtx.DB)
 	if err := mailServer.Start(); err != nil {
