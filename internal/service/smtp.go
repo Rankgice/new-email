@@ -124,7 +124,7 @@ func (s *SMTPService) TestConnection() error {
 	// 配置TLS
 	if s.config.UseTLS {
 		d.TLSConfig = &tls.Config{
-			InsecureSkipVerify: false,
+			InsecureSkipVerify: true, // 允许跳过证书验证，仅用于开发测试
 			ServerName:         s.config.Host,
 		}
 	} else {
