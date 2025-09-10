@@ -35,7 +35,7 @@ func (s *SMTPSession) AuthMechanisms() []string {
 	}
 
 	// 目前只支持PLAIN认证机制
-	mechanisms := []string{"PLAIN"}
+	mechanisms := []string{"PLAIN", "LOGIN"}
 
 	log.Printf("🔐 AuthMechanisms被调用 [%s]: 返回支持的认证机制 %v", serverTypeStr, mechanisms)
 	return mechanisms
