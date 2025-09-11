@@ -196,6 +196,7 @@ func autoMigrate(db *gorm.DB) error {
 		&model.Admin{},
 		&model.Domain{},
 		&model.Mailbox{},
+		&model.Folder{},
 		&model.Email{},
 		&model.EmailAttachment{},
 		&model.ApiKey{},
