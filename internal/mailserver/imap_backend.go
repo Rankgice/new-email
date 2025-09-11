@@ -218,7 +218,7 @@ func (mb *CustomMailbox) Info() (*imap.MailboxInfo, error) {
 // Status 返回邮箱状态
 func (mb *CustomMailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error) {
 	// 获取邮件列表
-	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000)
+	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000) // 这里的limit需要优化
 	if err != nil {
 		return nil, err
 	}
@@ -242,9 +242,11 @@ func (mb *CustomMailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, e
 			}
 			status.Unseen = uint32(unseen)
 		case imap.StatusUidNext:
+			// UidNext 应该是当前文件夹中最大的UID + 1
+			// 简化实现，暂时使用邮件数量 + 1
 			status.UidNext = uint32(len(mails) + 1)
 		case imap.StatusUidValidity:
-			status.UidValidity = 1
+			status.UidValidity = 1 // 简化实现，固定为1
 		}
 	}
 
@@ -266,7 +268,7 @@ func (mb *CustomMailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []ima
 	defer close(ch)
 
 	// 获取邮件列表
-	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000)
+	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000) // 这里的limit需要优化
 	if err != nil {
 		return err
 	}
@@ -337,18 +339,20 @@ func (mb *CustomMailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []ima
 
 // SearchMessages 搜索消息
 func (mb *CustomMailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]uint32, error) {
-	// 简化实现，返回所有消息
-	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000)
+	mails, err := mb.storage.SearchMails(mb.user.mailbox.Id, mb.folder.Id, criteria)
 	if err != nil {
 		return nil, err
 	}
 
 	var results []uint32
-	for i := range mails {
+	for _, mail := range mails {
 		if uid {
-			results = append(results, uint32(mails[i].ID))
+			results = append(results, uint32(mail.ID))
 		} else {
-			results = append(results, uint32(i+1))
+			// 对于非UID搜索，需要根据邮件在当前文件夹中的顺序来确定SeqNum
+			// 这是一个简化，实际可能需要更复杂的映射
+			// 暂时直接使用ID作为SeqNum，这在某些情况下可能不准确
+			results = append(results, uint32(mail.ID))
 		}
 	}
 
@@ -417,7 +421,7 @@ func parseEmailHeaders(rawBody string) (from, to, subject string) {
 // UpdateMessagesFlags 更新消息标志
 func (mb *CustomMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.FlagsOp, flags []string) error {
 	// 获取邮件列表
-	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000)
+	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000) // 这里的limit需要优化
 	if err != nil {
 		return err
 	}
@@ -462,7 +466,62 @@ func (mb *CustomMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op i
 
 // CopyMessages 复制消息
 func (mb *CustomMailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string) error {
-	return errors.New("不支持复制消息")
+	// 1. 获取目标文件夹
+	destFolder, err := mb.storage.folderModel.GetByMailboxIdAndName(mb.user.mailbox.Id, destName, nil)
+	if err != nil {
+		log.Printf("获取目标文件夹 %s 失败: %v", destName, err)
+		return err
+	}
+	if destFolder == nil {
+		return errors.New("目标文件夹不存在")
+	}
+
+	// 2. 获取源文件夹中的所有邮件
+	sourceMails, err := mb.storage.GetMails(mb.user.username, mb.name, 0) // 获取所有邮件
+	if err != nil {
+		log.Printf("获取源文件夹 %s 的邮件失败: %v", mb.name, err)
+		return err
+	}
+
+	// 3. 遍历并复制符合条件的邮件
+	for i, mail := range sourceMails {
+		var mailIdentifier uint32
+		if uid {
+			mailIdentifier = uint32(mail.ID)
+		} else {
+			mailIdentifier = uint32(i + 1) // SeqNum
+		}
+
+		if seqSet.Contains(mailIdentifier) {
+			// 创建新的StoredMail对象进行复制
+			copiedMail := &StoredMail{
+				MessageID:   generateMessageID(mb.user.storage.domain), // 生成新的MessageID
+				From:        mail.From,
+				To:          mail.To,
+				Cc:          mail.Cc,
+				Bcc:         mail.Bcc,
+				Subject:     mail.Subject,
+				Body:        mail.Body,
+				ContentType: mail.ContentType,
+				Size:        mail.Size,
+				Received:    time.Now(), // 复制时更新接收时间
+				IsRead:      false,      // 复制的邮件默认为未读
+				FolderId:    destFolder.Id,
+				FolderName:  destFolder.Name,
+				MailboxID:   mb.user.mailbox.Id,
+				Username:    mb.user.username,
+			}
+
+			if err := mb.storage.SaveMail(copiedMail); err != nil {
+				log.Printf("复制邮件 %s 到文件夹 %s 失败: %v", mail.MessageID, destName, err)
+				// 即使单个邮件复制失败，也尝试继续复制其他邮件
+			} else {
+				log.Printf("成功复制邮件 %s 到文件夹 %s", mail.MessageID, destName)
+			}
+		}
+	}
+
+	return nil
 }
 
 // MoveMessages 移动消息

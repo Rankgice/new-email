@@ -1,8 +1,10 @@
 package model
 
 import (
+	"strings"
 	"time"
 
+	"github.com/emersion/go-imap"
 	"gorm.io/gorm"
 )
 
@@ -282,4 +284,85 @@ func (m *EmailModel) CountByUserId(userId int64) (int64, error) {
 		return 0, err
 	}
 	return count, nil
+}
+
+// Search 根据IMAP搜索条件搜索邮件
+func (m *EmailModel) Search(mailboxId int64, folderId int64, criteria *imap.SearchCriteria) ([]*Email, error) {
+	db := m.db.Model(&Email{}).
+		Where("mailbox_id = ?", mailboxId).
+		Where("folder_id = ?", folderId)
+
+	// 处理各种搜索条件
+	if len(criteria.Header) > 0 {
+		for key, values := range criteria.Header { // 遍历Header map
+			for _, value := range values {
+				switch strings.ToLower(key) {
+				case "from":
+					db = db.Where("from_email LIKE ?", "%"+value+"%")
+				case "to":
+					db = db.Where("to_emails LIKE ?", "%\""+value+"\"%")
+				case "subject":
+					db = db.Where("subject LIKE ?", "%"+value+"%")
+				case "body":
+					db = db.Where("content LIKE ?", "%"+value+"%")
+				case "text":
+					db = db.Where("subject LIKE ? OR content LIKE ? OR from_email LIKE ? OR to_emails LIKE ?",
+						"%"+value+"%", "%"+value+"%", "%"+value+"%", "%\""+value+"\"%")
+				}
+			}
+		}
+	}
+
+	// 处理 WithFlags (例如 \Seen, \Flagged)
+	for _, flag := range criteria.WithFlags {
+		switch flag {
+		case imap.SeenFlag:
+			db = db.Where("is_read = ?", true)
+		case imap.FlaggedFlag:
+			db = db.Where("is_starred = ?", true)
+			// TODO: 其他标志，如 \Answered, \Draft, \Deleted, \Recent
+		}
+	}
+
+	// 处理 WithoutFlags (例如 \Unseen, \Unflagged)
+	for _, flag := range criteria.WithoutFlags {
+		switch flag {
+		case imap.SeenFlag: // \Unseen
+			db = db.Where("is_read = ?", false)
+		case imap.FlaggedFlag: // \Unflagged
+			db = db.Where("is_starred = ?", false)
+		}
+	}
+
+	if !criteria.Since.IsZero() {
+		db = db.Where("received_at >= ?", criteria.Since)
+	}
+	if !criteria.Before.IsZero() {
+		db = db.Where("received_at < ?", criteria.Before)
+	}
+	if criteria.Larger != 0 {
+		db = db.Where("size > ?", criteria.Larger)
+	}
+	if criteria.Smaller != 0 {
+		db = db.Where("size < ?", criteria.Smaller)
+	}
+	if criteria.Uid != nil && len(criteria.Uid.Set) > 0 {
+		var uids []int64
+		for _, seqRange := range criteria.Uid.Set { // 遍历 SeqRange
+			for i := seqRange.Start; i <= seqRange.Stop; i++ {
+				uids = append(uids, int64(i))
+			}
+		}
+		if len(uids) > 0 {
+			db = db.Where("id IN (?)", uids)
+		}
+	}
+	// TODO: 更多IMAP搜索条件，如 ON, SENTBEFORE, SENTSINCE等
+
+	var emails []*Email
+	if err := db.Order("received_at DESC").Find(&emails).Error; err != nil {
+		return nil, err
+	}
+
+	return emails, nil
 }

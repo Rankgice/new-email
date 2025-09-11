@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/emersion/go-imap"
 	"github.com/rankgice/new-email/internal/model"
 	"github.com/rankgice/new-email/pkg/auth"
 	"gorm.io/gorm"
@@ -55,7 +56,7 @@ func NewMailStorage(db *gorm.DB, domain string) *MailStorage {
 
 // ensureSystemFoldersExist 确保每个邮箱都有默认的系统文件夹
 func (s *MailStorage) ensureSystemFoldersExist(db *gorm.DB) {
-	mailboxes, _, err := s.mailboxModel.List(model.MailboxListParams{})
+	mailboxes, err := s.mailboxModel.GetAll()
 	if err != nil {
 		log.Printf("获取所有邮箱失败: %v", err)
 		return
@@ -317,6 +318,53 @@ func (s *MailStorage) GetMail(mailboxEmail string, messageID string) (*StoredMai
 	}
 
 	return mail, nil
+}
+
+// SearchMails 根据IMAP搜索条件搜索邮件
+func (s *MailStorage) SearchMails(mailboxId int64, folderId int64, criteria *imap.SearchCriteria) ([]*StoredMail, error) {
+	emails, err := s.emailModel.Search(mailboxId, folderId, criteria)
+	if err != nil {
+		return nil, err
+	}
+
+	var mails []*StoredMail
+	for _, email := range emails {
+		receivedAt := time.Now()
+		if email.ReceivedAt != nil {
+			receivedAt = *email.ReceivedAt
+		}
+
+		folder, err := s.folderModel.GetById(email.FolderId)
+		if err != nil {
+			log.Printf("搜索邮件时获取文件夹失败 (ID: %d): %v", email.FolderId, err)
+			continue
+		}
+		folderName := "Unknown"
+		if folder != nil {
+			folderName = folder.Name
+		}
+
+		mail := &StoredMail{
+			ID:          email.Id,
+			MessageID:   fmt.Sprintf("<%d@%s>", email.Id, "localhost"),
+			From:        email.FromEmail,
+			To:          email.ToEmails,
+			Cc:          email.CcEmails,
+			Bcc:         email.BccEmails,
+			Subject:     email.Subject,
+			Body:        email.Content,
+			ContentType: email.ContentType,
+			Size:        len(email.Content),
+			Received:    receivedAt,
+			IsRead:      email.IsRead,
+			FolderId:    email.FolderId,
+			FolderName:  folderName,
+			MailboxID:   email.MailboxId,
+		}
+		mails = append(mails, mail)
+	}
+
+	return mails, nil
 }
 
 // MarkAsRead 标记邮件为已读
