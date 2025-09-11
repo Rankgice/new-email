@@ -1,12 +1,13 @@
 package mailserver
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"log"
 	"mime"
+	"net"
 	"net/mail"
-	netsmtp "net/smtp"
 	"strings"
 	"time"
 
@@ -404,8 +405,11 @@ func (s *SMTPSession) relayToDomain(domain string, from string, recipients []str
 
 	log.Printf("🌐 连接到 %s 的邮件服务器: %s", domain, mxHost)
 
-	// 连接到外部SMTP服务器
-	client, err := netsmtp.Dial(mxHost + ":25") // 使用标准的25端口
+	// 使用go-smtp客户端连接到外部SMTP服务器
+	addr := net.JoinHostPort(mxHost, "25")
+
+	// 首先尝试普通连接
+	client, err := gosmtp.Dial(addr)
 	if err != nil {
 		return fmt.Errorf("failed to connect to %s: %v", mxHost, err)
 	}
@@ -416,24 +420,42 @@ func (s *SMTPSession) relayToDomain(domain string, from string, recipients []str
 		return fmt.Errorf("EHLO failed: %v", err)
 	}
 
-	// 检查是否支持STARTTLS
+	// 检查是否支持STARTTLS，如果支持则重新连接使用TLS
 	if ok, _ := client.Extension("STARTTLS"); ok {
-		if err := client.StartTLS(nil); err != nil {
-			log.Printf("⚠️  STARTTLS失败，继续使用明文连接: %v", err)
+		log.Printf("✅ 服务器支持STARTTLS，重新连接使用TLS")
+		client.Close() // 关闭当前连接
+
+		// 使用STARTTLS重新连接
+		tlsConfig := &tls.Config{
+			ServerName: mxHost,
+		}
+		client, err = gosmtp.DialStartTLS(addr, tlsConfig)
+		if err != nil {
+			log.Printf("⚠️  STARTTLS连接失败，尝试普通连接: %v", err)
+			// 如果STARTTLS失败，回退到普通连接
+			client, err = gosmtp.Dial(addr)
+			if err != nil {
+				return fmt.Errorf("failed to connect to %s: %v", mxHost, err)
+			}
 		} else {
-			log.Printf("✅ STARTTLS成功，使用加密连接")
+			log.Printf("✅ STARTTLS连接成功，使用加密连接")
+		}
+
+		// 重新发送EHLO
+		if err := client.Hello(s.backend.domain); err != nil {
+			return fmt.Errorf("EHLO failed after STARTTLS: %v", err)
 		}
 	}
 
 	// 设置发件人
-	if err := client.Mail(from); err != nil {
+	if err := client.Mail(from, nil); err != nil {
 		return fmt.Errorf("MAIL FROM failed: %v", err)
 	}
 
 	// 设置收件人
 	successfulRecipients := []string{}
 	for _, recipient := range recipients {
-		if err := client.Rcpt(recipient); err != nil {
+		if err := client.Rcpt(recipient, nil); err != nil {
 			log.Printf("⚠️  收件人 %s 被拒绝: %v", recipient, err)
 			// 继续处理其他收件人，不立即返回错误
 		} else {
