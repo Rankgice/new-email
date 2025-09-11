@@ -223,7 +223,24 @@ func (s *SMTPSession) Data(r io.Reader) error {
 		// MSA: 用户提交的邮件，需要处理转发逻辑
 		log.Printf("📤 处理用户提交邮件: %s", subject)
 
-		// TODO: 实现邮件转发逻辑
+		// 获取认证用户的邮箱信息
+		mailbox, err := s.backend.storage.findMailboxByEmail(s.authUser)
+		if err != nil {
+			log.Printf("获取认证用户邮箱信息失败: %v", err)
+			return err
+		}
+		if mailbox == nil {
+			log.Printf("认证用户邮箱不存在: %s", s.authUser)
+			return fmt.Errorf("authenticated user mailbox not found")
+		}
+
+		// 获取或创建"Sent"文件夹
+		sentFolder, err := s.backend.storage.getOrCreateFolder(mailbox.Id, "Sent", nil, true)
+		if err != nil {
+			log.Printf("获取或创建'Sent'文件夹失败: %v", err)
+			return err
+		}
+
 		// 分离本地和外部收件人
 		localRecipients := []string{}
 		externalRecipients := []string{}
@@ -254,19 +271,23 @@ func (s *SMTPSession) Data(r io.Reader) error {
 			log.Printf("✅ 外部邮件转发成功，收件人: %v", externalRecipients)
 		}
 
-		// 处理本地收件人 - 存储到本地邮箱
-		if len(localRecipients) > 0 {
+		// 处理本地收件人 - 存储到本地邮箱 (包括发件人自己的"Sent"文件夹)
+		// 即使没有本地收件人，发件人自己的"Sent"文件夹也应该存储
+		if len(localRecipients) > 0 || s.authenticated {
 			localMail := &StoredMail{
 				MessageID:   generateMessageID(s.backend.domain),
 				From:        s.from,
-				To:          localRecipients, // 只存储本地收件人
+				To:          s.to, // 存储所有收件人，包括外部的，因为这是已发送邮件的副本
 				Subject:     subject,
 				Body:        string(body),
 				ContentType: msg.Header.Get("Content-Type"),
 				Size:        len(body),
 				Received:    time.Now(),
-				IsRead:      false,
-				Folder:      "Sent", // 用户提交的邮件应存储在Sent文件夹
+				IsRead:      true, // 已发送邮件默认为已读
+				FolderId:    sentFolder.Id,
+				FolderName:  sentFolder.Name,
+				MailboxID:   mailbox.Id,
+				Username:    s.authUser,
 			}
 
 			if err := s.backend.storage.StoreMail(localMail); err != nil {
@@ -285,31 +306,50 @@ func (s *SMTPSession) Data(r io.Reader) error {
 		log.Printf("📥 处理接收邮件: %s", subject)
 		// TODO: 垃圾邮件检查、病毒扫描等
 
-		// 创建存储邮件对象
-		storedMail := &StoredMail{
-			MessageID:   generateMessageID(s.backend.domain),
-			From:        s.from,
-			To:          s.to,
-			Subject:     subject,
-			Body:        string(body),
-			ContentType: msg.Header.Get("Content-Type"),
-			Size:        len(body),
-			Received:    time.Now(),
-			IsRead:      false,
-			Folder:      "INBOX", // 接收的外部邮件应存储在INBOX文件夹
+		// 为每个本地收件人存储邮件
+		for _, toAddr := range s.to {
+			mailbox, err := s.backend.storage.findMailboxByEmail(toAddr)
+			if err != nil {
+				log.Printf("查找收件人邮箱失败 %s: %v", toAddr, err)
+				continue
+			}
+			if mailbox == nil {
+				log.Printf("收件人邮箱不存在: %s", toAddr)
+				continue
+			}
+
+			// 获取或创建INBOX文件夹
+			inboxFolder, err := s.backend.storage.getOrCreateFolder(mailbox.Id, "INBOX", nil, true)
+			if err != nil {
+				log.Printf("为邮箱 %s 获取或创建INBOX文件夹失败: %v", toAddr, err)
+				continue
+			}
+
+			// 创建存储邮件对象
+			storedMail := &StoredMail{
+				MessageID:   generateMessageID(s.backend.domain),
+				From:        s.from,
+				To:          s.to,
+				Subject:     subject,
+				Body:        string(body),
+				ContentType: msg.Header.Get("Content-Type"),
+				Size:        len(body),
+				Received:    time.Now(),
+				IsRead:      false,
+				FolderId:    inboxFolder.Id,
+				FolderName:  inboxFolder.Name,
+				MailboxID:   mailbox.Id,
+				Username:    toAddr, // 收件人作为邮件所属用户
+			}
+
+			// 存储邮件
+			if err := s.backend.storage.StoreMail(storedMail); err != nil {
+				log.Printf("❌ 存储邮件失败: %v [%s]", err, serverTypeStr)
+				// 这里不返回错误，尝试为其他收件人存储
+			} else {
+				log.Printf("✅ 邮件存储成功: %s [%s] 到邮箱 %s (ID: %d), 文件夹 %s (ID: %d)", storedMail.MessageID, serverTypeStr, toAddr, mailbox.Id, inboxFolder.Name, inboxFolder.Id)
+			}
 		}
-
-		// 存储邮件
-		if err := s.backend.storage.StoreMail(storedMail); err != nil {
-			log.Printf("❌ 存储邮件失败: %v [%s]", err, serverTypeStr)
-			return fmt.Errorf("failed to store message: %v", err)
-		}
-
-		log.Printf("✅ 邮件存储成功: %s [%s]", storedMail.MessageID, serverTypeStr)
-		log.Printf("📧 发件人: %s", s.from)
-		log.Printf("📧 收件人: %v", s.to)
-		log.Printf("📧 主题: %s", storedMail.Subject)
-
 		return nil
 	}
 }
