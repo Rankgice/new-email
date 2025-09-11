@@ -1,9 +1,10 @@
 package model
 
 import (
+	"time"
+
 	"github.com/rankgice/new-email/internal/constant"
 	"gorm.io/gorm"
-	"time"
 )
 
 // Mailbox 邮箱模型

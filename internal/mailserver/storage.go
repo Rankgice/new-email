@@ -15,6 +15,7 @@ type MailStorage struct {
 	emailModel   *model.EmailModel
 	mailboxModel *model.MailboxModel
 	domainModel  *model.DomainModel
+	folderModel  *model.FolderModel // 新增
 	domain       string
 }
 
@@ -32,20 +33,66 @@ type StoredMail struct {
 	Size        int       `json:"size"`
 	Received    time.Time `json:"received"`
 	IsRead      bool      `json:"is_read"`
-	Folder      string    `json:"folder"`
+	FolderId    int64     `json:"folder_id"`   // 文件夹ID
+	FolderName  string    `json:"folder_name"` // 文件夹名称
 	MailboxID   int64     `json:"mailbox_id"`
-	Username    string    `json:"username"` // 新增
-	Mailbox     string    `json:"mailbox"`  // 新增
+	Username    string    `json:"username"`
 }
 
 // NewMailStorage 创建邮件存储
 func NewMailStorage(db *gorm.DB, domain string) *MailStorage {
-	return &MailStorage{
+	s := &MailStorage{
 		emailModel:   model.NewEmailModel(db),
 		mailboxModel: model.NewMailboxModel(db),
 		domainModel:  model.NewDomainModel(db),
+		folderModel:  model.NewFolderModel(db),
 		domain:       domain,
 	}
+	// 确保系统文件夹存在
+	s.ensureSystemFoldersExist(db)
+	return s
+}
+
+// ensureSystemFoldersExist 确保每个邮箱都有默认的系统文件夹
+func (s *MailStorage) ensureSystemFoldersExist(db *gorm.DB) {
+	mailboxes, _, err := s.mailboxModel.List(model.MailboxListParams{})
+	if err != nil {
+		log.Printf("获取所有邮箱失败: %v", err)
+		return
+	}
+
+	systemFolders := []string{"INBOX", "Sent", "Drafts", "Trash"}
+
+	for _, mailbox := range mailboxes {
+		for _, folderName := range systemFolders {
+			_, err := s.getOrCreateFolder(mailbox.Id, folderName, nil, true)
+			if err != nil {
+				log.Printf("为邮箱 %s 创建系统文件夹 %s 失败: %v", mailbox.Email, folderName, err)
+			}
+		}
+	}
+}
+
+// getOrCreateFolder 获取或创建文件夹
+func (s *MailStorage) getOrCreateFolder(mailboxId int64, name string, parentId *int64, isSystem bool) (*model.Folder, error) {
+	folder, err := s.folderModel.GetByMailboxIdAndName(mailboxId, name, parentId)
+	if err != nil {
+		return nil, err
+	}
+	if folder == nil {
+		folder = &model.Folder{
+			MailboxId: mailboxId,
+			Name:      name,
+			ParentId:  parentId,
+			IsSystem:  isSystem,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		if err := s.folderModel.Create(folder); err != nil {
+			return nil, err
+		}
+	}
+	return folder, nil
 }
 
 // SaveMail (用于APPEND)
@@ -68,7 +115,14 @@ func (s *MailStorage) SaveMail(mail *StoredMail) error {
 		direction = "sent"
 	}
 
-	// 3. 创建邮件记录
+	// 3. 获取或创建目标文件夹
+	folder, err := s.getOrCreateFolder(mailbox.Id, mail.FolderName, nil, false) // 假设APPEND的文件夹不是系统文件夹
+	if err != nil {
+		log.Printf("为APPEND获取或创建文件夹失败 %s/%s: %v", mail.Username, mail.FolderName, err)
+		return err
+	}
+
+	// 4. 创建邮件记录
 	email := &model.Email{
 		UserId:      mailbox.UserId,
 		MailboxId:   mailbox.Id,
@@ -82,20 +136,20 @@ func (s *MailStorage) SaveMail(mail *StoredMail) error {
 		ContentType: mail.ContentType,
 		IsRead:      mail.IsRead,
 		IsStarred:   false,
-		Folder:      mail.Mailbox, // 存入指定的文件夹
+		FolderId:    folder.Id, // 使用文件夹ID
 		Direction:   direction,
 		ReceivedAt:  &mail.Received,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
 
-	// 4. 保存到数据库
+	// 5. 保存到数据库
 	if err := s.emailModel.Create(email); err != nil {
 		log.Printf("APPEND存储邮件失败: %v", err)
 		return err
 	}
 
-	log.Printf("✅ 邮件已通过APPEND存储到邮箱: %s, 文件夹: %s", mail.Username, mail.Mailbox)
+	log.Printf("✅ 邮件已通过APPEND存储到邮箱: %s, 文件夹: %s (ID: %d)", mail.Username, mail.FolderName, folder.Id)
 	return nil
 }
 
@@ -113,6 +167,13 @@ func (s *MailStorage) StoreMail(mail *StoredMail) error {
 			continue
 		}
 
+		// 获取或创建INBOX文件夹
+		inboxFolder, err := s.getOrCreateFolder(mailbox.Id, "INBOX", nil, true)
+		if err != nil {
+			log.Printf("为邮箱 %s 获取或创建INBOX文件夹失败: %v", toAddr, err)
+			continue
+		}
+
 		// 创建邮件记录
 		email := &model.Email{
 			UserId:      mailbox.UserId, // 添加用户ID
@@ -127,6 +188,7 @@ func (s *MailStorage) StoreMail(mail *StoredMail) error {
 			ContentType: mail.ContentType,
 			IsRead:      false,
 			IsStarred:   false,
+			FolderId:    inboxFolder.Id, // 存储到INBOX文件夹
 			Direction:   "received",
 			ReceivedAt:  &mail.Received,
 			CreatedAt:   time.Now(),
@@ -138,14 +200,14 @@ func (s *MailStorage) StoreMail(mail *StoredMail) error {
 			return err
 		}
 
-		log.Printf("✅ 邮件已存储到邮箱: %s (ID: %d)", toAddr, mailbox.Id)
+		log.Printf("✅ 邮件已存储到邮箱: %s (ID: %d), 文件夹: %s (ID: %d)", toAddr, mailbox.Id, inboxFolder.Name, inboxFolder.Id)
 	}
 
 	return nil
 }
 
 // GetMails 获取邮件列表
-func (s *MailStorage) GetMails(mailboxEmail string, folder string, limit int) ([]*StoredMail, error) {
+func (s *MailStorage) GetMails(mailboxEmail string, folderName string, limit int) ([]*StoredMail, error) {
 	mailbox, err := s.findMailboxByEmail(mailboxEmail)
 	if err != nil {
 		return nil, err
@@ -154,7 +216,15 @@ func (s *MailStorage) GetMails(mailboxEmail string, folder string, limit int) ([
 		return nil, fmt.Errorf("邮箱不存在: %s", mailboxEmail)
 	}
 
-	emails, err := s.emailModel.GetByMailboxId(mailbox.Id, limit)
+	folder, err := s.folderModel.GetByMailboxIdAndName(mailbox.Id, folderName, nil)
+	if err != nil {
+		return nil, err
+	}
+	if folder == nil {
+		return nil, fmt.Errorf("文件夹不存在: %s", folderName)
+	}
+
+	emails, err := s.emailModel.GetByFolderId(folder.Id, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +249,8 @@ func (s *MailStorage) GetMails(mailboxEmail string, folder string, limit int) ([
 			Size:        len(email.Content), // 使用内容长度作为大小
 			Received:    receivedAt,
 			IsRead:      email.IsRead,
-			Folder:      "INBOX",
+			FolderId:    email.FolderId,
+			FolderName:  folder.Name, // 从获取到的文件夹对象中获取名称
 			MailboxID:   email.MailboxId,
 		}
 		mails = append(mails, mail)
@@ -217,6 +288,16 @@ func (s *MailStorage) GetMail(mailboxEmail string, messageID string) (*StoredMai
 		receivedAt = *email.ReceivedAt
 	}
 
+	folder, err := s.folderModel.GetById(email.FolderId)
+	if err != nil {
+		log.Printf("获取邮件文件夹失败 (ID: %d): %v", email.FolderId, err)
+		return nil, err
+	}
+	folderName := "Unknown"
+	if folder != nil {
+		folderName = folder.Name
+	}
+
 	mail := &StoredMail{
 		ID:          email.Id,
 		MessageID:   messageID,
@@ -230,7 +311,8 @@ func (s *MailStorage) GetMail(mailboxEmail string, messageID string) (*StoredMai
 		Size:        len(email.Content), // 使用内容长度作为大小
 		Received:    receivedAt,
 		IsRead:      email.IsRead,
-		Folder:      "INBOX",
+		FolderId:    email.FolderId,
+		FolderName:  folderName,
 		MailboxID:   email.MailboxId,
 	}
 
@@ -294,12 +376,6 @@ func (s *MailStorage) ValidateCredentials(email, password string) bool {
 // findMailboxByEmail 根据邮箱地址查找邮箱
 func (s *MailStorage) findMailboxByEmail(email string) (*model.Mailbox, error) {
 	return s.mailboxModel.GetByEmail(email)
-}
-
-// GetMailboxes 获取邮箱列表
-func (s *MailStorage) GetMailboxes(email string) ([]string, error) {
-	// 对于简单实现，只返回INBOX
-	return []string{"INBOX"}, nil
 }
 
 // isMailboxExists 检查邮箱是否存在

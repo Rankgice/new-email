@@ -69,15 +69,19 @@ func (u *CustomUser) Username() string {
 
 // ListMailboxes 列出邮箱文件夹
 func (u *CustomUser) ListMailboxes(subscribed bool) ([]backend.Mailbox, error) {
-	// 定义标准邮箱文件夹
-	mailboxes := []string{"INBOX", "Sent", "Drafts", "Trash"}
+	folders, err := u.storage.folderModel.GetByMailboxId(u.mailbox.Id)
+	if err != nil {
+		log.Printf("获取邮箱 %s 的文件夹失败: %v", u.username, err)
+		return nil, err
+	}
 
 	var result []backend.Mailbox
-	for _, name := range mailboxes {
+	for _, folder := range folders {
 		result = append(result, &CustomMailbox{
-			name:    name,
+			name:    folder.Name,
 			user:    u,
 			storage: u.storage,
+			folder:  folder, // 传递完整的文件夹对象
 		})
 	}
 
@@ -86,33 +90,65 @@ func (u *CustomUser) ListMailboxes(subscribed bool) ([]backend.Mailbox, error) {
 
 // GetMailbox 获取邮箱
 func (u *CustomUser) GetMailbox(name string) (backend.Mailbox, error) {
-	// 检查是否是支持的标准文件夹
-	supportedMailboxes := map[string]bool{
-		"INBOX":  true,
-		"Sent":   true,
-		"Drafts": true,
-		"Trash":  true,
+	folder, err := u.storage.folderModel.GetByMailboxIdAndName(u.mailbox.Id, name, nil) // 假设顶级文件夹
+	if err != nil {
+		log.Printf("获取邮箱 %s 的文件夹 %s 失败: %v", u.username, name, err)
+		return nil, err
+	}
+	if folder == nil {
+		return nil, errors.New("邮箱不存在")
 	}
 
-	if supportedMailboxes[name] {
-		return &CustomMailbox{
-			name:    name,
-			user:    u,
-			storage: u.storage,
-		}, nil
-	}
-
-	return nil, errors.New("邮箱不存在")
+	return &CustomMailbox{
+		name:    folder.Name,
+		user:    u,
+		storage: u.storage,
+		folder:  folder,
+	}, nil
 }
 
 // CreateMailbox 创建邮箱
 func (u *CustomUser) CreateMailbox(name string) error {
-	return errors.New("不支持创建邮箱")
+	// 检查文件夹是否已存在
+	existingFolder, err := u.storage.folderModel.GetByMailboxIdAndName(u.mailbox.Id, name, nil)
+	if err != nil {
+		return err
+	}
+	if existingFolder != nil {
+		return errors.New("文件夹已存在")
+	}
+
+	// 创建新文件夹
+	_, err = u.storage.getOrCreateFolder(u.mailbox.Id, name, nil, false)
+	if err != nil {
+		log.Printf("为邮箱 %s 创建文件夹 %s 失败: %v", u.username, name, err)
+		return err
+	}
+	log.Printf("为邮箱 %s 成功创建文件夹: %s", u.username, name)
+	return nil
 }
 
 // DeleteMailbox 删除邮箱
 func (u *CustomUser) DeleteMailbox(name string) error {
-	return errors.New("不支持删除邮箱")
+	folder, err := u.storage.folderModel.GetByMailboxIdAndName(u.mailbox.Id, name, nil)
+	if err != nil {
+		return err
+	}
+	if folder == nil {
+		return errors.New("文件夹不存在")
+	}
+	if folder.IsSystem {
+		return errors.New("不能删除系统文件夹")
+	}
+
+	// TODO: 检查文件夹是否为空，或者是否需要移动邮件到Trash
+	// 目前简化处理，直接删除
+	if err := u.storage.folderModel.Delete(folder.Id); err != nil {
+		log.Printf("删除邮箱 %s 的文件夹 %s 失败: %v", u.username, name, err)
+		return err
+	}
+	log.Printf("成功删除邮箱 %s 的文件夹: %s", u.username, name)
+	return nil
 }
 
 // RenameMailbox 重命名邮箱
@@ -131,6 +167,7 @@ type CustomMailbox struct {
 	name    string
 	user    *CustomUser
 	storage *MailStorage
+	folder  *model.Folder // 新增
 }
 
 // Name 返回邮箱名称
@@ -304,15 +341,17 @@ func (mb *CustomMailbox) CreateMessage(flags []string, date time.Time, body imap
 
 	// 3. 存储邮件
 	storedMail := &StoredMail{
-		From:      from,
-		To:        []string{to},
-		Subject:   subject,
-		Body:      rawBody,
-		Received:  date,
-		IsRead:    false, // 新邮件默认为未读
-		Mailbox:   mb.name,
-		Username:  mb.user.Username(),
-		MessageID: fmt.Sprintf("<%d.%s>", time.Now().UnixNano(), mb.user.storage.domain),
+		From:       from,
+		To:         []string{to},
+		Subject:    subject,
+		Body:       rawBody,
+		Received:   date,
+		IsRead:     false, // 新邮件默认为未读
+		FolderId:   mb.folder.Id,
+		FolderName: mb.name,
+		MailboxID:  mb.user.mailbox.Id,
+		Username:   mb.user.Username(),
+		MessageID:  fmt.Sprintf("<%d.%s>", time.Now().UnixNano(), mb.user.storage.domain),
 	}
 
 	// 4. 调用storage层保存
