@@ -153,7 +153,38 @@ func (u *CustomUser) DeleteMailbox(name string) error {
 
 // RenameMailbox 重命名邮箱
 func (u *CustomUser) RenameMailbox(existingName, newName string) error {
-	return errors.New("不支持重命名邮箱")
+	// 1. 查找现有文件夹
+	folder, err := u.storage.folderModel.GetByMailboxIdAndName(u.mailbox.Id, existingName, nil)
+	if err != nil {
+		log.Printf("重命名邮箱 %s 的文件夹 %s 失败: %v", u.username, existingName, err)
+		return err
+	}
+	if folder == nil {
+		return errors.New("原文件夹不存在")
+	}
+	if folder.IsSystem {
+		return errors.New("不能重命名系统文件夹")
+	}
+
+	// 2. 检查新名称是否已存在
+	existingNewFolder, err := u.storage.folderModel.GetByMailboxIdAndName(u.mailbox.Id, newName, folder.ParentId)
+	if err != nil {
+		return err
+	}
+	if existingNewFolder != nil {
+		return errors.New("新文件夹名称已存在")
+	}
+
+	// 3. 更新文件夹名称
+	folder.Name = newName
+	folder.UpdatedAt = time.Now()
+	if err := u.storage.folderModel.Update(folder); err != nil {
+		log.Printf("更新邮箱 %s 的文件夹 %s 到 %s 失败: %v", u.username, existingName, newName, err)
+		return err
+	}
+
+	log.Printf("成功重命名邮箱 %s 的文件夹从 %s 到 %s", u.username, existingName, newName)
+	return nil
 }
 
 // Logout 登出
