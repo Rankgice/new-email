@@ -14,6 +14,7 @@ import (
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-sasl"
 	gosmtp "github.com/emersion/go-smtp"
+	"github.com/rankgice/new-email/internal/localSasl"
 )
 
 // SMTPSession 实现 smtp.Session 和 smtp.AuthSession 接口
@@ -77,9 +78,21 @@ func (s *SMTPSession) Auth(mech string) (sasl.Server, error) {
 		}), nil
 
 	case "LOGIN":
-		// LOGIN认证机制 - 暂时不支持，因为go-sasl没有直接的NewLoginServer
-		log.Printf("⚠️  LOGIN认证机制暂不支持，请使用PLAIN认证 [%s]", serverTypeStr)
-		return nil, fmt.Errorf("LOGIN authentication not supported, please use PLAIN")
+		// LOGIN认证机制 - 使用自定义的LoginServer实现
+		log.Printf("🔐 使用LOGIN认证机制 [%s]", serverTypeStr)
+		return localSasl.NewLoginServer(func(username, password string) error {
+			// 验证用户名和密码
+			if !s.backend.storage.ValidateCredentials(username, password) {
+				log.Printf("❌ LOGIN认证失败: %s [%s]", username, serverTypeStr)
+				return fmt.Errorf("invalid credentials")
+			}
+
+			// 认证成功
+			s.authenticated = true
+			s.authUser = username
+			log.Printf("✅ LOGIN认证成功: %s [%s]", username, serverTypeStr)
+			return nil
+		}), nil
 
 	default:
 		log.Printf("❌ 不支持的认证机制: %s [%s]", mech, serverTypeStr)
