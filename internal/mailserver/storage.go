@@ -56,7 +56,7 @@ func NewMailStorage(db *gorm.DB, domain string) *MailStorage {
 
 // ensureSystemFoldersExist 确保每个邮箱都有默认的系统文件夹
 func (s *MailStorage) ensureSystemFoldersExist(db *gorm.DB) {
-	mailboxes, err := s.mailboxModel.GetAll()
+	mailboxes, _, err := s.mailboxModel.List(model.MailboxListParams{})
 	if err != nil {
 		log.Printf("获取所有邮箱失败: %v", err)
 		return
