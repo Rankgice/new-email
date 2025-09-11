@@ -10,7 +10,6 @@ import (
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend"
-	"github.com/emersion/go-message"
 	"github.com/rankgice/new-email/internal/model"
 )
 
@@ -296,14 +295,6 @@ func (mb *CustomMailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []ima
 
 		// 构建邮件内容
 		body := mb.buildEmailBody(mail)
-		bodyReader := strings.NewReader(body)
-
-		// 解析邮件（暂时跳过解析，直接使用原始数据）
-		_, err = message.Read(bodyReader)
-		if err != nil {
-			log.Printf("解析邮件失败: %v", err)
-			continue
-		}
 
 		// 设置信封
 		msg.Envelope = &imap.Envelope{

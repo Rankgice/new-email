@@ -239,7 +239,7 @@ func (s *MailStorage) GetMails(mailboxEmail string, folderName string, limit int
 
 		mail := &StoredMail{
 			ID:          email.Id,
-			MessageID:   fmt.Sprintf("<%d@%s>", email.Id, "localhost"),
+			MessageID:   email.MessageId,
 			From:        email.FromEmail,
 			To:          email.ToEmails,
 			Cc:          email.CcEmails,
