@@ -63,14 +63,16 @@ type CustomUser struct {
 
 // Username 返回用户名
 func (u *CustomUser) Username() string {
+	log.Printf("CustomUser.Username: 用户 %s", u.username)
 	return u.username
 }
 
 // ListMailboxes 列出邮箱文件夹
 func (u *CustomUser) ListMailboxes(subscribed bool) ([]backend.Mailbox, error) {
+	log.Printf("CustomUser.ListMailboxes: 用户 %s, 订阅状态: %t", u.username, subscribed)
 	folders, err := u.storage.folderModel.GetByMailboxId(u.mailbox.Id)
 	if err != nil {
-		log.Printf("获取邮箱 %s 的文件夹失败: %v", u.username, err)
+		log.Printf("CustomUser.ListMailboxes: 获取邮箱 %s 的文件夹失败: %v", u.username, err)
 		return nil, err
 	}
 
@@ -89,12 +91,14 @@ func (u *CustomUser) ListMailboxes(subscribed bool) ([]backend.Mailbox, error) {
 
 // GetMailbox 获取邮箱
 func (u *CustomUser) GetMailbox(name string) (backend.Mailbox, error) {
+	log.Printf("CustomUser.GetMailbox: 用户 %s, 邮箱名称: %s", u.username, name)
 	folder, err := u.storage.folderModel.GetByMailboxIdAndName(u.mailbox.Id, name, nil) // 假设顶级文件夹
 	if err != nil {
-		log.Printf("获取邮箱 %s 的文件夹 %s 失败: %v", u.username, name, err)
+		log.Printf("CustomUser.GetMailbox: 获取邮箱 %s 的文件夹 %s 失败: %v", u.username, name, err)
 		return nil, err
 	}
 	if folder == nil {
+		log.Printf("CustomUser.GetMailbox: 邮箱 %s 的文件夹 %s 不存在", u.username, name)
 		return nil, errors.New("邮箱不存在")
 	}
 
@@ -108,12 +112,15 @@ func (u *CustomUser) GetMailbox(name string) (backend.Mailbox, error) {
 
 // CreateMailbox 创建邮箱
 func (u *CustomUser) CreateMailbox(name string) error {
+	log.Printf("CustomUser.CreateMailbox: 用户 %s, 尝试创建文件夹: %s", u.username, name)
 	// 检查文件夹是否已存在
 	existingFolder, err := u.storage.folderModel.GetByMailboxIdAndName(u.mailbox.Id, name, nil)
 	if err != nil {
+		log.Printf("CustomUser.CreateMailbox: 检查文件夹 %s 是否存在失败: %v", name, err)
 		return err
 	}
 	if existingFolder != nil {
+		log.Printf("CustomUser.CreateMailbox: 文件夹 %s 已存在", name)
 		return errors.New("文件夹已存在")
 	}
 
@@ -129,14 +136,18 @@ func (u *CustomUser) CreateMailbox(name string) error {
 
 // DeleteMailbox 删除邮箱
 func (u *CustomUser) DeleteMailbox(name string) error {
+	log.Printf("CustomUser.DeleteMailbox: 用户 %s, 尝试删除文件夹: %s", u.username, name)
 	folder, err := u.storage.folderModel.GetByMailboxIdAndName(u.mailbox.Id, name, nil)
 	if err != nil {
+		log.Printf("CustomUser.DeleteMailbox: 获取文件夹 %s 失败: %v", name, err)
 		return err
 	}
 	if folder == nil {
+		log.Printf("CustomUser.DeleteMailbox: 文件夹 %s 不存在", name)
 		return errors.New("文件夹不存在")
 	}
 	if folder.IsSystem {
+		log.Printf("CustomUser.DeleteMailbox: 尝试删除系统文件夹 %s", name)
 		return errors.New("不能删除系统文件夹")
 	}
 
@@ -152,16 +163,19 @@ func (u *CustomUser) DeleteMailbox(name string) error {
 
 // RenameMailbox 重命名邮箱
 func (u *CustomUser) RenameMailbox(existingName, newName string) error {
+	log.Printf("CustomUser.RenameMailbox: 用户 %s, 尝试重命名文件夹从 %s 到 %s", u.username, existingName, newName)
 	// 1. 查找现有文件夹
 	folder, err := u.storage.folderModel.GetByMailboxIdAndName(u.mailbox.Id, existingName, nil)
 	if err != nil {
-		log.Printf("重命名邮箱 %s 的文件夹 %s 失败: %v", u.username, existingName, err)
+		log.Printf("CustomUser.RenameMailbox: 查找现有文件夹 %s 失败: %v", existingName, err)
 		return err
 	}
 	if folder == nil {
+		log.Printf("CustomUser.RenameMailbox: 原文件夹 %s 不存在", existingName)
 		return errors.New("原文件夹不存在")
 	}
 	if folder.IsSystem {
+		log.Printf("CustomUser.RenameMailbox: 尝试重命名系统文件夹 %s", existingName)
 		return errors.New("不能重命名系统文件夹")
 	}
 
@@ -188,7 +202,7 @@ func (u *CustomUser) RenameMailbox(existingName, newName string) error {
 
 // Logout 登出
 func (u *CustomUser) Logout() error {
-	log.Printf("IMAP用户登出: %s", u.username)
+	log.Printf("CustomUser.Logout: IMAP用户登出: %s", u.username)
 	return nil
 }
 
@@ -202,11 +216,13 @@ type CustomMailbox struct {
 
 // Name 返回邮箱名称
 func (mb *CustomMailbox) Name() string {
+	log.Printf("CustomMailbox.Name: 邮箱名称: %s", mb.name)
 	return mb.name
 }
 
 // Info 返回邮箱信息
 func (mb *CustomMailbox) Info() (*imap.MailboxInfo, error) {
+	log.Printf("CustomMailbox.Info: 获取邮箱 %s 的信息", mb.name)
 	return &imap.MailboxInfo{
 		Attributes: []string{imap.NoInferiorsAttr},
 		Delimiter:  "/",
@@ -216,9 +232,11 @@ func (mb *CustomMailbox) Info() (*imap.MailboxInfo, error) {
 
 // Status 返回邮箱状态
 func (mb *CustomMailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error) {
+	log.Printf("CustomMailbox.Status: 获取邮箱 %s 的状态, 用户: %s, 请求项: %v", mb.name, mb.user.username, items)
 	// 获取邮件列表
 	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000) // 这里的limit需要优化
 	if err != nil {
+		log.Printf("CustomMailbox.Status: 获取邮箱 %s 的邮件失败: %v", mb.name, err)
 		return nil, err
 	}
 
@@ -254,21 +272,25 @@ func (mb *CustomMailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, e
 
 // SetSubscribed 设置订阅状态
 func (mb *CustomMailbox) SetSubscribed(subscribed bool) error {
+	log.Printf("CustomMailbox.SetSubscribed: 邮箱 %s, 设置订阅状态: %t (简化实现，无实际操作)", mb.name, subscribed)
 	return nil // 简化实现
 }
 
 // Check 检查邮箱
 func (mb *CustomMailbox) Check() error {
+	log.Printf("CustomMailbox.Check: 检查邮箱 %s (简化实现，无实际操作)", mb.name)
 	return nil
 }
 
 // ListMessages 列出消息
 func (mb *CustomMailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.FetchItem, ch chan<- *imap.Message) error {
+	log.Printf("CustomMailbox.ListMessages: 列出邮箱 %s 的消息, 用户: %s, UID: %t, 序列集: %v, 请求项: %v", mb.name, mb.user.username, uid, seqSet, items)
 	defer close(ch)
 
 	// 获取邮件列表
 	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000) // 这里的limit需要优化
 	if err != nil {
+		log.Printf("CustomMailbox.ListMessages: 获取邮箱 %s 的邮件失败: %v", mb.name, err)
 		return err
 	}
 
@@ -330,8 +352,10 @@ func (mb *CustomMailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []ima
 
 // SearchMessages 搜索消息
 func (mb *CustomMailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]uint32, error) {
+	log.Printf("CustomMailbox.SearchMessages: 搜索邮箱 %s 的消息, 用户: %s, UID: %t, 条件: %v", mb.name, mb.user.username, uid, criteria)
 	mails, err := mb.storage.SearchMails(mb.user.mailbox.Id, mb.folder.Id, criteria)
 	if err != nil {
+		log.Printf("CustomMailbox.SearchMessages: 搜索邮箱 %s 的邮件失败: %v", mb.name, err)
 		return nil, err
 	}
 
@@ -352,10 +376,11 @@ func (mb *CustomMailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria)
 
 // CreateMessage 创建消息 (APPEND)
 func (mb *CustomMailbox) CreateMessage(flags []string, date time.Time, body imap.Literal) error {
+	log.Printf("CustomMailbox.CreateMessage: 为邮箱 %s 创建消息, 用户: %s, 标志: %v, 日期: %v", mb.name, mb.user.username, flags, date)
 	// 1. 读取邮件内容
 	buf := new(strings.Builder)
 	if _, err := io.Copy(buf, body); err != nil {
-		log.Printf("读取邮件正文失败: %v", err)
+		log.Printf("CustomMailbox.CreateMessage: 读取邮件正文失败: %v", err)
 		return err
 	}
 	rawBody := buf.String()
@@ -411,9 +436,11 @@ func parseEmailHeaders(rawBody string) (from, to, subject string) {
 
 // UpdateMessagesFlags 更新消息标志
 func (mb *CustomMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.FlagsOp, flags []string) error {
+	log.Printf("CustomMailbox.UpdateMessagesFlags: 更新邮箱 %s 的消息标志, 用户: %s, UID: %t, 序列集: %v, 操作: %v, 标志: %v", mb.name, mb.user.username, uid, seqSet, op, flags)
 	// 获取邮件列表
 	mails, err := mb.storage.GetMails(mb.user.username, mb.name, 1000) // 这里的limit需要优化
 	if err != nil {
+		log.Printf("CustomMailbox.UpdateMessagesFlags: 获取邮箱 %s 的邮件失败: %v", mb.name, err)
 		return err
 	}
 
@@ -457,13 +484,15 @@ func (mb *CustomMailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op i
 
 // CopyMessages 复制消息
 func (mb *CustomMailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string) error {
+	log.Printf("CustomMailbox.CopyMessages: 复制邮箱 %s 的消息到 %s, 用户: %s, UID: %t, 序列集: %v", mb.name, destName, mb.user.username, uid, seqSet)
 	// 1. 获取目标文件夹
 	destFolder, err := mb.storage.folderModel.GetByMailboxIdAndName(mb.user.mailbox.Id, destName, nil)
 	if err != nil {
-		log.Printf("获取目标文件夹 %s 失败: %v", destName, err)
+		log.Printf("CustomMailbox.CopyMessages: 获取目标文件夹 %s 失败: %v", destName, err)
 		return err
 	}
 	if destFolder == nil {
+		log.Printf("CustomMailbox.CopyMessages: 目标文件夹 %s 不存在", destName)
 		return errors.New("目标文件夹不存在")
 	}
 
@@ -517,11 +546,13 @@ func (mb *CustomMailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName st
 
 // MoveMessages 移动消息
 func (mb *CustomMailbox) MoveMessages(uid bool, seqSet *imap.SeqSet, destName string) error {
+	log.Printf("CustomMailbox.MoveMessages: 移动邮箱 %s 的消息到 %s, 用户: %s, UID: %t, 序列集: %v (不支持)", mb.name, destName, mb.user.username, uid, seqSet)
 	return errors.New("不支持移动消息")
 }
 
 // Expunge 删除消息
 func (mb *CustomMailbox) Expunge() error {
+	log.Printf("CustomMailbox.Expunge: 删除邮箱 %s 的消息 (简化实现，无实际操作)", mb.name)
 	return nil // 简化实现，不删除消息
 }
 
