@@ -264,6 +264,7 @@ func (s *IMAPSession) List(w *imapserver.ListWriter, ref string, patterns []stri
 				Mailbox: folder.Name,
 			}
 			if err := w.WriteList(listData); err != nil {
+				log.Printf("写入列表数据失败: %v", err)
 				return err
 			}
 		}
@@ -280,28 +281,78 @@ func (s *IMAPSession) Status(mailboxName string, options *imap.StatusOptions) (*
 
 	log.Printf("获取邮箱状态: %s, 用户: %s", mailboxName, s.username)
 
+	// 检查邮箱是否存在
+	folder, err := s.storage.folderModel.GetByMailboxIdAndName(s.mailbox.Id, mailboxName, nil)
+	if err != nil {
+		log.Printf("获取文件夹失败: %v", err)
+		return nil, err
+	}
+	if folder == nil {
+		log.Printf("邮箱不存在: %s", mailboxName)
+		return nil, errors.New("邮箱不存在")
+	}
+
 	// 获取邮件列表
 	mails, err := s.storage.GetMails(s.username, mailboxName, 0)
 	if err != nil {
 		log.Printf("获取邮件失败: %v", err)
-		return nil, err
-	}
-
-	numMessages := uint32(len(mails))
-	var numUnseen uint32
-	for _, mail := range mails {
-		if !mail.IsRead {
-			numUnseen++
-		}
+		// 如果获取邮件失败，返回空状态而不是错误
+		mails = []*StoredMail{}
 	}
 
 	statusData := &imap.StatusData{
-		NumMessages: &numMessages,
-		UIDNext:     imap.UID(numMessages + 1),
-		UIDValidity: 1,
-		NumUnseen:   &numUnseen,
+		Mailbox: mailboxName,
 	}
 
+	// 根据请求的选项有条件地设置字段
+	if options != nil {
+		if options.NumMessages {
+			numMessages := uint32(len(mails))
+			statusData.NumMessages = &numMessages
+		}
+
+		if options.NumUnseen {
+			var numUnseen uint32
+			for _, mail := range mails {
+				if mail != nil && !mail.IsRead {
+					numUnseen++
+				}
+			}
+			statusData.NumUnseen = &numUnseen
+		}
+
+		if options.UIDNext {
+			statusData.UIDNext = imap.UID(uint32(len(mails)) + 1)
+		}
+
+		if options.UIDValidity {
+			statusData.UIDValidity = 1
+		}
+
+		if options.NumRecent {
+			numRecent := uint32(0) // 简化实现，没有最近邮件
+			statusData.NumRecent = &numRecent
+		}
+
+		if options.Size {
+			var totalSize int64
+			for _, mail := range mails {
+				if mail != nil {
+					totalSize += int64(len(mail.Body))
+				}
+			}
+			statusData.Size = &totalSize
+		}
+	} else {
+		// 如果 options 为 nil，提供基本状态信息
+		log.Printf("警告: StatusOptions 为 nil，提供默认状态")
+		numMessages := uint32(len(mails))
+		statusData.NumMessages = &numMessages
+		statusData.UIDNext = imap.UID(numMessages + 1)
+		statusData.UIDValidity = 1
+	}
+
+	log.Printf("邮箱状态: %s - 请求选项: %+v", mailboxName, options)
 	return statusData, nil
 }
 
