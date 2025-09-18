@@ -27,7 +27,7 @@ type MailServer struct {
 	config            Config
 	smtpReceiveServer *SMTPServer // 25端口 - 接收外部邮件
 	smtpSubmitServer  *SMTPServer // 587端口 - 用户提交邮件
-	imapServer        *IMAPV2Server
+	imapServer        *IMAPServer
 	storage           *MailStorage
 	ctx               context.Context
 	cancel            context.CancelFunc
@@ -50,7 +50,7 @@ func NewMailServer(config Config, db *gorm.DB) *MailServer {
 		// 创建提交服务器 (587端口 - MSA功能)
 		smtpSubmitServer: NewSMTPSubmitServer(config.SMTPSubmitPort, config.Domain, storage, config.TLSCertPath, config.TLSKeyPath),
 		// IMAP服务器
-		imapServer: NewIMAPV2Server(config, storage),
+		imapServer: NewIMAPServer(config, storage),
 	}
 }
 

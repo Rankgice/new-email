@@ -10,8 +10,8 @@ import (
 	"github.com/emersion/go-imap/v2/imapserver"
 )
 
-// IMAPV2Server 基于go-imap/v2库的IMAP服务器实现
-type IMAPV2Server struct {
+// IMAPServer 基于go-imap/v2库的IMAP服务器实现
+type IMAPServer struct {
 	port        int
 	domain      string
 	storage     *MailStorage
@@ -21,8 +21,8 @@ type IMAPV2Server struct {
 	tlsKeyPath  string
 }
 
-// NewIMAPV2Server 创建IMAP v2服务器
-func NewIMAPV2Server(config Config, storage *MailStorage) *IMAPV2Server {
+// NewIMAPServer 创建IMAP v2服务器
+func NewIMAPServer(config Config, storage *MailStorage) *IMAPServer {
 	options := &imapserver.Options{
 		NewSession: func() imapserver.Session {
 			return NewIMAPSession(storage)
@@ -43,7 +43,7 @@ func NewIMAPV2Server(config Config, storage *MailStorage) *IMAPV2Server {
 
 	server := imapserver.New(options)
 
-	return &IMAPV2Server{
+	return &IMAPServer{
 		port:        config.IMAPPort,
 		domain:      config.Domain,
 		storage:     storage,
@@ -54,7 +54,7 @@ func NewIMAPV2Server(config Config, storage *MailStorage) *IMAPV2Server {
 }
 
 // Start 启动IMAP服务器
-func (s *IMAPV2Server) Start(ctx context.Context) error {
+func (s *IMAPServer) Start(ctx context.Context) error {
 	addr := fmt.Sprintf(":%d", s.port)
 
 	var err error
@@ -108,7 +108,7 @@ func (s *IMAPV2Server) Start(ctx context.Context) error {
 }
 
 // Stop 停止IMAP服务器
-func (s *IMAPV2Server) Stop() error {
+func (s *IMAPServer) Stop() error {
 	if s.listener != nil {
 		return s.listener.Close()
 	}
