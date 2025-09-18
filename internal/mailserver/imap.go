@@ -21,11 +21,15 @@ type IMAPServer struct {
 	tlsKeyPath  string
 }
 
-// NewIMAPServer 创建IMAP v2服务器
+// NewIMAPServer 创建IMAP服务器
 func NewIMAPServer(config Config, storage *MailStorage) *IMAPServer {
 	options := &imapserver.Options{
-		NewSession: func() imapserver.Session {
-			return NewIMAPSession(storage)
+		NewSession: func(conn *imapserver.Conn) (imapserver.Session, *imapserver.GreetingData, error) {
+			session := NewIMAPSession(storage)
+			greeting := &imapserver.GreetingData{
+				PreAuth: false, // 需要认证
+			}
+			return session, greeting, nil
 		},
 	}
 

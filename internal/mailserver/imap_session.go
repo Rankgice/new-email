@@ -106,9 +106,9 @@ func (s *IMAPSession) Select(mailboxName string, options *imap.SelectOptions) (*
 
 	selectData := &imap.SelectData{
 		NumMessages: numMessages,
-		UIDNext:     numMessages + 1, // 简化实现
-		UIDValidity: 1,               // 简化实现
-		NumUnseen:   &numUnseen,
+		UIDNext:     imap.UID(numMessages + 1), // 简化实现
+		UIDValidity: 1,                         // 简化实现
+		// NumUnseen 在 v2 中不再是 SelectData 的字段
 	}
 
 	return selectData, nil
@@ -297,8 +297,8 @@ func (s *IMAPSession) Status(mailboxName string, options *imap.StatusOptions) (*
 
 	statusData := &imap.StatusData{
 		NumMessages: &numMessages,
-		UIDNext:     func() *imap.UID { uid := imap.UID(numMessages + 1); return &uid }(),
-		UIDValidity: func() *uint32 { val := uint32(1); return &val }(),
+		UIDNext:     imap.UID(numMessages + 1),
+		UIDValidity: 1,
 		NumUnseen:   &numUnseen,
 	}
 
@@ -350,7 +350,7 @@ func (s *IMAPSession) Append(mailboxName string, r imap.LiteralReader, options *
 
 	// 如果有标志，设置已读状态
 	if options != nil && options.Flags != nil {
-		for _, flag := range *options.Flags {
+		for _, flag := range options.Flags {
 			if flag == imap.FlagSeen {
 				storedMail.IsRead = true
 				break
