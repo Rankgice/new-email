@@ -2,13 +2,14 @@ package mailserver
 
 import (
 	"errors"
-	"fmt"
+	"io"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/emersion/go-imap/v2"
 	"github.com/emersion/go-imap/v2/imapserver"
+	"github.com/emersion/go-message"
 )
 
 // Expunge 删除标记为删除的邮件
@@ -226,9 +227,28 @@ func (s *IMAPSession) Fetch(w *imapserver.FetchWriter, numSet imap.NumSet, optio
 		}
 
 		// 处理 BodySection
-		for _, item := range options.BodySection {
-			body := s.buildEmailBody(mail)
-			fetchData.WriteBodySection(item, int64(len(body)))
+		if len(options.BodySection) > 0 {
+			// 当客户端请求邮件正文时，自动标记为已读
+			if !mail.IsRead {
+				if err := s.storage.MarkAsRead(s.username, mail.MessageID); err != nil {
+					log.Printf("自动标记邮件已读失败: %v", err)
+				} else {
+					log.Printf("邮件 %s 已自动标记为已读", mail.MessageID)
+					mail.IsRead = true // 更新内存中的状态以反映到flags
+				}
+			}
+
+			for _, item := range options.BodySection {
+				body := s.buildEmailBody(mail)
+				literal := fetchData.WriteBodySection(item, int64(len(mail.Body)))
+				if _, err := io.Copy(literal, body); err != nil {
+					literal.Close()
+					return err
+				}
+				if err := literal.Close(); err != nil {
+					return err
+				}
+			}
 		}
 
 		if err := fetchData.Close(); err != nil {
@@ -254,12 +274,42 @@ func (s *IMAPSession) buildEnvelope(mail *StoredMail) *imap.Envelope {
 
 // buildBodyStructure 构建邮件体结构
 func (s *IMAPSession) buildBodyStructure(mail *StoredMail) imap.BodyStructure {
-	// 简化实现：假设所有邮件都是纯文本
+	r := strings.NewReader(mail.Body)
+	entity, err := message.Read(r)
+	if err != nil {
+		log.Printf("解析邮件实体失败: %v", err)
+		return &imap.BodyStructureSinglePart{
+			Type:    "text",
+			Subtype: "plain",
+			Size:    uint32(len(mail.Body)),
+		}
+	}
+
+	mediaType, params, err := entity.Header.ContentType()
+	if err != nil {
+		log.Printf("解析邮件Content-Type失败: %v", err)
+		return &imap.BodyStructureSinglePart{
+			Type:    "text",
+			Subtype: "plain",
+			Size:    uint32(len(mail.Body)),
+		}
+	}
+
+	mainType, subType, ok := strings.Cut(mediaType, "/")
+	if !ok {
+		log.Printf("无效的Content-Type格式: %s", mediaType)
+		return &imap.BodyStructureSinglePart{
+			Type:    "text",
+			Subtype: "plain",
+			Size:    uint32(len(mail.Body)),
+		}
+	}
+
 	return &imap.BodyStructureSinglePart{
-		Type:    "text",
-		Subtype: "plain",
+		Type:    mainType,
+		Subtype: subType,
+		Params:  params,
 		Size:    uint32(len(mail.Body)),
-		// Lines 字段在 v2 中可能已经移除或结构改变
 	}
 }
 
@@ -302,21 +352,8 @@ func (s *IMAPSession) parseAddressListList(emails []string) []imap.Address {
 }
 
 // buildEmailBody 构建邮件体
-func (s *IMAPSession) buildEmailBody(mail *StoredMail) string {
-	// 构建简单的RFC822格式邮件
-	body := fmt.Sprintf("From: %s\r\n", mail.From)
-	body += fmt.Sprintf("To: %s\r\n", strings.Join(mail.To, ", "))
-	if len(mail.Cc) > 0 {
-		body += fmt.Sprintf("Cc: %s\r\n", strings.Join(mail.Cc, ", "))
-	}
-	body += fmt.Sprintf("Subject: %s\r\n", mail.Subject)
-	body += fmt.Sprintf("Date: %s\r\n", mail.Received.Format(time.RFC1123Z))
-	body += fmt.Sprintf("Message-ID: %s\r\n", mail.MessageID)
-	body += fmt.Sprintf("Content-Type: %s\r\n", mail.ContentType)
-	body += "\r\n"
-	body += mail.Body
-
-	return body
+func (s *IMAPSession) buildEmailBody(mail *StoredMail) io.Reader {
+	return strings.NewReader(mail.Body)
 }
 
 // Store 存储邮件标志
