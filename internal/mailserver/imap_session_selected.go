@@ -226,6 +226,10 @@ func (s *IMAPSession) Fetch(w *imapserver.FetchWriter, numSet imap.NumSet, optio
 			fetchData.WriteRFC822Size(int64(len(mail.Body)))
 		}
 
+		if options.UID {
+			fetchData.WriteUID(uid)
+		}
+
 		// 处理 BodySection
 		if len(options.BodySection) > 0 {
 			// 当客户端请求邮件正文时，自动标记为已读
