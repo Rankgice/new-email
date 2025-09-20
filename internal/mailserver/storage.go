@@ -156,17 +156,21 @@ func (s *MailStorage) SaveMail(mail *StoredMail) error {
 
 // StoreMail 存储邮件
 func (s *MailStorage) StoreMail(mail *StoredMail) error {
+	log.Printf("🎯 StoreMail: 开始存储邮件, From=%s, To=%v, Subject=%s", mail.From, mail.To, mail.Subject)
+
 	// 查找目标邮箱
 	for _, toAddr := range mail.To {
+		log.Printf("🔍 处理收件人: %s", toAddr)
 		mailbox, err := s.findMailboxByEmail(toAddr)
 		if err != nil {
-			log.Printf("查找邮箱失败 %s: %v", toAddr, err)
+			log.Printf("❌ 查找邮箱失败 %s: %v", toAddr, err)
 			continue
 		}
 		if mailbox == nil {
-			log.Printf("邮箱不存在: %s", toAddr)
+			log.Printf("❌ 邮箱不存在: %s", toAddr)
 			continue
 		}
+		log.Printf("✅ 找到收件人邮箱: ID=%d, Email=%s, UserId=%d", mailbox.Id, mailbox.Email, mailbox.UserId)
 
 		// 获取或创建INBOX文件夹
 		inboxFolder, err := s.getOrCreateFolder(mailbox.Id, "INBOX", nil, true)
@@ -209,26 +213,36 @@ func (s *MailStorage) StoreMail(mail *StoredMail) error {
 
 // GetMails 获取邮件列表
 func (s *MailStorage) GetMails(mailboxEmail string, folderName string, limit int) ([]*StoredMail, error) {
+	log.Printf("🔍 GetMails: 查询邮箱=%s, 文件夹=%s", mailboxEmail, folderName)
+
 	mailbox, err := s.findMailboxByEmail(mailboxEmail)
 	if err != nil {
+		log.Printf("❌ 查找邮箱失败: %v", err)
 		return nil, err
 	}
 	if mailbox == nil {
+		log.Printf("❌ 邮箱不存在: %s", mailboxEmail)
 		return nil, fmt.Errorf("邮箱不存在: %s", mailboxEmail)
 	}
+	log.Printf("✅ 找到邮箱: ID=%d, Email=%s", mailbox.Id, mailbox.Email)
 
 	folder, err := s.folderModel.GetByMailboxIdAndName(mailbox.Id, folderName, nil)
 	if err != nil {
+		log.Printf("❌ 查找文件夹失败: %v", err)
 		return nil, err
 	}
 	if folder == nil {
+		log.Printf("❌ 文件夹不存在: %s", folderName)
 		return nil, fmt.Errorf("文件夹不存在: %s", folderName)
 	}
+	log.Printf("✅ 找到文件夹: ID=%d, Name=%s", folder.Id, folder.Name)
 
 	emails, err := s.emailModel.GetByFolderId(folder.Id, limit)
 	if err != nil {
+		log.Printf("❌ 查询邮件失败: %v", err)
 		return nil, err
 	}
+	log.Printf("📧 查询到 %d 封邮件", len(emails))
 
 	var mails []*StoredMail
 	for _, email := range emails {

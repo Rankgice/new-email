@@ -342,6 +342,9 @@ func (s *SMTPSession) Data(r io.Reader) error {
 				Username:    toAddr, // 收件人作为邮件所属用户
 			}
 
+			log.Printf("📧 准备存储邮件: From=%s, To=%v, Subject=%s, FolderId=%d, MailboxId=%d",
+				s.from, s.to, subject, inboxFolder.Id, mailbox.Id)
+
 			// 存储邮件
 			if err := s.backend.storage.StoreMail(storedMail); err != nil {
 				log.Printf("❌ 存储邮件失败: %v [%s]", err, serverTypeStr)

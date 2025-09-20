@@ -296,9 +296,11 @@ func (s *IMAPSession) Status(mailboxName string, options *imap.StatusOptions) (*
 	mails, err := s.storage.GetMails(s.username, mailboxName, 0)
 	if err != nil {
 		log.Printf("获取邮件失败: %v", err)
-		// 如果获取邮件失败，返回空状态而不是错误
-		mails = []*StoredMail{}
+		// 返回错误而不是空状态，这样IMAP客户端可以知道出现了问题
+		return nil, fmt.Errorf("failed to get mails for mailbox %s: %v", mailboxName, err)
 	}
+
+	log.Printf("📊 邮箱 %s 获取到 %d 封邮件", mailboxName, len(mails))
 
 	statusData := &imap.StatusData{
 		Mailbox: mailboxName,
