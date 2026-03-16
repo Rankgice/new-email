@@ -5,157 +5,157 @@
  - using code:	gin.SetMode(gin.ReleaseMode)
 
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
-[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="user"
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+[0m[33m[0.550ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="user"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "user" AND sql IS NOT NULL order by type = "table" desc
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `user` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "user" AND name = "idx_user_username"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "user" AND name = "idx_user_email"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="admin"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
-[0m[33m[0.000ms] [34;1m[rows:4][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "admin" AND sql IS NOT NULL order by type = "table" desc
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+[0m[33m[0.564ms] [34;1m[rows:4][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "admin" AND sql IS NOT NULL order by type = "table" desc
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `admin` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "admin" AND name = "idx_admin_email"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "admin" AND name = "idx_admin_deleted_at"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
-[0m[33m[0.533ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "admin" AND name = "idx_admin_username"
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "admin" AND name = "idx_admin_username"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="domain"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "domain" AND sql IS NOT NULL order by type = "table" desc
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `domain` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "domain" AND name = "idx_domain_name"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "domain" AND name = "idx_domain_deleted_at"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="mailbox"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:5][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "mailbox" AND sql IS NOT NULL order by type = "table" desc
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `mailbox` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "mailbox" AND name = "idx_mailbox_user_id"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "mailbox" AND name = "idx_mailbox_domain_id"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "mailbox" AND name = "idx_mailbox_email"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "mailbox" AND name = "idx_mailbox_deleted_at"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="folders"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
-[0m[33m[0.521ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "folders" AND sql IS NOT NULL order by type = "table" desc
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+[0m[33m[0.000ms] [34;1m[rows:3][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "folders" AND sql IS NOT NULL order by type = "table" desc
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `folders` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
-[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "folders" AND name = "idx_mailbox_id_name_parent_id"
-
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "folders" AND name = "idx_folders_deleted_at"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+[0m[33m[0.530ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "folders" AND name = "idx_mailbox_id_name_parent_id"
+
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="email"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:7][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "email" AND sql IS NOT NULL order by type = "table" desc
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `email` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
-[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "email" AND name = "idx_email_deleted_at"
-
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "email" AND name = "idx_email_user_id"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "email" AND name = "idx_email_mailbox_id"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "email" AND name = "idx_email_message_id"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "email" AND name = "idx_email_from_email"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "email" AND name = "idx_folder_id"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
-[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="email_attachment"
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "email" AND name = "idx_email_deleted_at"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+[0m[33m[0.521ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="email_attachment"
+
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:2][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "email_attachment" AND sql IS NOT NULL order by type = "table" desc
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `email_attachment` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "email_attachment" AND name = "idx_email_attachment_email_id"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type='table' AND name="api_key"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:4][0m SELECT sql FROM sqlite_master WHERE type IN ("table","index") AND tbl_name = "api_key" AND sql IS NOT NULL order by type = "table" desc
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT * FROM `api_key` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
-[0m[33m[0.533ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "api_key" AND name = "idx_api_key_key"
-
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
-[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "api_key" AND name = "idx_api_key_deleted_at"
-
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
 [0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "api_key" AND name = "idx_api_key_user_id"
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:219
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "api_key" AND name = "idx_api_key_key"
+
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:194
+[0m[33m[0.000ms] [34;1m[rows:-][0m SELECT count(*) FROM sqlite_master WHERE type = "index" AND tbl_name = "api_key" AND name = "idx_api_key_deleted_at"
+
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:219
 [0m[33m[0.000ms] [34;1m[rows:1][0m SELECT count(*) FROM `admin` WHERE (role = "admin" AND status = 1) AND `admin`.`deleted_at` IS NULL
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:243
-[0m[33m[0.513ms] [34;1m[rows:1][0m SELECT count(*) FROM `domain` WHERE name = "email.host" AND `domain`.`deleted_at` IS NULL
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:243
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT count(*) FROM `domain` WHERE name = "email.host" AND `domain`.`deleted_at` IS NULL
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:266
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:266
 [0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `domain` WHERE name = "email.host" AND `domain`.`deleted_at` IS NULL ORDER BY `domain`.`id` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:274
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/svc/service_context.go:274
 [0m[33m[0.000ms] [34;1m[rows:1][0m SELECT count(*) FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL
 [GIN-debug] GET    /api/health               --> github.com/rankgice/new-email/internal/router.SetupRouter.func1 (4 handlers)
 [GIN-debug] GET    /                         --> github.com/rankgice/new-email/internal/router.SetupRouter.func2 (4 handlers)
@@ -216,404 +216,57 @@
 [GIN-debug] GET    /api/v1/emails/:id        --> github.com/rankgice/new-email/internal/handler.(*ApiHandler).GetEmail-fm (5 handlers)
 [GIN-debug] POST   /api/v1/emails/send       --> github.com/rankgice/new-email/internal/handler.(*ApiHandler).SendEmail-fm (5 handlers)
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:102
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:102
 [0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE `mailbox`.`deleted_at` IS NULL ORDER BY created_at DESC
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.546ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
 [0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "Sent") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
 [0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "Drafts") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.547ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "Trash") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
+2026/03/16 15:56:53 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "Trash") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
+2026/03/16 15:56:54 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
 [0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.509ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
+2026/03/16 15:56:54 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
 
-2026/03/08 23:39:48 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.555ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
+2026/03/16 15:56:54 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
 [GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
 Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
 [GIN-debug] Listening and serving HTTP on :18080
-[GIN] 2026/03/08 - 23:39:51 | 200 |            0s |       127.0.0.1 | GET      "/api/health"
 
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:90
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE username = "smokeuser" ORDER BY `user`.`id` LIMIT 1
-[GIN] 2026/03/08 - 23:40:30 | 200 |     50.0838ms |       127.0.0.1 | POST     "/api/public/user/login"
+2026/03/16 15:57:19 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
+[GIN] 2026/03/16 - 15:57:19 | 200 |            0s |       127.0.0.1 | GET      "/api/health"
 
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.528ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:51
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE `mailbox`.`id` = 1 AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
+2026/03/16 15:57:19 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
 [0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
 
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.520ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
+2026/03/16 15:57:19 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:79
+[0m[33m[1.009ms] [34;1m[rows:4][0m SELECT * FROM `folders` WHERE mailbox_id = 1 AND `folders`.`deleted_at` IS NULL
 
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
+2026/03/16 15:57:19 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
+[0m[33m[0.578ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
+
+2026/03/16 15:57:20 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
+[0m[33m[0.555ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
+
+2026/03/16 15:57:20 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
+[0m[33m[0.524ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
+
+2026/03/16 15:57:20 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
+[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
+
+2026/03/16 15:57:20 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
 [0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
 
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:237
-[0m[33m[0.511ms] [34;1m[rows:6][0m SELECT * FROM `email` WHERE folder_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY received_at DESC
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:237
-[0m[33m[0.000ms] [34;1m[rows:6][0m SELECT * FROM `email` WHERE folder_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY received_at DESC
-
-2026/03/08 23:40:30 [31;1mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76 [35;1mrecord not found
-[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.654ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "<1772984074.86451800@email.host>") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:169
-[0m[33m[1.648ms] [34;1m[rows:1][0m UPDATE `email` SET `message_id`="1772984074.86451800@email.host",`updated_at`="2026-03-08 23:40:30.183" WHERE id = 3 AND `email`.`deleted_at` IS NULL
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [31;1mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76 [35;1mrecord not found
-[0m[33m[0.000ms] [34;1m[rows:0][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "<1772984073.926950800@email.host>") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:169
-[0m[33m[1.542ms] [34;1m[rows:1][0m UPDATE `email` SET `message_id`="1772984073.926950800@email.host",`updated_at`="2026-03-08 23:40:30.186" WHERE id = 1 AND `email`.`deleted_at` IS NULL
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:129
-[0m[33m[1.141ms] [34;1m[rows:1][0m UPDATE `mailbox` SET `last_sync_at`="2026-03-08 23:40:30.188",`updated_at`="2026-03-08 23:40:30.188" WHERE id = 1 AND `mailbox`.`deleted_at` IS NULL
-[GIN] 2026/03/08 - 23:40:30 | 200 |     62.7465ms |       127.0.0.1 | POST     "/api/user/mailboxes/1/sync"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:51
-[0m[33m[0.542ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE `mailbox`.`id` = 1 AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.531ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.645ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.522ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:237
-[0m[33m[0.526ms] [34;1m[rows:6][0m SELECT * FROM `email` WHERE folder_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY received_at DESC
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.723ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:237
-[0m[33m[0.548ms] [34;1m[rows:6][0m SELECT * FROM `email` WHERE folder_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY received_at DESC
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.526ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:129
-[0m[33m[1.677ms] [34;1m[rows:1][0m UPDATE `mailbox` SET `last_sync_at`="2026-03-08 23:40:30.246",`updated_at`="2026-03-08 23:40:30.246" WHERE id = 1 AND `mailbox`.`deleted_at` IS NULL
-[GIN] 2026/03/08 - 23:40:30 | 200 |     57.4162ms |       127.0.0.1 | POST     "/api/user/mailboxes/1/sync"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:141
-[0m[33m[0.523ms] [34;1m[rows:1][0m SELECT count(*) FROM `email` WHERE user_id = 1 AND mailbox_id = 1 AND `email`.`deleted_at` IS NULL
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:147
-[0m[33m[0.000ms] [34;1m[rows:8][0m SELECT * FROM `email` WHERE user_id = 1 AND mailbox_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY created_at DESC LIMIT 50
-[GIN] 2026/03/08 - 23:40:30 | 200 |       522.9µs |       127.0.0.1 | GET      "/api/user/emails?mailboxId=1&page=1&pageSize=50"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.554ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/api_key.go:46
-[0m[33m[2.161ms] [34;1m[rows:1][0m INSERT INTO `api_key` (`user_id`,`name`,`key`,`secret`,`permissions`,`status`,`last_used_at`,`expires_at`,`created_at`,`updated_at`,`deleted_at`) VALUES (1,"smoke-send-key-1772984429","ak_096d3470dee8722e3b48f52ec509f9d895000e64c7f41bee867bee0912b899a0","","[emails:send]",1,NULL,NULL,"2026-03-08 23:40:30.256","2026-03-08 23:40:30.256",NULL) RETURNING `id`
-[GIN] 2026/03/08 - 23:40:30 | 200 |      3.7649ms |       127.0.0.1 | POST     "/api/user/api-keys"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:51
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE `mailbox`.`id` = 1 AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.520ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "Sent") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/domain.go:94
-[0m[33m[0.535ms] [34;1m[rows:1][0m SELECT * FROM `domain` WHERE name = "email.host" AND `domain`.`deleted_at` IS NULL ORDER BY `domain`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.517ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.682ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.668ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:57
-[0m[33m[6.498ms] [34;1m[rows:1][0m INSERT INTO `email` (`user_id`,`mailbox_id`,`message_id`,`subject`,`from_email`,`from_name`,`to_emails`,`cc_emails`,`bcc_emails`,`reply_to`,`content_type`,`content`,`is_read`,`is_starred`,`direction`,`folder_id`,`sent_at`,`received_at`,`created_at`,`updated_at`,`deleted_at`) VALUES (1,1,"1772984430.334446800@email.host","Smoke dedupe user 1772984429","test@email.host","","[\"test@email.host\"]",NULL,NULL,"","text/plain; charset=UTF-8","dedupe check user
-",false,false,"received",1,NULL,"2026-03-08 23:40:30.334","2026-03-08 23:40:30.336","2026-03-08 23:40:30.336",NULL) RETURNING `id`
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "Sent") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:57
-[0m[33m[1.227ms] [34;1m[rows:1][0m INSERT INTO `email` (`user_id`,`mailbox_id`,`message_id`,`subject`,`from_email`,`from_name`,`to_emails`,`cc_emails`,`bcc_emails`,`reply_to`,`content_type`,`content`,`is_read`,`is_starred`,`direction`,`folder_id`,`sent_at`,`received_at`,`created_at`,`updated_at`,`deleted_at`) VALUES (1,1,"","Smoke dedupe user 1772984429","test@email.host","","[\"test@email.host\"]",NULL,NULL,"","text/plain","dedupe check user",true,false,"sent",2,"2026-03-08 23:40:30.345",NULL,"2026-03-08 23:40:30.346","2026-03-08 23:40:30.346",NULL) RETURNING `id`
-[GIN] 2026/03/08 - 23:40:30 | 200 |     90.2988ms |       127.0.0.1 | POST     "/api/user/emails/send"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/api_key.go:96
-[0m[33m[1.077ms] [34;1m[rows:1][0m SELECT * FROM `api_key` WHERE key = "ak_096d3470dee8722e3b48f52ec509f9d895000e64c7f41bee867bee0912b899a0" AND `api_key`.`deleted_at` IS NULL ORDER BY `api_key`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/api_key.go:166
-[0m[33m[4.093ms] [34;1m[rows:1][0m UPDATE `api_key` SET `last_used_at`="2026-03-08 23:40:30.355",`updated_at`="2026-03-08 23:40:30.355" WHERE id = 3 AND `api_key`.`deleted_at` IS NULL
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:51
-[0m[33m[9.099ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE `mailbox`.`id` = 1 AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.565ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "Sent") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/domain.go:94
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `domain` WHERE name = "email.host" AND `domain`.`deleted_at` IS NULL ORDER BY `domain`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:57
-[0m[33m[3.448ms] [34;1m[rows:1][0m INSERT INTO `email` (`user_id`,`mailbox_id`,`message_id`,`subject`,`from_email`,`from_name`,`to_emails`,`cc_emails`,`bcc_emails`,`reply_to`,`content_type`,`content`,`is_read`,`is_starred`,`direction`,`folder_id`,`sent_at`,`received_at`,`created_at`,`updated_at`,`deleted_at`) VALUES (1,1,"1772984430.423899900@email.host","Smoke dedupe api 1772984429","test@email.host","","[\"test@email.host\"]",NULL,NULL,"","text/plain; charset=UTF-8","dedupe check api
-",false,false,"received",1,NULL,"2026-03-08 23:40:30.423","2026-03-08 23:40:30.425","2026-03-08 23:40:30.425",NULL) RETURNING `id`
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.511ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "Sent") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:57
-[0m[33m[1.573ms] [34;1m[rows:1][0m INSERT INTO `email` (`user_id`,`mailbox_id`,`message_id`,`subject`,`from_email`,`from_name`,`to_emails`,`cc_emails`,`bcc_emails`,`reply_to`,`content_type`,`content`,`is_read`,`is_starred`,`direction`,`folder_id`,`sent_at`,`received_at`,`created_at`,`updated_at`,`deleted_at`) VALUES (1,1,"","Smoke dedupe api 1772984429","test@email.host","","[\"test@email.host\"]",NULL,NULL,"","text/plain","dedupe check api",true,false,"sent",2,"2026-03-08 23:40:30.43",NULL,"2026-03-08 23:40:30.431","2026-03-08 23:40:30.431",NULL) RETURNING `id`
-[GIN] 2026/03/08 - 23:40:30 | 200 |      80.242ms |       127.0.0.1 | POST     "/api/v1/emails/send"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.534ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:141
-[0m[33m[0.535ms] [34;1m[rows:1][0m SELECT count(*) FROM `email` WHERE user_id = 1 AND mailbox_id = 1 AND `email`.`deleted_at` IS NULL
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:147
-[0m[33m[0.516ms] [34;1m[rows:12][0m SELECT * FROM `email` WHERE user_id = 1 AND mailbox_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY created_at DESC LIMIT 50
-[GIN] 2026/03/08 - 23:40:30 | 200 |      2.1156ms |       127.0.0.1 | GET      "/api/user/emails?mailboxId=1&page=1&pageSize=50"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.878ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:51
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE `mailbox`.`id` = 1 AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.559ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[1.007ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[1.516ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.581ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:237
-[0m[33m[0.750ms] [34;1m[rows:8][0m SELECT * FROM `email` WHERE folder_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY received_at DESC
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:237
-[0m[33m[0.556ms] [34;1m[rows:8][0m SELECT * FROM `email` WHERE folder_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY received_at DESC
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.551ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984430.423899900@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984430.334446800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.520ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.545ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.519ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:129
-[0m[33m[2.129ms] [34;1m[rows:1][0m UPDATE `mailbox` SET `last_sync_at`="2026-03-08 23:40:30.503",`updated_at`="2026-03-08 23:40:30.503" WHERE id = 1 AND `mailbox`.`deleted_at` IS NULL
-[GIN] 2026/03/08 - 23:40:30 | 200 |     67.5646ms |       127.0.0.1 | POST     "/api/user/mailboxes/1/sync"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.521ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:141
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT count(*) FROM `email` WHERE user_id = 1 AND mailbox_id = 1 AND `email`.`deleted_at` IS NULL
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:147
-[0m[33m[0.000ms] [34;1m[rows:12][0m SELECT * FROM `email` WHERE user_id = 1 AND mailbox_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY created_at DESC LIMIT 50
-[GIN] 2026/03/08 - 23:40:30 | 200 |      1.6041ms |       127.0.0.1 | GET      "/api/user/emails?mailboxId=1&page=1&pageSize=50"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:51
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE `mailbox`.`id` = 1 AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:237
+2026/03/16 15:57:20 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:237
 [0m[33m[0.000ms] [34;1m[rows:8][0m SELECT * FROM `email` WHERE folder_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY received_at DESC
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:150
-[0m[33m[1.001ms] [34;1m[rows:1][0m SELECT * FROM `mailbox` WHERE email = "test@email.host" AND `mailbox`.`deleted_at` IS NULL ORDER BY `mailbox`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/folder.go:66
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `folders` WHERE (mailbox_id = 1 AND name = "INBOX") AND parent_id IS NULL AND `folders`.`deleted_at` IS NULL ORDER BY `folders`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:237
-[0m[33m[0.000ms] [34;1m[rows:8][0m SELECT * FROM `email` WHERE folder_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY received_at DESC
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984430.423899900@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984430.334446800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[1.001ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984074.86451800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:76
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `email` WHERE (mailbox_id = 1 AND message_id = "1772984073.926950800@email.host") AND `email`.`deleted_at` IS NULL ORDER BY `email`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/mailbox.go:129
-[0m[33m[2.095ms] [34;1m[rows:1][0m UPDATE `mailbox` SET `last_sync_at`="2026-03-08 23:40:30.563",`updated_at`="2026-03-08 23:40:30.563" WHERE id = 1 AND `mailbox`.`deleted_at` IS NULL
-[GIN] 2026/03/08 - 23:40:30 | 200 |      55.577ms |       127.0.0.1 | POST     "/api/user/mailboxes/1/sync"
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/user.go:78
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT * FROM `user` WHERE `user`.`id` = 1 ORDER BY `user`.`id` LIMIT 1
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:141
-[0m[33m[0.000ms] [34;1m[rows:1][0m SELECT count(*) FROM `email` WHERE user_id = 1 AND mailbox_id = 1 AND `email`.`deleted_at` IS NULL
-
-2026/03/08 23:40:30 [32mC:/Users/Lusheng/GolandProjects/new-email/internal/model/email.go:147
-[0m[33m[0.000ms] [34;1m[rows:12][0m SELECT * FROM `email` WHERE user_id = 1 AND mailbox_id = 1 AND `email`.`deleted_at` IS NULL ORDER BY created_at DESC LIMIT 50
-[GIN] 2026/03/08 - 23:40:30 | 200 |      1.0193ms |       127.0.0.1 | GET      "/api/user/emails?mailboxId=1&page=1&pageSize=50"

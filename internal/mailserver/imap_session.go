@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,6 +22,14 @@ type IMAPSession struct {
 	selectedFolder *model.Folder
 	authenticated  bool
 	mailboxTracker *imapserver.MailboxTracker
+}
+
+func noSuchMailboxError() error {
+	return &imap.Error{
+		Type: imap.StatusResponseTypeNo,
+		Code: imap.ResponseCodeNonExistent,
+		Text: "No such mailbox",
+	}
 }
 
 // NewIMAPSession 创建新的 IMAP 会话
@@ -81,7 +90,7 @@ func (s *IMAPSession) Select(mailboxName string, options *imap.SelectOptions) (*
 		return nil, err
 	}
 	if folder == nil {
-		return nil, errors.New("邮箱不存在")
+		return nil, noSuchMailboxError()
 	}
 
 	s.selectedFolder = folder
@@ -155,7 +164,7 @@ func (s *IMAPSession) Delete(mailboxName string) error {
 		return err
 	}
 	if folder == nil {
-		return errors.New("邮箱不存在")
+		return noSuchMailboxError()
 	}
 	if folder.IsSystem {
 		return errors.New("不能删除系统邮箱")
@@ -184,7 +193,7 @@ func (s *IMAPSession) Rename(oldName, newName string, options *imap.RenameOption
 		return err
 	}
 	if folder == nil {
-		return errors.New("原邮箱不存在")
+		return noSuchMailboxError()
 	}
 	if folder.IsSystem {
 		return errors.New("不能重命名系统邮箱")
@@ -241,17 +250,27 @@ func (s *IMAPSession) List(w *imapserver.ListWriter, ref string, patterns []stri
 
 	log.Printf("列出邮箱: ref=%s, patterns=%v, 用户: %s", ref, patterns, s.username)
 
+	if len(patterns) == 0 {
+		return w.WriteList(&imap.ListData{
+			Attrs: []imap.MailboxAttr{imap.MailboxAttrNoSelect},
+			Delim: '/',
+		})
+	}
+
 	folders, err := s.storage.folderModel.GetByMailboxId(s.mailbox.Id)
 	if err != nil {
 		log.Printf("获取文件夹列表失败: %v", err)
 		return err
 	}
 
+	sort.Slice(folders, func(i, j int) bool {
+		return folders[i].Name < folders[j].Name
+	})
+
 	for _, folder := range folders {
-		// 简化的模式匹配，实际应该使用更复杂的匹配逻辑
 		matched := false
 		for _, pattern := range patterns {
-			if pattern == "*" || pattern == folder.Name || strings.Contains(folder.Name, strings.Trim(pattern, "*")) {
+			if imapserver.MatchList(folder.Name, '/', ref, pattern) {
 				matched = true
 				break
 			}
@@ -262,6 +281,14 @@ func (s *IMAPSession) List(w *imapserver.ListWriter, ref string, patterns []stri
 				Attrs:   []imap.MailboxAttr{},
 				Delim:   '/',
 				Mailbox: folder.Name,
+			}
+			if options != nil && options.ReturnStatus != nil {
+				statusData, err := s.statusData(folder.Name, options.ReturnStatus)
+				if err != nil {
+					log.Printf("构建LIST状态数据失败: %v", err)
+					return err
+				}
+				listData.Status = statusData
 			}
 			if err := w.WriteList(listData); err != nil {
 				log.Printf("写入列表数据失败: %v", err)
@@ -280,7 +307,10 @@ func (s *IMAPSession) Status(mailboxName string, options *imap.StatusOptions) (*
 	}
 
 	log.Printf("获取邮箱状态: %s, 用户: %s", mailboxName, s.username)
+	return s.statusData(mailboxName, options)
+}
 
+func (s *IMAPSession) statusData(mailboxName string, options *imap.StatusOptions) (*imap.StatusData, error) {
 	// 检查邮箱是否存在
 	folder, err := s.storage.folderModel.GetByMailboxIdAndName(s.mailbox.Id, mailboxName, nil)
 	if err != nil {
@@ -289,7 +319,7 @@ func (s *IMAPSession) Status(mailboxName string, options *imap.StatusOptions) (*
 	}
 	if folder == nil {
 		log.Printf("邮箱不存在: %s", mailboxName)
-		return nil, errors.New("邮箱不存在")
+		return nil, noSuchMailboxError()
 	}
 
 	// 获取邮件列表
@@ -336,6 +366,11 @@ func (s *IMAPSession) Status(mailboxName string, options *imap.StatusOptions) (*
 			statusData.NumRecent = &numRecent
 		}
 
+		if options.NumDeleted {
+			numDeleted := uint32(0)
+			statusData.NumDeleted = &numDeleted
+		}
+
 		if options.Size {
 			var totalSize int64
 			for _, mail := range mails {
@@ -344,6 +379,11 @@ func (s *IMAPSession) Status(mailboxName string, options *imap.StatusOptions) (*
 				}
 			}
 			statusData.Size = &totalSize
+		}
+
+		if options.DeletedStorage {
+			deletedStorage := int64(0)
+			statusData.DeletedStorage = &deletedStorage
 		}
 	} else {
 		// 如果 options 为 nil，提供基本状态信息
@@ -372,7 +412,7 @@ func (s *IMAPSession) Append(mailboxName string, r imap.LiteralReader, options *
 		return nil, err
 	}
 	if folder == nil {
-		return nil, errors.New("邮箱不存在")
+		return nil, noSuchMailboxError()
 	}
 
 	// 读取邮件内容
@@ -429,24 +469,28 @@ func (s *IMAPSession) Append(mailboxName string, r imap.LiteralReader, options *
 
 // Poll 轮询更新
 func (s *IMAPSession) Poll(w *imapserver.UpdateWriter, allowExpunge bool) error {
-	if !s.authenticated || s.selectedFolder == nil {
-		return errors.New("未选择邮箱")
+	if !s.authenticated {
+		return errors.New("未认证")
+	}
+	if s.selectedFolder == nil || s.mailboxTracker == nil {
+		return nil
 	}
 
 	log.Printf("轮询邮箱更新: %s, 用户: %s", s.selectedFolder.Name, s.username)
-	// 简化实现，不发送更新
 	return nil
 }
 
 // Idle 空闲模式
 func (s *IMAPSession) Idle(w *imapserver.UpdateWriter, stop <-chan struct{}) error {
-	if !s.authenticated || s.selectedFolder == nil {
-		return errors.New("未选择邮箱")
+	if !s.authenticated {
+		return errors.New("未认证")
+	}
+	if s.selectedFolder == nil || s.mailboxTracker == nil {
+		return nil
 	}
 
 	log.Printf("进入空闲模式: %s, 用户: %s", s.selectedFolder.Name, s.username)
 
-	// 等待停止信号
 	<-stop
 	log.Printf("退出空闲模式: %s, 用户: %s", s.selectedFolder.Name, s.username)
 	return nil
