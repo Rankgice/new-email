@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/rankgice/new-email/internal/middleware"
 	"github.com/rankgice/new-email/internal/model"
 	"github.com/rankgice/new-email/internal/result"
+	"github.com/rankgice/new-email/internal/service"
 	"github.com/rankgice/new-email/internal/svc"
 	"github.com/rankgice/new-email/internal/types"
-	"github.com/rankgice/new-email/pkg/auth"
 	"net/http"
 	"strconv"
 	"time"
@@ -254,13 +255,7 @@ func (h *MailboxHandler) Update(c *gin.Context) {
 		updateData["email"] = req.Email
 	}
 	if req.Password != "" {
-		// 加密新密码
-		encryptedPassword, err := auth.HashPassword(req.Password)
-		if err != nil {
-			c.JSON(http.StatusOK, result.ErrorSimpleResult("密码加密失败"))
-			return
-		}
-		updateData["password"] = encryptedPassword
+		updateData["password"] = req.Password
 	}
 	updateData["auto_receive"] = req.AutoReceive
 	updateData["status"] = req.Status
@@ -321,23 +316,101 @@ func (h *MailboxHandler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, result.SimpleResult("删除成功"))
 }
 
-// Sync 同步邮箱
-func (h *MailboxHandler) Sync(c *gin.Context) {
-	var req types.MailboxSyncReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
+func (h *MailboxHandler) TestConnection(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无效的邮箱ID"))
 		return
 	}
 
-	// 获取当前用户ID
 	currentUserId := middleware.GetCurrentUserId(c)
 	if currentUserId == 0 {
 		c.JSON(http.StatusOK, result.ErrorUnauthorized)
 		return
 	}
 
-	// 检查邮箱是否存在
-	mailbox, err := h.svcCtx.MailboxModel.GetById(req.Id)
+	mailbox, err := h.svcCtx.MailboxModel.GetById(id)
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
+		return
+	}
+	if mailbox == nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱不存在"))
+		return
+	}
+	if mailbox.UserId != currentUserId {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无权限操作此邮箱"))
+		return
+	}
+
+	resp := types.MailboxConnectionTestResp{}
+
+	imapConfig, err := buildIMAPConfig(h.svcCtx, mailbox)
+	if err != nil {
+		resp.ImapError = "IMAP配置不可用"
+	} else {
+		imapService := service.NewIMAPService(imapConfig)
+		if err := imapService.TestConnection(); err != nil {
+			resp.ImapError = "IMAP连接失败"
+		} else {
+			resp.ImapSuccess = true
+		}
+	}
+
+	smtpConfig, err := buildSMTPConfig(h.svcCtx, mailbox)
+	if err != nil {
+		resp.SmtpError = "SMTP配置不可用"
+	} else {
+		smtpService := service.NewSMTPService(smtpConfig)
+		if err := smtpService.TestConnection(); err != nil {
+			resp.SmtpError = "SMTP连接失败"
+		} else {
+			resp.SmtpSuccess = true
+		}
+	}
+
+	resp.Success = resp.ImapSuccess && resp.SmtpSuccess
+	switch {
+	case resp.Success:
+		resp.Message = "连接测试成功"
+	case resp.ImapSuccess || resp.SmtpSuccess:
+		resp.Message = "连接测试部分成功"
+	default:
+		resp.Message = "连接测试失败"
+	}
+
+	c.JSON(http.StatusOK, result.SuccessResult(resp))
+}
+
+func (h *MailboxHandler) Sync(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("无效的邮箱ID"))
+		return
+	}
+
+	var req struct {
+		ForceSync bool `json:"forceSync"`
+		SyncDays  int  `json:"syncDays"`
+	}
+	if c.Request.ContentLength > 0 {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusOK, result.ErrorBindingParam.AddError(err))
+			return
+		}
+	}
+	if req.SyncDays < 0 {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("syncDays 不能小于 0"))
+		return
+	}
+
+	currentUserId := middleware.GetCurrentUserId(c)
+	if currentUserId == 0 {
+		c.JSON(http.StatusOK, result.ErrorUnauthorized)
+		return
+	}
+
+	mailbox, err := h.svcCtx.MailboxModel.GetById(id)
 	if err != nil {
 		c.JSON(http.StatusOK, result.ErrorSelect.AddError(err))
 		return
@@ -353,27 +426,123 @@ func (h *MailboxHandler) Sync(c *gin.Context) {
 		return
 	}
 
-	// TODO: 实现实际的邮箱同步逻辑
-	// 这里应该：
-	// 1. 连接IMAP服务器
-	// 2. 获取邮件列表
-	// 3. 同步邮件到数据库
-	// 4. 更新最后同步时间
-
-	// 模拟同步结果
-	resp := types.MailboxSyncResp{
-		Success:    true,
-		Message:    "同步成功",
-		SyncCount:  10,
-		ErrorCount: 0,
-		LastSyncAt: time.Now(),
+	imapConfig, err := buildIMAPConfig(h.svcCtx, mailbox)
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱同步配置不可用"))
+		return
 	}
 
-	// 更新最后同步时间
+	imapService := service.NewIMAPService(imapConfig)
+	if err := imapService.Connect(); err != nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("连接IMAP服务器失败"))
+		return
+	}
+	defer imapService.Disconnect()
+
+	limit := uint32(h.svcCtx.Config.Email.Receive.BatchSize)
+	if limit == 0 {
+		limit = 100
+	}
+
+	imapEmails, err := imapService.FetchEmails("INBOX", limit)
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("获取邮件列表失败"))
+		return
+	}
+
+	cutoff := time.Time{}
+	if req.SyncDays > 0 {
+		cutoff = time.Now().AddDate(0, 0, -req.SyncDays)
+	}
+
+	syncCount := 0
+	errorCount := 0
+	for _, imapEmail := range imapEmails {
+		if imapEmail == nil {
+			continue
+		}
+		if !cutoff.IsZero() && !imapEmail.Date.IsZero() && imapEmail.Date.Before(cutoff) {
+			continue
+		}
+
+		messageID := normalizedIMAPMessageID(imapEmail)
+		existing, err := findExistingEmailByNormalizedMessageID(h.svcCtx, mailbox.Id, messageID)
+		if err != nil {
+			errorCount++
+			continue
+		}
+		if existing != nil && existing.MessageId != messageID && messageID != "" {
+			if err := h.svcCtx.EmailModel.MapUpdate(nil, existing.Id, map[string]interface{}{
+				"message_id": messageID,
+				"updated_at": time.Now(),
+			}); err != nil {
+				errorCount++
+				continue
+			}
+			existing.MessageId = messageID
+		}
+		if existing != nil && !req.ForceSync {
+			continue
+		}
+
+		content := imapEmail.Body
+		if content == "" && imapEmail.UID > 0 {
+			if body, err := imapService.FetchEmailBody(imapEmail.UID); err == nil {
+				content = body
+			}
+		}
+
+		if existing != nil {
+			updateData := map[string]interface{}{
+				"message_id":   messageID,
+				"subject":      imapEmail.Subject,
+				"from_email":   imapEmail.From,
+				"to_emails":    imapEmail.To,
+				"cc_emails":    imapEmail.Cc,
+				"bcc_emails":   imapEmail.Bcc,
+				"content":      content,
+				"content_type": normalizeEmailContentType(imapEmail.ContentType),
+				"is_read":      imapEmail.IsRead,
+				"received_at":  imapEmail.Date,
+				"updated_at":   time.Now(),
+			}
+			if err := h.svcCtx.EmailModel.MapUpdate(nil, existing.Id, updateData); err != nil {
+				errorCount++
+				continue
+			}
+			syncCount++
+			continue
+		}
+
+		if _, err := persistReceivedEmail(h.svcCtx, mailbox, imapEmail, content); err != nil {
+			errorCount++
+			continue
+		}
+		syncCount++
+	}
+
 	now := time.Now()
-	h.svcCtx.MailboxModel.MapUpdate(nil, req.Id, map[string]interface{}{
+	_ = h.svcCtx.MailboxModel.MapUpdate(nil, id, map[string]interface{}{
 		"last_sync_at": &now,
 	})
+
+	resp := types.MailboxSyncResp{
+		Success:    errorCount == 0,
+		SyncCount:  syncCount,
+		ErrorCount: errorCount,
+		LastSyncAt: now,
+	}
+	switch {
+	case syncCount == 0 && errorCount == 0:
+		resp.Message = "同步完成，暂无新邮件"
+	case errorCount == 0:
+		resp.Message = fmt.Sprintf("同步成功，共同步 %d 封邮件", syncCount)
+	case syncCount > 0:
+		resp.Success = true
+		resp.Message = fmt.Sprintf("同步完成，成功 %d 封，失败 %d 封", syncCount, errorCount)
+	default:
+		resp.Message = fmt.Sprintf("同步失败，错误数量 %d", errorCount)
+	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }

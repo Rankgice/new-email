@@ -116,14 +116,14 @@
                     :key="email?.id || Math.random()"
                     :class="[
                       'flex items-center px-4 py-3 border-b border-glass-border hover:bg-white/5 transition-colors',
-                      email?.id && selectedEmails.includes(email.id) ? 'bg-primary-500/10' : ''
+                      selectedEmails.includes(email.id) ? 'bg-primary-500/10' : ''
                     ]"
                   >
                     <!-- 选择框 -->
                     <input
                       type="checkbox"
-                      :checked="email?.id && selectedEmails.includes(email.id)"
-                      @change="email?.id && toggleEmailSelection(email.id)"
+                      :checked="selectedEmails.includes(email.id)"
+                      @change="toggleEmailSelection(email.id)"
                       class="rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500 mr-3"
                     />
 
@@ -155,7 +155,7 @@
                           {{ formatDate(email?.deletedAt || email?.updatedAt) }}
                         </div>
                         <div class="text-xs text-orange-400">
-                          {{ getDaysUntilPermanentDelete(email?.deletedAt) }}
+                          {{ getDaysUntilPermanentDelete(email.deletedAt) }}
                         </div>
                       </div>
 
@@ -164,7 +164,7 @@
                         <Button
                           variant="ghost"
                           size="sm"
-                          @click="email?.id && restoreEmail(email.id)"
+                          @click="restoreEmail(email.id)"
                           title="恢复邮件"
                         >
                           <ArrowUturnLeftIcon class="w-4 h-4" />
@@ -172,7 +172,7 @@
                         <Button
                           variant="ghost"
                           size="sm"
-                          @click="email?.id && permanentDeleteEmail(email.id)"
+                          @click="permanentDeleteEmail(email.id)"
                           title="永久删除"
                         >
                           <XMarkIcon class="w-4 h-4" />
@@ -213,7 +213,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { emailApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import type { Email, EmailListParams } from '@/types'
@@ -232,7 +231,6 @@ import {
 } from '@heroicons/vue/24/outline'
 
 // 路由和通知
-const router = useRouter()
 const { success: showSuccess, error: showError } = useNotification()
 
 // 响应式数据
@@ -241,8 +239,7 @@ const loadingMore = ref(false)
 const batchLoading = ref(false)
 const emptyLoading = ref(false)
 const emails = ref<Email[]>([])
-const selectedEmail = ref<Email | null>(null)
-const selectedEmails = ref<string[]>([])
+const selectedEmails = ref<Array<Email['id']>>([])
 const totalCount = ref(0)
 const currentPage = ref(1)
 const hasMore = ref(true)
@@ -282,15 +279,23 @@ const loadEmails = async (append = false) => {
 
     const response = await emailApi.getTrashEmails(params)
 
-    if (append) {
-      emails.value.push(...response.data)
-      currentPage.value++
-    } else {
-      emails.value = response.data
-    }
+    if (response.success && response.data) {
+      const emailList = response.data.list
 
-    totalCount.value = response.total
-    hasMore.value = response.data.length === queryParams.limit
+      if (append) {
+        emails.value.push(...emailList)
+        currentPage.value++
+      } else {
+        emails.value = emailList
+      }
+
+      totalCount.value = response.data.total
+      hasMore.value = emailList.length === (queryParams.limit ?? 20)
+    } else if (!append) {
+      emails.value = []
+      totalCount.value = 0
+      hasMore.value = false
+    }
   } catch (error) {
     showError('加载垃圾箱邮件失败')
   } finally {
@@ -312,11 +317,11 @@ const toggleSelectAll = () => {
   if (isAllSelected.value) {
     selectedEmails.value = []
   } else {
-    selectedEmails.value = (emails.value || []).map(email => email?.id).filter(Boolean)
+    selectedEmails.value = emails.value.map(email => email.id)
   }
 }
 
-const toggleEmailSelection = (emailId: string) => {
+const toggleEmailSelection = (emailId: Email['id']) => {
   const index = selectedEmails.value.indexOf(emailId)
   if (index > -1) {
     selectedEmails.value.splice(index, 1)
@@ -325,12 +330,11 @@ const toggleEmailSelection = (emailId: string) => {
   }
 }
 
-const viewEmail = (email: Email) => {
+const viewEmail = (_email: Email) => {
   // TODO: 实现邮件详情查看
-  console.log('查看邮件:', email)
 }
 
-const restoreEmail = async (emailId: string) => {
+const restoreEmail = async (emailId: Email['id']) => {
   try {
     await emailApi.restoreEmail(emailId)
 
@@ -345,7 +349,7 @@ const restoreEmail = async (emailId: string) => {
   }
 }
 
-const permanentDeleteEmail = async (emailId: string) => {
+const permanentDeleteEmail = async (emailId: Email['id']) => {
   if (!confirm('确定要永久删除这封邮件吗？此操作不可撤销。')) return
 
   try {
@@ -422,11 +426,6 @@ const emptyTrash = async () => {
   }
 }
 
-const handleEmailDeleted = (emailId: string) => {
-  emails.value = emails.value.filter(email => email.id !== emailId)
-  totalCount.value--
-}
-
 const getEmailPreview = (body: string) => {
   if (!body) return ''
   const text = body.replace(/<[^>]*>/g, '').trim()
@@ -450,7 +449,7 @@ const formatDate = (dateString: string) => {
   }
 }
 
-const getDaysUntilPermanentDelete = (deletedAt: string) => {
+const getDaysUntilPermanentDelete = (deletedAt?: string) => {
   if (!deletedAt) return ''
 
   const deleteDate = new Date(deletedAt)

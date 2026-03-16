@@ -246,12 +246,12 @@ func (s *SMTPSession) Data(r io.Reader) error {
 		externalRecipients := []string{}
 
 		for _, recipient := range s.to {
-			//暂时统一当做外部邮件处理
-			//if s.isLocalDomain(recipient) {
-			//	localRecipients = append(localRecipients, recipient)
-			//} else {
+			if s.isLocalDomain(recipient) {
+				localRecipients = append(localRecipients, recipient)
+				continue
+			}
+
 			externalRecipients = append(externalRecipients, recipient)
-			//}
 		}
 
 		log.Printf("📬 本地收件人: %v", localRecipients)

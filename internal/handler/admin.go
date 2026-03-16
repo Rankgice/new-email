@@ -69,11 +69,12 @@ func (h *AdminHandler) Login(c *gin.Context) {
 	}
 
 	// 验证密码
-	if valid, err := auth.VerifyPassword(req.Password, admin.Password); err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("密码验证失败"))
-		return
-	} else if !valid {
-		c.JSON(http.StatusUnauthorized, result.ErrorPasswordWrong)
+	if err := auth.CheckPassword(req.Password, admin.Password); err != nil {
+		if auth.IsBcryptHash(admin.Password) || auth.IsArgon2Hash(admin.Password) {
+			c.JSON(http.StatusUnauthorized, result.ErrorPasswordWrong)
+		} else {
+			c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("密码验证失败"))
+		}
 		return
 	}
 

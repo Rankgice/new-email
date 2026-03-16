@@ -2,180 +2,176 @@ import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
 import type { Theme } from '@/types'
 
+const createTheme = (
+  id: string,
+  name: string,
+  description: string,
+  colors: Theme['colors']
+): Theme => ({
+  id,
+  name,
+  displayName: name,
+  description,
+  preview: {
+    background: colors.background,
+    sidebar: colors.surface,
+    primary: colors.primary,
+    text: colors.text.primary,
+    secondary: colors.secondary,
+  },
+  colors,
+})
+
 // 预设主题
 const themes: Record<string, Theme> = {
-  dark: {
-    name: 'dark',
-    displayName: '经典深色',
-    colors: {
-      primary: '#6366f1',
-      secondary: '#8b5cf6',
-      background: '#0a0a0a',
-      surface: '#1a1a1a',
-      text: {
-        primary: '#ffffff',
-        secondary: '#a0a0a0',
-        disabled: '#666666'
-      },
-      glass: {
-        light: 'rgba(255,255,255,0.05)',
-        medium: 'rgba(255,255,255,0.08)',
-        heavy: 'rgba(255,255,255,0.12)',
-        border: 'rgba(255,255,255,0.1)'
-      },
-      status: {
-        success: '#10b981',
-        warning: '#f59e0b',
-        error: '#ef4444',
-        info: '#3b82f6'
-      }
+  dark: createTheme('dark', '经典深色', '默认的深色玻璃主题', {
+    primary: '#6366f1',
+    secondary: '#8b5cf6',
+    background: '#0a0a0a',
+    surface: '#1a1a1a',
+    text: {
+      primary: '#ffffff',
+      secondary: '#a0a0a0',
+      disabled: '#666666'
+    },
+    glass: {
+      light: 'rgba(255,255,255,0.05)',
+      medium: 'rgba(255,255,255,0.08)',
+      heavy: 'rgba(255,255,255,0.12)',
+      border: 'rgba(255,255,255,0.1)'
+    },
+    status: {
+      success: '#10b981',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      info: '#3b82f6'
     }
-  },
-  ocean: {
-    name: 'ocean',
-    displayName: '海洋蓝',
-    colors: {
-      primary: '#0ea5e9',
-      secondary: '#0284c7',
-      background: '#0c1426',
-      surface: '#1e293b',
-      text: {
-        primary: '#f1f5f9',
-        secondary: '#94a3b8',
-        disabled: '#64748b'
-      },
-      glass: {
-        light: 'rgba(14,165,233,0.05)',
-        medium: 'rgba(14,165,233,0.08)',
-        heavy: 'rgba(14,165,233,0.12)',
-        border: 'rgba(14,165,233,0.1)'
-      },
-      status: {
-        success: '#10b981',
-        warning: '#f59e0b',
-        error: '#ef4444',
-        info: '#0ea5e9'
-      }
+  }),
+  ocean: createTheme('ocean', '海洋蓝', '偏冷色的高对比主题', {
+    primary: '#0ea5e9',
+    secondary: '#0284c7',
+    background: '#0c1426',
+    surface: '#1e293b',
+    text: {
+      primary: '#f1f5f9',
+      secondary: '#94a3b8',
+      disabled: '#64748b'
+    },
+    glass: {
+      light: 'rgba(14,165,233,0.05)',
+      medium: 'rgba(14,165,233,0.08)',
+      heavy: 'rgba(14,165,233,0.12)',
+      border: 'rgba(14,165,233,0.1)'
+    },
+    status: {
+      success: '#10b981',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      info: '#0ea5e9'
     }
-  },
-  sakura: {
-    name: 'sakura',
-    displayName: '樱花粉',
-    colors: {
-      primary: '#ec4899',
-      secondary: '#db2777',
-      background: '#1f0a14',
-      surface: '#2d1b20',
-      text: {
-        primary: '#fdf2f8',
-        secondary: '#f9a8d4',
-        disabled: '#be185d'
-      },
-      glass: {
-        light: 'rgba(236,72,153,0.05)',
-        medium: 'rgba(236,72,153,0.08)',
-        heavy: 'rgba(236,72,153,0.12)',
-        border: 'rgba(236,72,153,0.1)'
-      },
-      status: {
-        success: '#10b981',
-        warning: '#f59e0b',
-        error: '#ef4444',
-        info: '#ec4899'
-      }
+  }),
+  sakura: createTheme('sakura', '樱花粉', '更柔和的粉色主题', {
+    primary: '#ec4899',
+    secondary: '#db2777',
+    background: '#1f0a14',
+    surface: '#2d1b20',
+    text: {
+      primary: '#fdf2f8',
+      secondary: '#f9a8d4',
+      disabled: '#be185d'
+    },
+    glass: {
+      light: 'rgba(236,72,153,0.05)',
+      medium: 'rgba(236,72,153,0.08)',
+      heavy: 'rgba(236,72,153,0.12)',
+      border: 'rgba(236,72,153,0.1)'
+    },
+    status: {
+      success: '#10b981',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      info: '#ec4899'
     }
-  },
-  forest: {
-    name: 'forest',
-    displayName: '森林绿',
-    colors: {
-      primary: '#059669',
-      secondary: '#047857',
-      background: '#0a1f17',
-      surface: '#1a2e23',
-      text: {
-        primary: '#f0fdf4',
-        secondary: '#86efac',
-        disabled: '#166534'
-      },
-      glass: {
-        light: 'rgba(5,150,105,0.05)',
-        medium: 'rgba(5,150,105,0.08)',
-        heavy: 'rgba(5,150,105,0.12)',
-        border: 'rgba(5,150,105,0.1)'
-      },
-      status: {
-        success: '#059669',
-        warning: '#f59e0b',
-        error: '#ef4444',
-        info: '#3b82f6'
-      }
+  }),
+  forest: createTheme('forest', '森林绿', '适合长时间阅读的绿色主题', {
+    primary: '#059669',
+    secondary: '#047857',
+    background: '#0a1f17',
+    surface: '#1a2e23',
+    text: {
+      primary: '#f0fdf4',
+      secondary: '#86efac',
+      disabled: '#166534'
+    },
+    glass: {
+      light: 'rgba(5,150,105,0.05)',
+      medium: 'rgba(5,150,105,0.08)',
+      heavy: 'rgba(5,150,105,0.12)',
+      border: 'rgba(5,150,105,0.1)'
+    },
+    status: {
+      success: '#059669',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      info: '#3b82f6'
     }
-  },
-  flame: {
-    name: 'flame',
-    displayName: '火焰橙',
-    colors: {
-      primary: '#ea580c',
-      secondary: '#dc2626',
-      background: '#1f0a05',
-      surface: '#2d1b16',
-      text: {
-        primary: '#fff7ed',
-        secondary: '#fed7aa',
-        disabled: '#c2410c'
-      },
-      glass: {
-        light: 'rgba(234,88,12,0.05)',
-        medium: 'rgba(234,88,12,0.08)',
-        heavy: 'rgba(234,88,12,0.12)',
-        border: 'rgba(234,88,12,0.1)'
-      },
-      status: {
-        success: '#10b981',
-        warning: '#ea580c',
-        error: '#dc2626',
-        info: '#3b82f6'
-      }
+  }),
+  flame: createTheme('flame', '火焰橙', '强调提醒和操作反馈的暖色主题', {
+    primary: '#ea580c',
+    secondary: '#dc2626',
+    background: '#1f0a05',
+    surface: '#2d1b16',
+    text: {
+      primary: '#fff7ed',
+      secondary: '#fed7aa',
+      disabled: '#c2410c'
+    },
+    glass: {
+      light: 'rgba(234,88,12,0.05)',
+      medium: 'rgba(234,88,12,0.08)',
+      heavy: 'rgba(234,88,12,0.12)',
+      border: 'rgba(234,88,12,0.1)'
+    },
+    status: {
+      success: '#10b981',
+      warning: '#ea580c',
+      error: '#dc2626',
+      info: '#3b82f6'
     }
-  },
-  purple: {
-    name: 'purple',
-    displayName: '神秘紫',
-    colors: {
-      primary: '#7c3aed',
-      secondary: '#6d28d9',
-      background: '#1a0b2e',
-      surface: '#2d1b3d',
-      text: {
-        primary: '#faf5ff',
-        secondary: '#c4b5fd',
-        disabled: '#6b21a8'
-      },
-      glass: {
-        light: 'rgba(124,58,237,0.05)',
-        medium: 'rgba(124,58,237,0.08)',
-        heavy: 'rgba(124,58,237,0.12)',
-        border: 'rgba(124,58,237,0.1)'
-      },
-      status: {
-        success: '#10b981',
-        warning: '#f59e0b',
-        error: '#ef4444',
-        info: '#7c3aed'
-      }
+  }),
+  purple: createTheme('purple', '神秘紫', '偏炫彩的紫色主题', {
+    primary: '#7c3aed',
+    secondary: '#6d28d9',
+    background: '#1a0b2e',
+    surface: '#2d1b3d',
+    text: {
+      primary: '#faf5ff',
+      secondary: '#c4b5fd',
+      disabled: '#6b21a8'
+    },
+    glass: {
+      light: 'rgba(124,58,237,0.05)',
+      medium: 'rgba(124,58,237,0.08)',
+      heavy: 'rgba(124,58,237,0.12)',
+      border: 'rgba(124,58,237,0.1)'
+    },
+    status: {
+      success: '#10b981',
+      warning: '#f59e0b',
+      error: '#ef4444',
+      info: '#7c3aed'
     }
-  }
+  })
 }
 
 export const useThemeStore = defineStore('theme', () => {
   // 状态
-  const currentTheme = ref('dark')
+  const currentThemeId = ref('dark')
   const customTheme = ref<Partial<Theme['colors']> | null>(null)
 
   // 计算属性
-  const theme = computed(() => {
-    const baseTheme = themes[currentTheme.value]
+  const currentTheme = computed<Theme>(() => {
+    const baseTheme = themes[currentThemeId.value]
     if (customTheme.value) {
       return {
         ...baseTheme,
@@ -188,6 +184,8 @@ export const useThemeStore = defineStore('theme', () => {
     return baseTheme
   })
 
+  const theme = computed(() => currentTheme.value)
+
   const availableThemes = computed(() => Object.values(themes))
 
   // 设置主题
@@ -197,7 +195,7 @@ export const useThemeStore = defineStore('theme', () => {
       return
     }
 
-    currentTheme.value = themeName
+    currentThemeId.value = themeName
     customTheme.value = null
     applyTheme(themes[themeName])
     
@@ -211,9 +209,9 @@ export const useThemeStore = defineStore('theme', () => {
     customTheme.value = colors
     
     const mergedTheme = {
-      ...themes[currentTheme.value],
+      ...themes[currentThemeId.value],
       colors: {
-        ...themes[currentTheme.value].colors,
+        ...themes[currentThemeId.value].colors,
         ...colors
       }
     }
@@ -259,7 +257,7 @@ export const useThemeStore = defineStore('theme', () => {
   // 切换到下一个主题
   const nextTheme = () => {
     const themeNames = Object.keys(themes)
-    const currentIndex = themeNames.indexOf(currentTheme.value)
+    const currentIndex = themeNames.indexOf(currentThemeId.value)
     const nextIndex = (currentIndex + 1) % themeNames.length
     setTheme(themeNames[nextIndex])
   }
@@ -271,7 +269,7 @@ export const useThemeStore = defineStore('theme', () => {
     const savedCustomTheme = localStorage.getItem('custom_theme')
 
     if (savedTheme && themes[savedTheme]) {
-      currentTheme.value = savedTheme
+      currentThemeId.value = savedTheme
     }
 
     if (savedCustomTheme) {
@@ -295,7 +293,7 @@ export const useThemeStore = defineStore('theme', () => {
   // 导出主题配置
   const exportTheme = () => {
     return {
-      theme: currentTheme.value,
+      theme: currentThemeId.value,
       customColors: customTheme.value
     }
   }
@@ -303,7 +301,7 @@ export const useThemeStore = defineStore('theme', () => {
   // 导入主题配置
   const importTheme = (config: { theme: string; customColors?: Partial<Theme['colors']> }) => {
     if (config.theme && themes[config.theme]) {
-      currentTheme.value = config.theme
+      currentThemeId.value = config.theme
     }
     
     if (config.customColors) {
@@ -313,7 +311,7 @@ export const useThemeStore = defineStore('theme', () => {
     applyTheme(theme.value)
     
     // 保存到本地存储
-    localStorage.setItem('theme', currentTheme.value)
+    localStorage.setItem('theme', currentThemeId.value)
     if (customTheme.value) {
       localStorage.setItem('custom_theme', JSON.stringify(customTheme.value))
     }
@@ -321,7 +319,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   return {
     // 状态
-    currentTheme: readonly(currentTheme),
+    currentTheme,
     customTheme: readonly(customTheme),
     
     // 计算属性

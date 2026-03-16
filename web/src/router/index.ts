@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteMeta } from '@/types'
+import type { RouteMeta as AppRouteMeta } from '@/types'
 import { useAuthStore } from '@/stores/auth'
 
 // 路由组件懒加载
@@ -26,7 +26,7 @@ const AdminSettings = () => import('@/views/admin/Settings.vue')
 const NotFound = () => import('@/views/error/NotFound.vue')
 
 declare module 'vue-router' {
-  interface RouteMeta extends RouteMeta {}
+  interface RouteMeta extends AppRouteMeta {}
 }
 
 const router = createRouter({
@@ -264,7 +264,7 @@ const router = createRouter({
   ],
   
   // 滚动行为
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition
     } else {
@@ -274,7 +274,7 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
 
   // 等待认证状态初始化完成

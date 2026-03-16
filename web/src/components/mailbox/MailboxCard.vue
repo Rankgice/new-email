@@ -228,7 +228,12 @@ const providerLabel = computed(() => {
     163: '163邮箱',
     imap: '自定义IMAP'
   }
-  return providerMap[props.mailbox.provider] || props.mailbox.provider
+  const provider = props.mailbox.provider
+  if (!provider) {
+    return '未知'
+  }
+
+  return providerMap[provider] || provider
 })
 
 // 方法

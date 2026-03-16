@@ -118,11 +118,12 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	// 验证密码
-	if valid, err := auth.VerifyPassword(req.Password, user.Password); err != nil {
-		c.JSON(http.StatusOK, result.ErrorSimpleResult("密码验证失败"))
-		return
-	} else if !valid {
-		c.JSON(http.StatusOK, result.ErrorPasswordWrong)
+	if err := auth.CheckPassword(req.Password, user.Password); err != nil {
+		if auth.IsBcryptHash(user.Password) || auth.IsArgon2Hash(user.Password) {
+			c.JSON(http.StatusOK, result.ErrorPasswordWrong)
+		} else {
+			c.JSON(http.StatusOK, result.ErrorSimpleResult("密码验证失败"))
+		}
 		return
 	}
 
@@ -236,11 +237,12 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	}
 
 	// 验证旧密码
-	if valid, err := auth.VerifyPassword(req.OldPassword, user.Password); err != nil {
-		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("密码验证失败"))
-		return
-	} else if !valid {
-		c.JSON(http.StatusOK, result.ErrorPasswordWrong)
+	if err := auth.CheckPassword(req.OldPassword, user.Password); err != nil {
+		if auth.IsBcryptHash(user.Password) || auth.IsArgon2Hash(user.Password) {
+			c.JSON(http.StatusOK, result.ErrorPasswordWrong)
+		} else {
+			c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("密码验证失败"))
+		}
 		return
 	}
 

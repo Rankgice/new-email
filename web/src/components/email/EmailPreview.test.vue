@@ -45,6 +45,9 @@ const testEmail: Email = {
   fromEmail: 'sender@example.com',
   toEmails: ['recipient@example.com'],
   content: '这是一封测试邮件的内容。\n\n包含多行文本和一些基本格式。',
+  body: '这是一封测试邮件的内容。\n\n包含多行文本和一些基本格式。',
+  from: { email: 'sender@example.com' },
+  to: [{ email: 'recipient@example.com' }],
   contentType: 'text',
   status: 1,
   type: 'inbox',
@@ -75,6 +78,22 @@ const htmlEmail: Email = {
     </blockquote>
     <p>感谢您的使用！</p>
   `,
+  body: `
+    <h2>欢迎使用我们的服务</h2>
+    <p>这是一封<strong>HTML格式</strong>的邮件，包含：</p>
+    <ul>
+      <li>列表项目1</li>
+      <li>列表项目2</li>
+      <li><a href="https://example.com">链接示例</a></li>
+    </ul>
+    <blockquote>
+      这是一个引用块的示例
+    </blockquote>
+    <p>感谢您的使用！</p>
+  `,
+  from: { email: 'marketing@company.com' },
+  to: [{ email: 'user@example.com' }],
+  cc: [{ email: 'manager@company.com' }],
   contentType: 'html',
   status: 1,
   type: 'inbox',
@@ -92,6 +111,9 @@ const emailWithAttachments: Email = {
   fromEmail: 'files@company.com',
   toEmails: ['user@example.com'],
   content: '请查看附件中的重要文档。',
+  body: '请查看附件中的重要文档。',
+  from: { email: 'files@company.com' },
+  to: [{ email: 'user@example.com' }],
   contentType: 'text',
   status: 1,
   type: 'inbox',
@@ -138,7 +160,7 @@ const handleEmailUpdated = (email: Email) => {
   selectedEmail.value = email
 }
 
-const handleEmailDeleted = (emailId: string) => {
+const handleEmailDeleted = (emailId: Email['id']) => {
   console.log('Email deleted:', emailId)
   selectedEmail.value = null
 }

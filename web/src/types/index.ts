@@ -1,6 +1,6 @@
 // 用户相关类型
 export interface User {
-  id: string
+  id: string | number
   username: string
   email: string
   nickname?: string
@@ -36,6 +36,26 @@ export interface UserSettings {
     loginNotifications: boolean
   }
   emailFilters: EmailFilter[]
+}
+
+export interface UserCreateRequest {
+  username: string
+  email: string
+  password: string
+  nickname?: string
+  status?: 'active' | 'inactive' | 'pending'
+}
+
+export interface UserUpdateRequest {
+  username?: string
+  email?: string
+  nickname?: string
+  avatar?: string
+  status?: 'active' | 'inactive' | 'pending'
+}
+
+export interface UserPasswordRequest {
+  newPassword: string
 }
 
 // 邮件过滤规则
@@ -102,23 +122,32 @@ export interface NotificationSettingsUpdateRequest {
 
 // 邮件相关类型
 export interface Email {
-  id: string
+  id: string | number
   userId: number
   mailboxId: number
   subject: string
   fromEmail: string
+  fromName?: string
   toEmails: string[]
   ccEmails?: string[]
   bccEmails?: string[]
   content: string
-  contentType: 'text' | 'html'
+  body: string
+  from: EmailAddress
+  to: EmailAddress[]
+  cc?: EmailAddress[]
+  bcc?: EmailAddress[]
+  contentType: 'text' | 'html' | string
   attachments?: Attachment[]
   status: number
-  type: 'inbox' | 'sent' | 'draft'
+  type: 'inbox' | 'sent' | 'draft' | 'trash' | string
   isRead: boolean
   isStarred: boolean
   isImportant?: boolean
   labels?: string[]
+  deletedAt?: string
+  sentAt?: string
+  receivedAt?: string
   createdAt: string
   updatedAt: string
 }
@@ -163,7 +192,7 @@ export interface EmailDraft {
 }
 
 // API 响应类型
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   message?: string
@@ -173,10 +202,15 @@ export interface ApiResponse<T = any> {
 
 export interface PaginatedResponse<T> {
   list: T[]
+  items?: T[]
+  data?: T[]
   total: number
   page: number
   pageSize: number
+  limit?: number
 }
+
+export interface PageResponse<T> extends PaginatedResponse<T> {}
 
 // 邮件列表查询参数
 export interface EmailListParams {
@@ -192,6 +226,9 @@ export interface EmailListParams {
   contentType?: string
   page?: number
   pageSize?: number
+  limit?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
   createdAtStart?: string
   createdAtEnd?: string
   updatedAtStart?: string
@@ -200,8 +237,17 @@ export interface EmailListParams {
 
 // 主题相关类型
 export interface Theme {
+  id: string
   name: string
   displayName: string
+  description: string
+  preview: {
+    background: string
+    sidebar: string
+    primary: string
+    text: string
+    secondary: string
+  }
   colors: {
     primary: string
     secondary: string
@@ -271,16 +317,16 @@ export interface ValidationRule {
   minLength?: number
   maxLength?: number
   pattern?: RegExp
-  custom?: (value: any) => boolean | string
+  custom?: (value: unknown) => boolean | string
 }
 
 export interface FormField {
   name: string
   label: string
   type: 'text' | 'email' | 'password' | 'textarea' | 'select' | 'checkbox'
-  value: any
+  value: unknown
   rules?: ValidationRule[]
-  options?: { label: string; value: any }[]
+  options?: { label: string; value: unknown }[]
   placeholder?: string
   disabled?: boolean
 }
@@ -290,7 +336,7 @@ export interface RouteMeta {
   title?: string
   requiresAuth?: boolean
   requiresAdmin?: boolean
-  layout?: 'default' | 'auth' | 'admin'
+  layout?: 'default' | 'auth' | 'admin' | 'blank'
   keepAlive?: boolean
 }
 
@@ -303,7 +349,7 @@ export interface GlassCardProps {
 }
 
 export interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'warning'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
   disabled?: boolean
@@ -315,13 +361,13 @@ export interface ButtonProps {
 export interface EmailEvent {
   type: 'read' | 'unread' | 'star' | 'unstar' | 'delete' | 'move' | 'label'
   emailId: string
-  data?: any
+  data?: unknown
 }
 
 export interface UserEvent {
   type: 'login' | 'logout' | 'register' | 'update' | 'delete'
   userId: string
-  data?: any
+  data?: unknown
 }
 
 // 邮箱管理相关类型
@@ -331,6 +377,14 @@ export interface Mailbox {
   domainId: number
   email: string
   name?: string
+  provider?: string
+  type?: string
+  imapHost?: string
+  imapPort?: number
+  imapSsl?: boolean
+  smtpHost?: string
+  smtpPort?: number
+  smtpSsl?: boolean
   autoReceive: boolean
   status: number
   unreadCount?: number
@@ -384,9 +438,20 @@ export interface MailboxSyncResponse {
   lastSyncAt: string
 }
 
+export interface MailboxConnectionTestResponse {
+  success: boolean
+  message: string
+  imapSuccess: boolean
+  smtpSuccess: boolean
+  imapError?: string
+  smtpError?: string
+}
+
 export interface MailboxStats {
   totalMailboxes: number
   activeMailboxes: number
+  selfMailboxes?: number
+  thirdMailboxes?: number
 }
 
 // 邮件发送相关类型
@@ -562,6 +627,20 @@ export interface AdminDashboard {
   recentUsers: User[]
   recentLogs: OperationLog[]
   systemAlerts: SystemAlert[]
+}
+
+export interface OperationLog {
+  id: number
+  userId?: number
+  username?: string
+  module?: string
+  action: string
+  target?: string
+  ip?: string
+  userAgent?: string
+  detail?: string
+  status?: string
+  createdAt: string
 }
 
 export interface SystemAlert {

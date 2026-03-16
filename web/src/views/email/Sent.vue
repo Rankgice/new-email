@@ -126,7 +126,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useResponsive } from '@/composables/useResponsive'
-import { useAuthStore } from '@/stores/auth'
 import { useNotification } from '@/composables/useNotification'
 import { mailboxApi } from '@/utils/api'
 import type { Mailbox, Email } from '@/types'
@@ -146,8 +145,7 @@ import {
 
 // Composables
 const { isMobile } = useResponsive()
-const authStore = useAuthStore()
-const { success: showSuccess, error: showError } = useNotification()
+const { error: showError } = useNotification()
 
 // 响应式数据
 const loading = ref(false)

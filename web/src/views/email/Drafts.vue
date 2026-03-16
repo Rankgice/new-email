@@ -106,15 +106,15 @@
                     :key="draft?.id || Math.random()"
                     :class="[
                       'flex items-center px-4 py-3 border-b border-glass-border hover:bg-white/5 cursor-pointer transition-colors',
-                      draft?.id && selectedDrafts.includes(draft.id) ? 'bg-primary-500/10' : ''
+                      selectedDrafts.includes(draft.id) ? 'bg-primary-500/10' : ''
                     ]"
                     @click="editDraft(draft)"
                   >
                     <!-- 选择框 -->
                     <input
                       type="checkbox"
-                      :checked="draft?.id && selectedDrafts.includes(draft.id)"
-                      @change="draft?.id && toggleDraftSelection(draft.id)"
+                      :checked="selectedDrafts.includes(draft.id)"
+                      @change="toggleDraftSelection(draft.id)"
                       @click.stop
                       class="rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500 mr-3"
                     />
@@ -169,7 +169,7 @@
                       <Button
                         variant="ghost"
                         size="sm"
-                        @click.stop="draft?.id && deleteDraft(draft.id)"
+                      @click.stop="deleteDraft(draft.id)"
                       >
                         <TrashIcon class="w-4 h-4" />
                       </Button>
@@ -227,7 +227,7 @@ const loadingMore = ref(false)
 const batchLoading = ref(false)
 
 const drafts = ref<Email[]>([])
-const selectedDrafts = ref<string[]>([])
+const selectedDrafts = ref<Array<Email['id']>>([])
 const totalCount = ref(0)
 const currentPage = ref(1)
 const hasMore = ref(true)
@@ -264,7 +264,6 @@ const loadDrafts = async (append = false) => {
     }
 
     const response = await emailApi.getDrafts(params)
-    console.log('Drafts API response:', response)
 
     if (response.success && response.data) {
       const draftList = response.data.list || response.data || []
@@ -326,7 +325,7 @@ const toggleSelectAll = () => {
   }
 }
 
-const toggleDraftSelection = (draftId: string) => {
+const toggleDraftSelection = (draftId: Email['id']) => {
   const index = selectedDrafts.value.indexOf(draftId)
   if (index > -1) {
     selectedDrafts.value.splice(index, 1)
@@ -335,7 +334,7 @@ const toggleDraftSelection = (draftId: string) => {
   }
 }
 
-const deleteDraft = async (draftId: string) => {
+const deleteDraft = async (draftId: Email['id']) => {
   if (!confirm('确定要删除这个草稿吗？')) return
 
   try {

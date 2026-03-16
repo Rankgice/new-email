@@ -128,7 +128,6 @@ import type {
   MailboxCreateRequest,
   MailboxUpdateRequest
 } from '@/types'
-import { mailboxApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 
 // Icons
@@ -158,7 +157,7 @@ const emit = defineEmits<{
 }>()
 
 // Composables
-const { showNotification } = useNotification()
+useNotification()
 
 // State
 const showPassword = ref(false)

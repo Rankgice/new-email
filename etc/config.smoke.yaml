@@ -1,0 +1,117 @@
+app:
+  name: "邮件管理系统"
+  version: "1.0.0"
+  debug: true
+
+web:
+  port: 18080
+  mode: "debug"
+  read_timeout: 60
+  write_timeout: 60
+
+database:
+  type: "sqlite"
+  sqlite:
+    path: "./data/email-smoke.db"
+  mysql:
+    host: "localhost"
+    port: 3306
+    username: "root"
+    password: "password"
+    database: "email_system"
+    charset: "utf8mb4"
+    max_idle_conns: 10
+    max_open_conns: 100
+
+jwt:
+  secret: "das4d5as1v546xcv21x23v"
+  expire_hours: 24
+  refresh_expire_hours: 168
+
+email:
+  attachment:
+    max_size: 10485760
+    storage_path: "./data/attachments"
+    allowed_types: ["jpg", "jpeg", "png", "gif", "pdf", "doc", "docx", "xls", "xlsx", "txt", "zip"]
+  receive:
+    batch_size: 100
+    sync_interval: 300
+    max_retries: 3
+
+log:
+  level: "info"
+  format: "json"
+  output: "file"
+  file_path: "./data/logs/app-smoke.log"
+  max_size: 100
+  max_backups: 10
+  max_age: 30
+
+smtp:
+  host: "127.0.0.1"
+  port: 2587
+  receive_port: 2525
+  username: "test@email.host"
+  password: "test123"
+  use_tls: true
+  tls_cert_path: "./data/tls/cert.pem"
+  tls_key_path: "./data/tls/key.pem"
+
+imap:
+  host: "127.0.0.1"
+  port: 2993
+  username: "test@email.host"
+  password: "test123"
+  use_tls: true
+  tls_cert_path: "./data/tls/cert.pem"
+  tls_key_path: "./data/tls/key.pem"
+
+sms:
+  provider: "mock"
+  access_key: ""
+  secret_key: ""
+  sign_name: "邮件系统"
+  region: "cn-hangzhou"
+
+storage:
+  type: "local"
+  base_path: "./data/uploads"
+  max_size: 10485760
+  allow_exts: ["jpg", "jpeg", "png", "gif", "pdf", "doc", "docx", "xls", "xlsx", "txt", "zip"]
+  cdn_domain: ""
+
+redis:
+  enabled: false
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0
+  pool_size: 10
+
+rate_limit:
+  enabled: true
+  requests_per_minute: 60
+  burst: 10
+
+system:
+  default_admin:
+    username: "admin"
+    email: "admin@example.com"
+    password: "admin123"
+    nickname: "系统管理员"
+  registration:
+    enabled: true
+    require_email_verification: false
+  security:
+    password_min_length: 6
+    session_timeout: 3600
+    max_login_attempts: 5
+    lockout_duration: 300
+
+minio:
+  endpoint: 10.0.202.23:9001
+  access_key_id: minioadmin
+  secret_access_key: minioadmin
+  use_ssl: false
+  buckets:
+    - attachment

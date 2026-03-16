@@ -106,16 +106,16 @@
                     :key="email?.id || Math.random()"
                     :class="[
                       'flex items-center px-4 py-3 border-b border-glass-border hover:bg-white/5 cursor-pointer transition-colors',
-                      email?.id && selectedEmails.includes(email.id) ? 'bg-primary-500/10' : '',
-                      !email?.isRead ? 'font-semibold' : ''
+                      selectedEmails.includes(email.id) ? 'bg-primary-500/10' : '',
+                      !email.isRead ? 'font-semibold' : ''
                     ]"
                     @click="email && openEmail(email)"
                   >
                     <!-- 选择框 -->
                     <input
                       type="checkbox"
-                      :checked="email?.id && selectedEmails.includes(email.id)"
-                      @change="email?.id && toggleEmailSelection(email.id)"
+                      :checked="selectedEmails.includes(email.id)"
+                      @change="toggleEmailSelection(email.id)"
                       @click.stop
                       class="rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500 mr-3"
                     />
@@ -125,7 +125,7 @@
                       <!-- 星标 -->
                       <div class="col-span-1">
                         <button
-                          @click.stop="email?.id && toggleStar(email.id, false)"
+                          @click.stop="toggleStar(email.id, false)"
                           class="text-yellow-400 hover:text-yellow-300 transition-colors"
                         >
                           <StarIcon class="w-5 h-5 fill-current" />
@@ -193,7 +193,6 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { emailApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import type { Email, EmailListParams } from '@/types'
@@ -211,7 +210,6 @@ import {
 } from '@heroicons/vue/24/outline'
 
 // 路由和通知
-const router = useRouter()
 const { success: showSuccess, error: showError } = useNotification()
 
 // 响应式数据
@@ -220,8 +218,7 @@ const loadingMore = ref(false)
 const batchLoading = ref(false)
 
 const emails = ref<Email[]>([])
-const selectedEmail = ref<Email | null>(null)
-const selectedEmails = ref<string[]>([])
+const selectedEmails = ref<Array<Email['id']>>([])
 const totalCount = ref(0)
 const currentPage = ref(1)
 const hasMore = ref(true)
@@ -258,7 +255,6 @@ const loadEmails = async (append = false) => {
     }
 
     const response = await emailApi.getStarredEmails(params)
-    console.log('Starred emails API response:', response)
 
     if (response.success && response.data) {
       const emailList = response.data.list || response.data || []
@@ -308,11 +304,11 @@ const toggleSelectAll = () => {
   if (isAllSelected.value) {
     selectedEmails.value = []
   } else {
-    selectedEmails.value = (emails.value || []).map(email => email?.id).filter(Boolean)
+    selectedEmails.value = emails.value.map(email => email.id)
   }
 }
 
-const toggleEmailSelection = (emailId: string) => {
+const toggleEmailSelection = (emailId: Email['id']) => {
   const index = selectedEmails.value.indexOf(emailId)
   if (index > -1) {
     selectedEmails.value.splice(index, 1)
@@ -323,15 +319,13 @@ const toggleEmailSelection = (emailId: string) => {
 
 const openEmail = (email: Email) => {
   // TODO: 实现邮件详情查看
-  console.log('查看邮件:', email)
-  
   // 标记为已读
   if (!email.isRead) {
     markAsRead(email.id, true)
   }
 }
 
-const toggleStar = async (emailId: string, starred: boolean) => {
+const toggleStar = async (emailId: Email['id'], starred: boolean) => {
   try {
     await emailApi.markAsStarred(emailId, starred)
     
@@ -348,7 +342,7 @@ const toggleStar = async (emailId: string, starred: boolean) => {
   }
 }
 
-const markAsRead = async (emailId: string, isRead: boolean) => {
+const markAsRead = async (emailId: Email['id'], isRead: boolean) => {
   try {
     await emailApi.markAsRead(emailId, isRead)
     
@@ -400,19 +394,6 @@ const batchDelete = async () => {
   } finally {
     batchLoading.value = false
   }
-}
-
-const handleStarChanged = (emailId: string, starred: boolean) => {
-  if (!starred) {
-    // 从星标列表中移除
-    emails.value = emails.value.filter(email => email.id !== emailId)
-    totalCount.value--
-  }
-}
-
-const handleEmailDeleted = (emailId: string) => {
-  emails.value = emails.value.filter(email => email.id !== emailId)
-  totalCount.value--
 }
 
 const getEmailPreview = (body: string) => {

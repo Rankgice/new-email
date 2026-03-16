@@ -152,7 +152,7 @@ import {
 
 const { isMobile } = useResponsive()
 const authStore = useAuthStore()
-const { success: showSuccess, error: showError } = useNotification()
+const { error: showError } = useNotification()
 
 // 响应式数据
 const loading = ref(false)

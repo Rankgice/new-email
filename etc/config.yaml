@@ -59,11 +59,11 @@ log:
 # SMTP服务配置（用于发送邮件）
 # 使用本地SMTP服务器
 smtp:
-  host: "smtp.email.host"  # 连接到本地MSA服务器
+  host: "localhost"  # 连接到本地MSA服务器
   port: 587
   receive_port: 25
   username: "test@email.host"  # 使用我们创建的测试账户
-  password: "123456"  # 对应的密码
+  password: "test123"  # 对应的密码
   use_tls: true
   tls_cert_path: "./data/tls/cert.pem"
   tls_key_path: "./data/tls/key.pem"
@@ -71,10 +71,10 @@ smtp:
 # IMAP服务配置（用于接收邮件）
 # 使用本地IMAP服务器
 imap:
-  host: "imap.email.host"  # 映射到127.0.0.1的本地服务器
+  host: "localhost"  # 连接到本地IMAP服务器
   port: 993
   username: "test@email.host"  # 任意用户名
-  password: "123456"  # 任意密码
+  password: "test123"
   use_tls: true
   tls_cert_path: "./data/tls/cert.pem"
   tls_key_path: "./data/tls/key.pem"
@@ -131,7 +131,7 @@ system:
     max_login_attempts: 5
     lockout_duration: 300  # 5分钟
 minio:
-  endpoint: 127.0.0.1:9000
+  endpoint: 10.0.202.23:9001
   access_key_id: minioadmin
   secret_access_key: minioadmin
   use_ssl: false

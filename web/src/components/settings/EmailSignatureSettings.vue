@@ -77,7 +77,7 @@
                     tool.active ? 'bg-primary-500 text-white' : 'text-text-secondary'
                   ]"
                   :title="tool.title"
-                  @click="applyHtmlFormat(tool.command, tool.value)"
+                  @click="applyHtmlFormat(tool.command)"
                 >
                   <component :is="tool.icon" class="w-4 h-4" />
                 </button>
@@ -177,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { userSettingsApi } from '@/api/user-settings'
 import { useNotification } from '@/composables/useNotification'
 

@@ -202,13 +202,14 @@
               />
 
               <!-- 动作值 -->
-              <Input
-                v-if="needsActionValue(action.type)"
-                v-model="action.value"
-                label="目标"
-                :placeholder="getActionValuePlaceholder(action.type)"
-                class="flex-1"
-              />
+                <Input
+                  v-if="needsActionValue(action.type)"
+                  :model-value="action.value ?? ''"
+                  label="目标"
+                  :placeholder="getActionValuePlaceholder(action.type)"
+                  class="flex-1"
+                  @update:model-value="value => { action.value = String(value) }"
+                />
 
               <!-- 删除按钮 -->
               <Button
@@ -371,7 +372,7 @@ const getActionValuePlaceholder = (actionType: string) => {
   }
 }
 
-const onActionTypeChange = (action: FilterAction, index: number) => {
+const onActionTypeChange = (action: FilterAction, _index: number) => {
   if (!needsActionValue(action.type)) {
     action.value = undefined
   }
@@ -529,7 +530,4 @@ const deleteFilter = async (id: string) => {
 }
 
 // 监听模态框关闭
-const handleModalClose = () => {
-  resetForm()
-}
 </script>

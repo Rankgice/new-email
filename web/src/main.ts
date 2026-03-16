@@ -44,6 +44,7 @@ app.use(MotionPlugin)
 
 // 全局错误处理
 app.config.errorHandler = (err, vm, info) => {
+  void vm
   console.error('Vue Error:', err, info)
 }
 
@@ -51,9 +52,10 @@ app.config.errorHandler = (err, vm, info) => {
 const removeLoadingScreen = () => {
   const loadingScreen = document.querySelector('.loading-screen')
   if (loadingScreen) {
-    loadingScreen.style.opacity = '0'
+    const element = loadingScreen as HTMLElement
+    element.style.opacity = '0'
     setTimeout(() => {
-      loadingScreen.remove()
+      element.remove()
     }, 300)
   }
 }

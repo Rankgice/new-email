@@ -48,15 +48,15 @@
         :key="email?.id || Math.random()"
         :class="[
           'flex items-center p-3 rounded-lg border border-glass-border cursor-pointer transition-colors',
-          selectedEmails.includes(email?.id) ? 'bg-primary-500/10 border-primary-500/30' : 'hover:bg-white/5'
+          selectedEmails.includes(email.id) ? 'bg-primary-500/10 border-primary-500/30' : 'hover:bg-white/5'
         ]"
         @click="selectEmail(email)"
       >
         <!-- 选择框 -->
         <input
           type="checkbox"
-          :checked="email?.id && selectedEmails.includes(email.id)"
-          @change="email?.id && toggleEmailSelection(email.id)"
+          :checked="selectedEmails.includes(email.id)"
+          @change="toggleEmailSelection(email.id)"
           @click.stop
           class="rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500 mr-3"
         />
@@ -110,8 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { emailApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import type { Email, EmailListParams } from '@/types'
@@ -137,7 +136,6 @@ const emit = defineEmits<{
 }>()
 
 // 路由和通知
-const router = useRouter()
 const { success: showSuccess, error: showError } = useNotification()
 
 // 响应式数据
@@ -146,8 +144,8 @@ const loadingMore = ref(false)
 const batchLoading = ref(false)
 
 const emails = ref<Email[]>([])
-const selectedEmails = ref<string[]>([])
-const selectedEmailId = ref<string | null>(null)
+const selectedEmails = ref<Array<Email['id']>>([])
+const selectedEmailId = ref<Email['id'] | null>(null)
 const totalCount = ref(0)
 const currentPage = ref(1)
 const hasMore = ref(true)
@@ -200,7 +198,6 @@ const loadEmails = async (append = false) => {
     }
 
     const response = await emailApi.getSentEmails(params)
-    console.log('Sent emails API response:', response)
 
     if (response.success && response.data) {
       const emailList = response.data.list || response.data || []
@@ -242,21 +239,19 @@ const loadMore = () => {
 }
 
 const selectEmail = (email: Email) => {
-  selectedEmailId.value = email?.id || null
-  if (email) {
-    emit('email-selected', email)
-  }
+  selectedEmailId.value = email.id
+  emit('email-selected', email)
 }
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
     selectedEmails.value = []
   } else {
-    selectedEmails.value = (emails.value || []).map(email => email?.id).filter(Boolean)
+    selectedEmails.value = emails.value.map(email => email.id)
   }
 }
 
-const toggleEmailSelection = (emailId: string) => {
+const toggleEmailSelection = (emailId: Email['id']) => {
   const index = selectedEmails.value.indexOf(emailId)
   if (index > -1) {
     selectedEmails.value.splice(index, 1)
@@ -273,7 +268,7 @@ const batchDelete = async () => {
     
     await emailApi.batchUpdate(selectedEmails.value, 'delete')
     
-    emails.value = emails.value.filter(email => !selectedEmails.value.includes(email?.id))
+    emails.value = emails.value.filter(email => !selectedEmails.value.includes(email.id))
     totalCount.value -= selectedEmails.value.length
     selectedEmails.value = []
     

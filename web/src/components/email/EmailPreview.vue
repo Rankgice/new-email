@@ -253,7 +253,7 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 interface Emits {
   (e: 'email-updated', email: Email): void
-  (e: 'email-deleted', emailId: string): void
+  (e: 'email-deleted', emailId: Email['id']): void
 }
 
 const emit = defineEmits<Emits>()

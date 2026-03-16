@@ -9,7 +9,7 @@
       leave-to-class="opacity-0"
     >
       <div
-        v-if="visible"
+        v-if="isVisible"
         class="fixed inset-0 z-50 overflow-y-auto"
         @click="handleBackdropClick"
       >
@@ -27,7 +27,7 @@
             leave-to-class="opacity-0 scale-95"
           >
             <div
-              v-if="visible"
+              v-if="isVisible"
               :class="[
                 'relative w-full bg-glass-medium backdrop-blur-md border border-glass-border rounded-xl shadow-xl',
                 sizeClasses
@@ -45,7 +45,7 @@
                 </div>
                 <button
                   v-if="closable"
-                  @click="$emit('close')"
+                  @click="closeModal"
                   class="text-text-secondary hover:text-text-primary transition-colors p-1 rounded-lg hover:bg-glass-light"
                 >
                   <XMarkIcon class="w-5 h-5" />
@@ -70,12 +70,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 
 // Props
 interface Props {
-  visible: boolean
+  visible?: boolean
+  modelValue?: boolean
   title?: string
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
   closable?: boolean
@@ -91,9 +92,13 @@ const props = withDefaults(defineProps<Props>(), {
 // Emits
 const emit = defineEmits<{
   close: []
+  confirm: []
+  'update:modelValue': [value: boolean]
 }>()
 
 // 计算属性
+const isVisible = computed(() => props.modelValue ?? props.visible ?? false)
+
 const sizeClasses = computed(() => {
   const sizes = {
     sm: 'max-w-md',
@@ -106,15 +111,20 @@ const sizeClasses = computed(() => {
 })
 
 // 方法
+const closeModal = () => {
+  emit('update:modelValue', false)
+  emit('close')
+}
+
 const handleBackdropClick = () => {
   if (props.closeOnBackdrop && props.closable) {
-    emit('close')
+    closeModal()
   }
 }
 
 const handleEscapeKey = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && props.visible && props.closable) {
-    emit('close')
+  if (event.key === 'Escape' && isVisible.value && props.closable) {
+    closeModal()
   }
 }
 
@@ -122,7 +132,7 @@ const handleEscapeKey = (event: KeyboardEvent) => {
 onMounted(() => {
   document.addEventListener('keydown', handleEscapeKey)
   // 防止背景滚动
-  if (props.visible) {
+  if (isVisible.value) {
     document.body.style.overflow = 'hidden'
   }
 })
@@ -133,9 +143,8 @@ onUnmounted(() => {
   document.body.style.overflow = ''
 })
 
-// 监听visible变化
-import { watch } from 'vue'
-watch(() => props.visible, (newVisible) => {
+// 监听可见性变化
+watch(isVisible, (newVisible) => {
   if (newVisible) {
     document.body.style.overflow = 'hidden'
   } else {

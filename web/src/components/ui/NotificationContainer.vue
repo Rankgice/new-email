@@ -88,7 +88,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useNotification } from '@/composables/useNotification'
 import GlassCard from './GlassCard.vue'
 import {
@@ -98,9 +97,10 @@ import {
   InformationCircleIcon,
   XMarkIcon
 } from '@heroicons/vue/24/outline'
-import type { Notification, NotificationAction } from '@/types'
+import type { NotificationAction } from '@/types'
 
 const { notifications, removeNotification } = useNotification()
+type NotificationItem = (typeof notifications.value)[number]
 
 // 通知图标映射
 const notificationIcons = {
@@ -119,7 +119,7 @@ const notificationStyles = {
 }
 
 // 计算进度条进度
-const getProgress = (notification: Notification) => {
+const getProgress = (notification: NotificationItem) => {
   if (!notification.duration) return 100
   
   const elapsed = Date.now() - new Date(notification.createdAt).getTime()

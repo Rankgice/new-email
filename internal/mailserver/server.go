@@ -18,8 +18,12 @@ type Config struct {
 	IMAPPort        int    `yaml:"imap_port"`         // 993端口 - IMAP访问
 	Domain          string `yaml:"domain"`
 	DatabasePath    string `yaml:"database_path"`
-	TLSCertPath     string `yaml:"tls_cert_path"` // TLS证书路径
-	TLSKeyPath      string `yaml:"tls_key_path"`  // TLS密钥路径
+	SMTPUseTLS      bool   `yaml:"smtp_use_tls"`
+	SMTPTLSCertPath string `yaml:"smtp_tls_cert_path"` // SMTP TLS证书路径
+	SMTPTLSKeyPath  string `yaml:"smtp_tls_key_path"`  // SMTP TLS密钥路径
+	IMAPUseTLS      bool   `yaml:"imap_use_tls"`
+	IMAPTLSCertPath string `yaml:"imap_tls_cert_path"` // IMAP TLS证书路径
+	IMAPTLSKeyPath  string `yaml:"imap_tls_key_path"`  // IMAP TLS密钥路径
 }
 
 // MailServer 邮件服务器
@@ -46,9 +50,9 @@ func NewMailServer(config Config, db *gorm.DB) *MailServer {
 		ctx:     ctx,
 		cancel:  cancel,
 		// 创建接收服务器 (25端口 - MTA功能)
-		smtpReceiveServer: NewSMTPReceiveServer(config.SMTPReceivePort, config.Domain, storage, config.TLSCertPath, config.TLSKeyPath),
+		smtpReceiveServer: NewSMTPReceiveServer(config.SMTPReceivePort, config.Domain, storage, config.SMTPUseTLS, config.SMTPTLSCertPath, config.SMTPTLSKeyPath),
 		// 创建提交服务器 (587端口 - MSA功能)
-		smtpSubmitServer: NewSMTPSubmitServer(config.SMTPSubmitPort, config.Domain, storage, config.TLSCertPath, config.TLSKeyPath),
+		smtpSubmitServer: NewSMTPSubmitServer(config.SMTPSubmitPort, config.Domain, storage, config.SMTPUseTLS, config.SMTPTLSCertPath, config.SMTPTLSKeyPath),
 		// IMAP服务器
 		imapServer: NewIMAPServer(config, storage),
 	}

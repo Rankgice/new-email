@@ -98,7 +98,7 @@ interface Emits {
   (e: 'change', value: string | number): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   size: 'md',
   disabled: false,
   required: false

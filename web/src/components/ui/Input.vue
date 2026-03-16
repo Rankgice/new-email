@@ -106,7 +106,7 @@ import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 
 interface Props {
   modelValue: string
-  type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url'
+  type?: 'text' | 'email' | 'password' | 'search' | 'tel' | 'url' | 'number' | 'date' | 'time' | 'datetime-local'
   label?: string
   placeholder?: string
   error?: string

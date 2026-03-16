@@ -2,6 +2,7 @@ package service
 
 import (
 	"crypto/tls"
+	"fmt"
 	"io"
 
 	"github.com/go-mail/mail/v2"
@@ -75,11 +76,11 @@ func (s *SMTPService) SendEmail(message EmailMessage) error {
 
 	// 设置邮件内容
 	contentType := message.ContentType
-	if contentType == "" {
+	if contentType == "" || contentType == "text" {
 		contentType = "text/plain"
 	}
 
-	if contentType == "text/html" {
+	if contentType == "html" || contentType == "text/html" {
 		m.SetBody("text/html", message.Body)
 	} else {
 		m.SetBody("text/plain", message.Body)
@@ -113,9 +114,8 @@ func (s *SMTPService) SendEmail(message EmailMessage) error {
 
 // TestConnection 测试SMTP连接
 func (s *SMTPService) TestConnection() error {
-	// 如果没有配置主机，跳过测试
-	if s.config.Host == "" {
-		return nil
+	if s.config.Host == "" || s.config.Port == 0 {
+		return fmt.Errorf("SMTP服务器配置不完整")
 	}
 
 	// 创建SMTP拨号器

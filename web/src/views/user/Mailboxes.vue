@@ -139,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useNotification } from '@/composables/useNotification'
 import { mailboxApi } from '@/utils/api'
 import type { Mailbox, MailboxStats, MailboxCreateRequest, MailboxUpdateRequest } from '@/types'
@@ -307,16 +307,7 @@ const syncMailbox = async (mailbox: Mailbox) => {
 
 const testConnection = async (mailbox: Mailbox) => {
   try {
-    const response = await mailboxApi.testConnection({
-      email: mailbox.email,
-      password: '', // 需要用户重新输入密码
-      imapHost: mailbox.imapHost,
-      imapPort: mailbox.imapPort,
-      imapSsl: mailbox.imapSsl,
-      smtpHost: mailbox.smtpHost,
-      smtpPort: mailbox.smtpPort,
-      smtpSsl: mailbox.smtpSsl
-    })
+    const response = await mailboxApi.testConnection(mailbox.id)
     
     if (response.success && response.data) {
       const result = response.data

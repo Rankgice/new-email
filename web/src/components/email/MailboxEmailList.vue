@@ -57,16 +57,16 @@
         :key="email?.id || Math.random()"
         :class="[
           'flex items-center p-3 rounded-lg border border-glass-border cursor-pointer transition-colors',
-          selectedEmails.includes(email?.id) ? 'bg-primary-500/10 border-primary-500/30' : 'hover:bg-white/5',
-          !email?.isRead ? 'font-semibold' : ''
+          selectedEmails.includes(email.id) ? 'bg-primary-500/10 border-primary-500/30' : 'hover:bg-white/5',
+          !email.isRead ? 'font-semibold' : ''
         ]"
         @click="selectEmail(email)"
       >
         <!-- 选择框 -->
         <input
           type="checkbox"
-          :checked="email?.id && selectedEmails.includes(email.id)"
-          @change="email?.id && toggleEmailSelection(email.id)"
+          :checked="selectedEmails.includes(email.id)"
+          @change="toggleEmailSelection(email.id)"
           @click.stop
           class="rounded border-gray-600 bg-gray-700 text-primary-500 focus:ring-primary-500 mr-3"
         />
@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { emailApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import type { Email, EmailListParams } from '@/types'
@@ -174,7 +174,7 @@ const loadingMore = ref(false)
 const batchLoading = ref(false)
 
 const emails = ref<Email[]>([])
-const selectedEmails = ref<string[]>([])
+const selectedEmails = ref<Array<Email['id']>>([])
 const totalCount = ref(0)
 const currentPage = ref(1)
 const hasMore = ref(true)
@@ -225,9 +225,7 @@ const loadEmails = async (append = false) => {
       direction: 'received' // 收件箱只显示接收的邮件
     }
 
-    console.log('MailboxEmailList API params:', params)
     const response = await emailApi.getInboxEmails(params)
-    console.log('MailboxEmailList API response:', response)
 
     if (response.success && response.data) {
       const emailList = response.data.list || response.data || []
@@ -281,11 +279,11 @@ const toggleSelectAll = () => {
   if (isAllSelected.value) {
     selectedEmails.value = []
   } else {
-    selectedEmails.value = emails.value.map(email => email?.id).filter(Boolean)
+    selectedEmails.value = emails.value.map(email => email.id)
   }
 }
 
-const toggleEmailSelection = (emailId: string) => {
+const toggleEmailSelection = (emailId: Email['id']) => {
   const index = selectedEmails.value.indexOf(emailId)
   if (index > -1) {
     selectedEmails.value.splice(index, 1)
@@ -294,7 +292,7 @@ const toggleEmailSelection = (emailId: string) => {
   }
 }
 
-const toggleStar = async (emailId: string, starred: boolean) => {
+const toggleStar = async (emailId: Email['id'], starred: boolean) => {
   try {
     await emailApi.markAsStarred(emailId, starred)
     
@@ -310,7 +308,7 @@ const toggleStar = async (emailId: string, starred: boolean) => {
   }
 }
 
-const markAsRead = async (emailId: string, isRead: boolean) => {
+const markAsRead = async (emailId: Email['id'], isRead: boolean) => {
   try {
     await emailApi.markAsRead(emailId, isRead)
     

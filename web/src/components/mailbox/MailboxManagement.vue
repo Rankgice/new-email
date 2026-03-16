@@ -359,7 +359,7 @@ const syncMailbox = async (mailbox: Mailbox) => {
   }
 }
 
-const testConnection = async (mailbox: Mailbox) => {
+const testConnection = async (_mailbox: Mailbox) => {
   // 这里需要用户重新输入密码，暂时跳过
   showNotification({
     type: 'info',

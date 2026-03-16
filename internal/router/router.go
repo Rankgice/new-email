@@ -114,6 +114,7 @@ func SetupRouter(r *gin.Engine, svcCtx *svc.ServiceContext) {
 				mailbox.DELETE("/:id", mailboxHandler.Delete)
 				mailbox.GET("/stats", mailboxHandler.GetStats)
 				mailbox.GET("/:id", mailboxHandler.GetById)
+				mailbox.POST("/:id/test", mailboxHandler.TestConnection)
 				mailbox.POST("/:id/sync", mailboxHandler.Sync)
 			}
 

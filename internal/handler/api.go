@@ -2,7 +2,9 @@ package handler
 
 import (
 	"github.com/rankgice/new-email/internal/middleware"
+	"github.com/rankgice/new-email/internal/model"
 	"github.com/rankgice/new-email/internal/result"
+	"github.com/rankgice/new-email/internal/service"
 	"github.com/rankgice/new-email/internal/svc"
 	"github.com/rankgice/new-email/internal/types"
 	"net/http"
@@ -39,6 +41,12 @@ func (h *ApiHandler) GetEmail(c *gin.Context) {
 	userId := middleware.GetCurrentUserId(c)
 	if userId == 0 {
 		c.JSON(http.StatusUnauthorized, result.ErrorSimpleResult("无效的API密钥"))
+		return
+	}
+	permissions, _ := c.Get("permissions")
+	permissionString, _ := permissions.(string)
+	if !hasAPIPermission(permissionString, "emails:send", "email:send") {
+		c.JSON(http.StatusForbidden, result.ErrorSimpleResult("API密钥缺少发送邮件权限"))
 		return
 	}
 
@@ -85,7 +93,6 @@ func (h *ApiHandler) GetEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, result.SuccessResult(resp))
 }
 
-// SendEmail API发送邮件
 func (h *ApiHandler) SendEmail(c *gin.Context) {
 	var req types.EmailSendReq
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -93,17 +100,16 @@ func (h *ApiHandler) SendEmail(c *gin.Context) {
 		return
 	}
 
-	// 通过API密钥验证获取用户ID
-	// TODO: 实现GetApiUserId方法
 	userId := middleware.GetCurrentUserId(c)
 	if userId == 0 {
 		c.JSON(http.StatusUnauthorized, result.ErrorSimpleResult("无效的API密钥"))
 		return
 	}
 
-	// 检查邮箱是否属于当前用户
+	var mailbox *model.Mailbox
 	if req.MailboxId > 0 {
-		mailbox, err := h.svcCtx.MailboxModel.GetById(req.MailboxId)
+		var err error
+		mailbox, err = h.svcCtx.MailboxModel.GetById(req.MailboxId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
 			return
@@ -112,21 +118,60 @@ func (h *ApiHandler) SendEmail(c *gin.Context) {
 			c.JSON(http.StatusForbidden, result.ErrorSimpleResult("无权限使用此邮箱"))
 			return
 		}
+	} else {
+		mailboxes, err := h.svcCtx.MailboxModel.GetActiveMailboxes(userId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, result.ErrorSelect.AddError(err))
+			return
+		}
+		if len(mailboxes) == 0 {
+			c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("当前用户没有可用的发信邮箱"))
+			return
+		}
+		mailbox = mailboxes[0]
 	}
 
-	// TODO: 实现实际的邮件发送逻辑
-	// 这里应该：
-	// 1. 验证邮件内容的完整性
-	// 2. 调用邮件发送服务
-	// 3. 创建邮件记录
-	// 4. 返回发送结果
+	smtpConfig, err := buildSMTPConfig(h.svcCtx, mailbox)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("邮箱凭据不可用于发信"))
+		return
+	}
 
-	// 模拟发送成功
+	attachments, err := decodeEmailAttachments(req.Attachments)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, result.ErrorSimpleResult("附件解析失败"))
+		return
+	}
+	normalizedReq := req
+	normalizedReq.ContentType = normalizeEmailContentType(req.ContentType)
+
+	smtpService := service.NewSMTPService(smtpConfig)
+	if err := smtpService.SendEmail(service.EmailMessage{
+		From:        mailbox.Email,
+		To:          normalizedReq.ToEmail,
+		Cc:          normalizedReq.CcEmail,
+		Bcc:         normalizedReq.BccEmail,
+		Subject:     normalizedReq.Subject,
+		Body:        normalizedReq.Content,
+		ContentType: normalizedReq.ContentType,
+		Attachments: attachments,
+	}); err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorSimpleResult("邮件发送失败"))
+		return
+	}
+
+	sentAt := time.Now()
+	emailRecord, err := persistSentEmailRecord(h.svcCtx, userId, mailbox, &normalizedReq, sentAt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, result.ErrorAdd.AddError(err))
+		return
+	}
+
 	sendResp := types.EmailSendResp{
 		Success: true,
 		Message: "邮件发送成功",
-		EmailId: 0, // 实际发送后应该返回邮件ID
-		SentAt:  time.Now(),
+		EmailId: emailRecord.Id,
+		SentAt:  sentAt,
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(sendResp))

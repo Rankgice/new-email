@@ -426,7 +426,7 @@ const resetToDefault = () => {
 
 const exportTheme = () => {
   const themeConfig = {
-    theme: currentTheme.value.id,
+    theme: currentTheme.id,
     customSettings: { ...customSettings },
     exportDate: new Date().toISOString(),
     version: '1.0'
@@ -439,7 +439,7 @@ const exportTheme = () => {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `theme-${currentTheme.value.id}-${Date.now()}.json`
+  a.download = `theme-${currentTheme.id}-${Date.now()}.json`
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
@@ -490,7 +490,7 @@ const saveThemeSettings = async () => {
     loading.value = true
     
     const themeSettings = {
-      theme: currentTheme.value.id,
+      theme: currentTheme.id,
       customSettings: { ...customSettings }
     }
     

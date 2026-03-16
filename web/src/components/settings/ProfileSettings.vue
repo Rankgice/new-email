@@ -256,7 +256,6 @@ const saveProfile = async () => {
 
     // 更新本地用户信息
     await authStore.updateUser({
-      ...authStore.user!,
       nickname: form.nickname,
       avatar: form.avatar
     })

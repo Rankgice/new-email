@@ -4,13 +4,18 @@ import type {
   Email,
   EmailListParams,
   PaginatedResponse,
+  PageResponse,
   Mailbox,
   MailboxCreateRequest,
   MailboxUpdateRequest,
   MailboxListRequest,
   MailboxSyncRequest,
   MailboxSyncResponse,
-  MailboxStats
+  MailboxStats,
+  MailboxConnectionTestResponse,
+  EmailSendRequest,
+  EmailSendResponse,
+  EmailAddress
 } from '@/types'
 
 // API 基础配置
@@ -70,14 +75,14 @@ class ApiClient {
       }
 
       return apiResponse
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`API Error [${endpoint}]:`, error)
-      
-      if (error.name === 'AbortError') {
+
+      if (error instanceof DOMException && error.name === 'AbortError') {
         throw new Error('请求超时，请稍后重试')
       }
-      
-      if (error.message.includes('401')) {
+
+      if (error instanceof Error && error.message.includes('401')) {
         // 清除过期的认证信息
         localStorage.removeItem('auth_token')
         localStorage.removeItem('auth_user')
@@ -124,7 +129,7 @@ class ApiClient {
       }
     }
 
-    return this.request<T>(url, { method: 'GET' }, { headers })
+    return this.request<T>(url, { method: 'GET' }, headers)
   }
 
   // POST 请求
@@ -176,6 +181,130 @@ const apiClient = new ApiClient(API_BASE_URL)
 // 导出 API 客户端供其他模块使用
 export { apiClient }
 
+const toEmailAddress = (email: string, name?: string): EmailAddress => ({
+  email,
+  ...(name ? { name } : {})
+})
+
+const normalizePageResponse = <T>(payload?: PaginatedResponse<T> | PageResponse<T> | T[]): PageResponse<T> => {
+  if (Array.isArray(payload)) {
+    return {
+      list: payload,
+      items: payload,
+      data: payload,
+      total: payload.length,
+      page: 1,
+      pageSize: payload.length || 1,
+      limit: payload.length || 1,
+    }
+  }
+
+  const list = payload?.list ?? payload?.items ?? payload?.data ?? []
+  const pageSize = (payload?.pageSize ?? payload?.limit ?? list.length) || 1
+
+  return {
+    list,
+    items: list,
+    data: list,
+    total: payload?.total ?? list.length,
+    page: payload?.page ?? 1,
+    pageSize,
+    limit: pageSize,
+  }
+}
+
+const normalizeEmail = (email: Partial<Email>): Email => {
+  const fromEmail = email.fromEmail ?? email.from?.email ?? ''
+  const fromName = email.fromName ?? email.from?.name
+  const toEmails = email.toEmails ?? email.to?.map(item => item.email) ?? []
+  const ccEmails = email.ccEmails ?? email.cc?.map(item => item.email) ?? []
+  const bccEmails = email.bccEmails ?? email.bcc?.map(item => item.email) ?? []
+  const content = email.content ?? email.body ?? ''
+
+  return {
+    id: email.id ?? '',
+    userId: email.userId ?? 0,
+    mailboxId: email.mailboxId ?? 0,
+    subject: email.subject ?? '',
+    fromEmail,
+    fromName,
+    toEmails,
+    ccEmails,
+    bccEmails,
+    content,
+    body: content,
+    from: toEmailAddress(fromEmail, fromName),
+    to: toEmails.map(item => toEmailAddress(item)),
+    cc: ccEmails.map(item => toEmailAddress(item)),
+    bcc: bccEmails.map(item => toEmailAddress(item)),
+    contentType: email.contentType ?? 'text',
+    attachments: email.attachments ?? [],
+    status: email.status ?? 0,
+    type: email.type ?? 'inbox',
+    isRead: email.isRead ?? false,
+    isStarred: email.isStarred ?? false,
+    isImportant: email.isImportant,
+    labels: email.labels ?? [],
+    deletedAt: email.deletedAt,
+    sentAt: email.sentAt,
+    receivedAt: email.receivedAt,
+    createdAt: email.createdAt ?? '',
+    updatedAt: email.updatedAt ?? '',
+  }
+}
+
+const normalizeEmailPageResponse = (response: ApiResponse<PaginatedResponse<Email>>): ApiResponse<PageResponse<Email>> => {
+  const page = normalizePageResponse(response.data)
+  const list = page.list.map(normalizeEmail)
+
+  return {
+    ...response,
+    data: {
+      ...page,
+      list,
+      items: list,
+      data: list,
+    },
+  }
+}
+
+const normalizeMailbox = (mailbox: Partial<Mailbox>): Mailbox => ({
+  id: mailbox.id ?? 0,
+  userId: mailbox.userId ?? 0,
+  domainId: mailbox.domainId ?? 0,
+  email: mailbox.email ?? '',
+  name: mailbox.name,
+  provider: mailbox.provider,
+  type: mailbox.type ?? (mailbox.domainId ? 'self' : 'third'),
+  imapHost: mailbox.imapHost,
+  imapPort: mailbox.imapPort,
+  imapSsl: mailbox.imapSsl,
+  smtpHost: mailbox.smtpHost,
+  smtpPort: mailbox.smtpPort,
+  smtpSsl: mailbox.smtpSsl,
+  autoReceive: mailbox.autoReceive ?? false,
+  status: mailbox.status ?? 0,
+  unreadCount: mailbox.unreadCount ?? 0,
+  lastSyncAt: mailbox.lastSyncAt,
+  createdAt: mailbox.createdAt ?? '',
+  updatedAt: mailbox.updatedAt ?? '',
+})
+
+const normalizeMailboxPageResponse = (response: ApiResponse<PaginatedResponse<Mailbox>>): ApiResponse<PageResponse<Mailbox>> => {
+  const page = normalizePageResponse(response.data)
+  const list = page.list.map(normalizeMailbox)
+
+  return {
+    ...response,
+    data: {
+      ...page,
+      list,
+      items: list,
+      data: list,
+    },
+  }
+}
+
 // 认证相关 API
 export const authApi = {
   // 用户登录
@@ -217,56 +346,67 @@ export const authApi = {
 export const emailApi = {
   // 获取邮件列表
   getEmails: (params: EmailListParams) =>
-    apiClient.get<PaginatedResponse<Email>>('/user/emails', { params }),
+    apiClient.get<PaginatedResponse<Email>>('/user/emails', { params }).then(normalizeEmailPageResponse),
+
+  list(params: EmailListParams) {
+    return this.getEmails(params)
+  },
 
   // 获取已发送邮件列表
   getSentEmails: (params: Omit<EmailListParams, 'direction'>) =>
     apiClient.get<PaginatedResponse<Email>>('/user/emails', {
       params: { ...params, direction: 'sent' }
-    }),
+    }).then(normalizeEmailPageResponse),
 
   // 获取收件箱邮件列表
   getInboxEmails: (params: Omit<EmailListParams, 'direction'>) =>
     apiClient.get<PaginatedResponse<Email>>('/user/emails', {
       params: { ...params, direction: 'received' }
-    }),
+    }).then(normalizeEmailPageResponse),
 
   // 获取星标邮件列表
   getStarredEmails: (params: EmailListParams) =>
     apiClient.get<PaginatedResponse<Email>>('/user/emails', {
       params: { ...params, isStarred: true }
-    }),
+    }).then(normalizeEmailPageResponse),
 
   // 获取垃圾箱邮件列表
   getTrashEmails: (params: EmailListParams) =>
-    apiClient.get<PaginatedResponse<Email>>('/user/emails/trash', { params }),
+    apiClient.get<PaginatedResponse<Email>>('/user/emails/trash', { params }).then(normalizeEmailPageResponse),
 
   // 获取邮件详情
-  getEmail: (id: string) =>
-    apiClient.get<Email>(`/user/emails/${id}`),
+  getEmail: (id: Email['id']) =>
+    apiClient.get<Email>(`/user/emails/${id}`).then(response => ({
+      ...response,
+      data: response.data ? normalizeEmail(response.data) : response.data,
+    })),
+
+  getById(id: Email['id']) {
+    return this.getEmail(id)
+  },
 
   // 发送邮件
   sendEmail: (data: EmailSendRequest) =>
     apiClient.post<EmailSendResponse>('/user/emails/send', data),
 
   // 标记已读/未读
-  markAsRead: (id: string, isRead: boolean) =>
+  markAsRead: (id: Email['id'], isRead: boolean) =>
     apiClient.put(`/user/emails/${id}/read`, { is_read: isRead }),
 
   // 标记星标
-  markAsStarred: (id: string, isStarred: boolean) =>
+  markAsStarred: (id: Email['id'], isStarred: boolean) =>
     apiClient.put(`/user/emails/${id}/star`, { is_starred: isStarred }),
 
   // 删除邮件（移到垃圾箱）
-  deleteEmail: (id: string) =>
+  deleteEmail: (id: Email['id']) =>
     apiClient.delete(`/user/emails/${id}`),
 
   // 恢复邮件（从垃圾箱恢复）
-  restoreEmail: (id: string) =>
+  restoreEmail: (id: Email['id']) =>
     apiClient.put(`/user/emails/${id}/restore`),
 
   // 永久删除邮件
-  permanentDeleteEmail: (id: string) =>
+  permanentDeleteEmail: (id: Email['id']) =>
     apiClient.delete(`/user/emails/${id}/permanent`),
 
   // 清空垃圾箱
@@ -274,7 +414,7 @@ export const emailApi = {
     apiClient.delete('/user/emails/trash/empty'),
 
   // 批量操作
-  batchUpdate: (emailIds: string[], action: string, data?: any) =>
+  batchUpdate: (emailIds: Array<Email['id']>, action: string, data?: Record<string, unknown>) =>
     apiClient.post('/user/emails/batch', { email_ids: emailIds, action, ...data }),
 
   // 搜索邮件
@@ -287,18 +427,24 @@ export const emailApi = {
 
   // 草稿管理
   getDrafts: (params?: EmailListParams) =>
-    apiClient.get<PaginatedResponse<Email>>('/user/drafts', params ? { params } : undefined),
+    apiClient.get<PaginatedResponse<Email>>('/user/drafts', params ? { params } : undefined).then(normalizeEmailPageResponse),
 
   saveDraft: (draftData: any) =>
-    apiClient.post<Email>('/user/drafts', draftData),
+    apiClient.post<Email>('/user/drafts', draftData).then(response => ({
+      ...response,
+      data: response.data ? normalizeEmail(response.data) : response.data,
+    })),
 
-  updateDraft: (id: string, draftData: any) =>
-    apiClient.put<Email>(`/user/drafts/${id}`, draftData),
+  updateDraft: (id: Email['id'], draftData: Record<string, unknown>) =>
+    apiClient.put<Email>(`/user/drafts/${id}`, draftData).then(response => ({
+      ...response,
+      data: response.data ? normalizeEmail(response.data) : response.data,
+    })),
 
-  deleteDraft: (id: string) =>
+  deleteDraft: (id: Email['id']) =>
     apiClient.delete(`/user/drafts/${id}`),
 
-  sendDraft: (id: string) =>
+  sendDraft: (id: Email['id']) =>
     apiClient.post(`/user/drafts/${id}/send`),
 
   // 获取用户的活跃邮箱列表（用于发件人选择）
@@ -307,7 +453,7 @@ export const emailApi = {
       params: { status: 1, pageSize: 100 }
     }).then(response => ({
       ...response,
-      data: response.data?.list || []
+      data: normalizePageResponse(response.data).list.map(normalizeMailbox)
     }))
 }
 
@@ -475,19 +621,25 @@ export const apiKeyApi = {
 export const mailboxApi = {
   // 获取邮箱列表
   list: (params?: MailboxListRequest) =>
-    apiClient.get<PaginatedResponse<Mailbox>>('/user/mailboxes', { params }),
+    apiClient.get<PaginatedResponse<Mailbox>>('/user/mailboxes', { params }).then(normalizeMailboxPageResponse),
 
   // 获取邮箱列表（简化版本）
   getMailboxes: () =>
-    apiClient.get<PaginatedResponse<Mailbox>>('/user/mailboxes'),
+    apiClient.get<PaginatedResponse<Mailbox>>('/user/mailboxes').then(normalizeMailboxPageResponse),
 
   // 创建邮箱
   create: (data: MailboxCreateRequest) =>
-    apiClient.post<Mailbox>('/user/mailboxes', data),
+    apiClient.post<Mailbox>('/user/mailboxes', data).then(response => ({
+      ...response,
+      data: response.data ? normalizeMailbox(response.data) : response.data,
+    })),
 
   // 更新邮箱
   update: (data: MailboxUpdateRequest) =>
-    apiClient.put<Mailbox>(`/user/mailboxes/${data.id}`, data),
+    apiClient.put<Mailbox>(`/user/mailboxes/${data.id}`, data).then(response => ({
+      ...response,
+      data: response.data ? normalizeMailbox(response.data) : response.data,
+    })),
 
   // 删除邮箱
   delete: (id: number) =>
@@ -495,15 +647,29 @@ export const mailboxApi = {
 
   // 获取邮箱详情
   getById: (id: number) =>
-    apiClient.get<Mailbox>(`/user/mailboxes/${id}`),
+    apiClient.get<Mailbox>(`/user/mailboxes/${id}`).then(response => ({
+      ...response,
+      data: response.data ? normalizeMailbox(response.data) : response.data,
+    })),
 
   // 同步邮箱
   sync: (data: MailboxSyncRequest) =>
     apiClient.post<MailboxSyncResponse>(`/user/mailboxes/${data.id}/sync`),
 
+  testConnection: (id: number) =>
+    apiClient.post<MailboxConnectionTestResponse>(`/user/mailboxes/${id}/test`),
+
   // 获取邮箱统计
   getStats: () =>
-    apiClient.get<MailboxStats>('/user/mailboxes/stats'),
+    apiClient.get<Record<string, number>>('/user/mailboxes/stats').then(response => ({
+      ...response,
+      data: response.data ? {
+        totalMailboxes: response.data.totalMailboxes ?? response.data.total ?? 0,
+        activeMailboxes: response.data.activeMailboxes ?? response.data.active ?? 0,
+        selfMailboxes: response.data.selfMailboxes ?? 0,
+        thirdMailboxes: response.data.thirdMailboxes ?? 0,
+      } satisfies MailboxStats : response.data,
+    })),
 }
 
 

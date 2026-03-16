@@ -185,7 +185,7 @@ const pageSize = ref(20)
 const searchQuery = ref('')
 const filterRead = ref('')
 const filterStarred = ref('')
-const selectedEmails = ref<string[]>([])
+const selectedEmails = ref<Array<Email['id']>>([])
 const selectAll = ref(false)
 
 // Computed

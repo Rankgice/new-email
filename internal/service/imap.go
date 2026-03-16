@@ -103,9 +103,8 @@ func (s *IMAPService) Disconnect() error {
 
 // TestConnection 测试IMAP连接
 func (s *IMAPService) TestConnection() error {
-	// 如果没有配置主机，跳过测试
-	if s.config.Host == "" {
-		return nil
+	if s.config.Host == "" || s.config.Port == 0 {
+		return fmt.Errorf("IMAP服务器配置不完整")
 	}
 
 	if err := s.Connect(); err != nil {
@@ -201,7 +200,7 @@ func (s *IMAPService) FetchEmails(mailbox string, limit uint32) ([]*IMAPEmail, e
 			Bcc:     s.formatAddressList(msg.Envelope.Bcc),
 			Date:    msg.Envelope.Date,
 			Size:    msg.Size,
-			IsRead:  !s.hasFlag(msg.Flags, "\\Seen"),
+			IsRead:  s.hasFlag(msg.Flags, "\\Seen"),
 		}
 
 		if msg.Envelope.MessageId != "" {

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
-import type { User } from '@/types'
+import type { AdminInfo, User } from '@/types'
 import { api } from '@/utils/api'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -14,6 +14,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 计算属性
   const isAuthenticated = computed(() => !!token.value && !!user.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
+  const isAdminLoggedIn = computed(() => isAuthenticated.value && isAdmin.value)
   const userInitials = computed(() => {
     if (!user.value) return ''
     const name = user.value.nickname || user.value.username
@@ -148,6 +149,24 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('auth_user')
   }
 
+  const setAdminToken = (authToken: string, admin: AdminInfo) => {
+    token.value = authToken
+    const now = new Date().toISOString()
+    user.value = {
+      id: admin.id,
+      username: admin.username,
+      email: admin.email,
+      nickname: admin.nickname || admin.username,
+      role: 'admin',
+      status: admin.status === 1 ? 'active' : 'inactive',
+      createdAt: now,
+    }
+
+    localStorage.setItem('auth_token', authToken)
+    localStorage.setItem('auth_user', JSON.stringify(user.value))
+    isInitialized.value = true
+  }
+
   // 更新用户信息
   const updateUser = (userData: Partial<User>) => {
     if (user.value) {
@@ -196,9 +215,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // 重置密码
   const resetPassword = async (data: {
-    token: string
+    email: string
+    code: string
     password: string
-    confirmPassword: string
   }) => {
     isLoading.value = true
     
@@ -235,6 +254,7 @@ export const useAuthStore = defineStore('auth', () => {
     // 计算属性
     isAuthenticated,
     isAdmin,
+    isAdminLoggedIn,
     userInitials,
 
     // 方法
@@ -244,6 +264,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     clearAuth,
+    setAdminToken,
     updateUser,
     setRedirectPath,
     getAndClearRedirectPath,

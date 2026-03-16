@@ -301,7 +301,8 @@ const handleDragOver = (event: DragEvent) => {
 const handleDragLeave = (event: DragEvent) => {
   event.preventDefault()
   // 只有当离开整个拖拽区域时才设置为false
-  if (!event.currentTarget?.contains(event.relatedTarget as Node)) {
+  const currentTarget = event.currentTarget
+  if (!(currentTarget instanceof HTMLElement) || !currentTarget.contains(event.relatedTarget as Node | null)) {
     isDragOver.value = false
   }
 }

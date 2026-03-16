@@ -12,13 +12,13 @@ import (
 
 // IMAPServer 基于go-imap/v2库的IMAP服务器实现
 type IMAPServer struct {
-	port        int
-	domain      string
-	storage     *MailStorage
-	server      *imapserver.Server
-	listener    net.Listener
-	tlsCertPath string
-	tlsKeyPath  string
+	port      int
+	domain    string
+	storage   *MailStorage
+	server    *imapserver.Server
+	listener  net.Listener
+	useTLS    bool
+	tlsConfig *tls.Config
 }
 
 // NewIMAPServer 创建IMAP服务器
@@ -33,13 +33,9 @@ func NewIMAPServer(config Config, storage *MailStorage) *IMAPServer {
 		},
 	}
 
-	// 配置TLS
-	if config.TLSCertPath != "" && config.TLSKeyPath != "" {
-		cert, err := tls.LoadX509KeyPair(config.TLSCertPath, config.TLSKeyPath)
-		if err != nil {
-			log.Fatalf("无法加载TLS证书: %v", err)
-		}
-		options.TLSConfig = &tls.Config{Certificates: []tls.Certificate{cert}}
+	tlsConfig, useTLS := loadOptionalTLSConfig("IMAP服务器", config.IMAPUseTLS, config.IMAPTLSCertPath, config.IMAPTLSKeyPath)
+	if tlsConfig != nil {
+		options.TLSConfig = tlsConfig
 		options.InsecureAuth = false
 	} else {
 		options.InsecureAuth = true
@@ -48,12 +44,12 @@ func NewIMAPServer(config Config, storage *MailStorage) *IMAPServer {
 	server := imapserver.New(options)
 
 	return &IMAPServer{
-		port:        config.IMAPPort,
-		domain:      config.Domain,
-		storage:     storage,
-		server:      server,
-		tlsCertPath: config.TLSCertPath,
-		tlsKeyPath:  config.TLSKeyPath,
+		port:      config.IMAPPort,
+		domain:    config.Domain,
+		storage:   storage,
+		server:    server,
+		useTLS:    useTLS,
+		tlsConfig: tlsConfig,
 	}
 }
 
@@ -67,9 +63,7 @@ func (s *IMAPServer) Start(ctx context.Context) error {
 		return fmt.Errorf("无法监听端口 %d: %v", s.port, err)
 	}
 
-	useTLS := s.tlsCertPath != "" && s.tlsKeyPath != ""
-
-	if useTLS {
+	if s.useTLS {
 		log.Printf("✅ IMAP服务器 (TLS) 启动成功，监听端口: %d", s.port)
 	} else {
 		log.Printf("⚠️ IMAP服务器 (非TLS) 启动成功，监听端口: %d", s.port)
@@ -78,15 +72,8 @@ func (s *IMAPServer) Start(ctx context.Context) error {
 	// 在goroutine中启动服务器
 	go func() {
 		var serveErr error
-		if useTLS {
-			// 对于TLS，我们需要使用TLS监听器
-			cert, err := tls.LoadX509KeyPair(s.tlsCertPath, s.tlsKeyPath)
-			if err != nil {
-				log.Printf("IMAP服务器TLS证书加载失败: %v", err)
-				return
-			}
-			tlsConfig := &tls.Config{Certificates: []tls.Certificate{cert}}
-			tlsListener := tls.NewListener(s.listener, tlsConfig)
+		if s.useTLS {
+			tlsListener := tls.NewListener(s.listener, s.tlsConfig)
 			serveErr = s.server.Serve(tlsListener)
 		} else {
 			serveErr = s.server.Serve(s.listener)

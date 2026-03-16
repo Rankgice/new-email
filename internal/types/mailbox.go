@@ -61,6 +61,16 @@ type MailboxSyncResp struct {
 	LastSyncAt time.Time `json:"lastSyncAt"` // 最后同步时间
 }
 
+// MailboxConnectionTestResp 邮箱连接测试响应
+type MailboxConnectionTestResp struct {
+	Success     bool   `json:"success"`
+	Message     string `json:"message"`
+	ImapSuccess bool   `json:"imapSuccess"`
+	SmtpSuccess bool   `json:"smtpSuccess"`
+	ImapError   string `json:"imapError,omitempty"`
+	SmtpError   string `json:"smtpError,omitempty"`
+}
+
 // MailboxStatsResp 邮箱统计响应
 type MailboxStatsResp struct {
 	TotalMailboxes  int64 `json:"totalMailboxes"`  // 总邮箱数

@@ -3,6 +3,7 @@ package mailserver
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -38,6 +39,14 @@ type StoredMail struct {
 	FolderName  string    `json:"folder_name"` // 文件夹名称
 	MailboxID   int64     `json:"mailbox_id"`
 	Username    string    `json:"username"`
+}
+
+func normalizeStoredMessageID(raw string) string {
+	normalized := strings.TrimSpace(raw)
+	for len(normalized) >= 2 && strings.HasPrefix(normalized, "<") && strings.HasSuffix(normalized, ">") {
+		normalized = strings.TrimSpace(normalized[1 : len(normalized)-1])
+	}
+	return normalized
 }
 
 // NewMailStorage 创建邮件存储
@@ -124,10 +133,11 @@ func (s *MailStorage) SaveMail(mail *StoredMail) error {
 	}
 
 	// 4. 创建邮件记录
+	messageID := normalizeStoredMessageID(mail.MessageID)
 	email := &model.Email{
 		UserId:      mailbox.UserId,
 		MailboxId:   mailbox.Id,
-		MessageId:   mail.MessageID,
+		MessageId:   messageID,
 		Subject:     mail.Subject,
 		FromEmail:   mail.From,
 		ToEmails:    mail.To,
@@ -180,10 +190,11 @@ func (s *MailStorage) StoreMail(mail *StoredMail) error {
 		}
 
 		// 创建邮件记录
+		messageID := normalizeStoredMessageID(mail.MessageID)
 		email := &model.Email{
 			UserId:      mailbox.UserId, // 添加用户ID
 			MailboxId:   mailbox.Id,
-			MessageId:   mail.MessageID,
+			MessageId:   messageID,
 			Subject:     mail.Subject,
 			FromEmail:   mail.From,
 			ToEmails:    mail.To,

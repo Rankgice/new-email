@@ -294,7 +294,8 @@ onMounted(() => {
 // 方法
 async function loadEmailInfo() {
   try {
-    emailInfo.value = await emailApi.getById(props.code.emailId)
+    const response = await emailApi.getById(props.code.emailId)
+    emailInfo.value = response.data ?? null
   } catch (error) {
     console.error('Load email info error:', error)
   }

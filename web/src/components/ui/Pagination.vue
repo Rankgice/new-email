@@ -52,7 +52,7 @@
                   ? 'z-10 bg-primary-500 border-primary-500 text-white'
                   : 'bg-glass-light border-glass-border text-text-secondary hover:bg-glass-medium'
               ]"
-              @click="$emit('pageChange', page)"
+              @click="handlePageChange(page)"
             >
               {{ page }}
             </button>
@@ -99,6 +99,12 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   pageChange: [page: number]
 }>()
+
+const handlePageChange = (page: number | string) => {
+  if (typeof page === 'number') {
+    emit('pageChange', page)
+  }
+}
 
 // 计算可见的页码
 const visiblePages = computed(() => {

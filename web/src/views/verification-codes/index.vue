@@ -411,7 +411,7 @@
 
     <!-- 验证码详情模态框 -->
     <CodeDetailModal
-      v-if="showDetailModal"
+      v-if="showDetailModal && selectedCode"
       :code="selectedCode"
       @close="showDetailModal = false"
       @updated="onCodeUpdated"
@@ -420,7 +420,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { verificationCodeApi } from '@/api/verification-code'
 import { useNotification } from '@/composables/useNotification'
 import type { VerificationCode, VerificationCodeStats, VerificationCodeListParams } from '@/types'
@@ -428,7 +428,6 @@ import type { VerificationCode, VerificationCodeStats, VerificationCodeListParam
 // 组件引入
 import EmailSidebar from '@/components/email/EmailSidebar.vue'
 import EmailToolbar from '@/components/email/EmailToolbar.vue'
-import GlassCard from '@/components/ui/GlassCard.vue'
 import Button from '@/components/ui/Button.vue'
 import ExtractModal from './components/ExtractModal.vue'
 import StatsModal from './components/StatsModal.vue'
@@ -437,10 +436,7 @@ import CodeDetailModal from './components/CodeDetailModal.vue'
 import {
   ShieldCheckIcon,
   MagnifyingGlassIcon,
-  ChartBarIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  CalendarDaysIcon
+  ChartBarIcon
 } from '@heroicons/vue/24/outline'
 
 // 响应式数据
@@ -483,8 +479,6 @@ const pagination = reactive({
 const { showSuccess, showError, showWarning } = useNotification()
 
 // 计算属性
-const hasSelectedCodes = computed(() => selectedCodes.value.length > 0)
-
 // 原生 debounce 函数实现
 function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>

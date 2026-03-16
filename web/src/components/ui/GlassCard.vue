@@ -26,7 +26,7 @@ interface Props extends GlassCardProps {
   border?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   level: 1,
   hover: false,
   className: '',

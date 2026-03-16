@@ -301,17 +301,17 @@
                     提取完成
                   </h3>
                   <div class="mt-2 text-sm text-green-700 dark:text-green-300">
-                    <p v-if="extractMode === 'single'">
-                      从邮件中提取到 {{ extractResult.codes?.length || 0 }} 个验证码
+                    <p v-if="singleExtractResult">
+                      从邮件中提取到 {{ singleExtractResult.codes.length }} 个验证码
                     </p>
-                    <p v-else>
-                      处理了 {{ extractResult.processedEmails }} 封邮件，
-                      提取到 {{ extractResult.extractedCodes }} 个验证码
+                    <p v-else-if="batchExtractResult">
+                      处理了 {{ batchExtractResult.processedEmails }} 封邮件，
+                      提取到 {{ batchExtractResult.extractedCodes }} 个验证码
                     </p>
-                    <div v-if="extractResult.errors?.length" class="mt-2">
+                    <div v-if="batchExtractResult?.errors.length" class="mt-2">
                       <p class="font-medium">错误信息：</p>
                       <ul class="list-disc list-inside">
-                        <li v-for="error in extractResult.errors" :key="error">{{ error }}</li>
+                        <li v-for="error in batchExtractResult?.errors" :key="error">{{ error }}</li>
                       </ul>
                     </div>
                   </div>
@@ -326,9 +326,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import { verificationCodeApi } from '@/api/verification-code'
-import { emailApi } from '@/utils/api'
+import { emailApi, mailboxApi } from '@/utils/api'
 import { useNotification } from '@/composables/useNotification'
 import type { 
   VerificationCodeExtractResponse, 
@@ -350,6 +350,26 @@ const singleEmailId = ref<number>()
 const previewEmails = ref<Email[]>([])
 const extractResult = ref<VerificationCodeExtractResponse | VerificationCodeBatchExtractResponse | null>(null)
 const mailboxes = ref<Mailbox[]>([])
+
+const isSingleExtractResult = (
+  result: VerificationCodeExtractResponse | VerificationCodeBatchExtractResponse | null,
+): result is VerificationCodeExtractResponse => Boolean(result && 'codes' in result)
+
+const isBatchExtractResult = (
+  result: VerificationCodeExtractResponse | VerificationCodeBatchExtractResponse | null,
+): result is VerificationCodeBatchExtractResponse => Boolean(result && 'processedEmails' in result)
+
+const singleExtractResult = computed(() => (
+  isSingleExtractResult(extractResult.value) ? extractResult.value : null
+))
+
+const batchExtractResult = computed(() => (
+  isBatchExtractResult(extractResult.value) ? extractResult.value : null
+))
+
+const toNumericEmailIds = (emails: Email[]) => emails
+  .map(email => typeof email.id === 'number' ? email.id : Number(email.id))
+  .filter((id): id is number => Number.isFinite(id))
 
 // 批量提取参数
 const batchParams = reactive({
@@ -380,7 +400,7 @@ onMounted(() => {
 async function loadMailboxes() {
   try {
     const response = await mailboxApi.list({ pageSize: 100 })
-    mailboxes.value = response.list
+    mailboxes.value = response.data?.list ?? []
   } catch (error) {
     console.error('Load mailboxes error:', error)
   }
@@ -431,7 +451,7 @@ async function previewBatch() {
     }
     
     const response = await emailApi.list(params)
-    previewEmails.value = response.list
+    previewEmails.value = response.data?.list ?? []
     
     if (previewEmails.value.length === 0) {
       showError('没有找到符合条件的邮件')
@@ -452,7 +472,7 @@ async function extractBatch() {
 
   try {
     loading.value = true
-    const emailIds = previewEmails.value.map(email => email.id)
+    const emailIds = toNumericEmailIds(previewEmails.value)
     const result = await verificationCodeApi.batchExtract({ emailIds })
     extractResult.value = result
     
@@ -479,14 +499,15 @@ async function extractAuto() {
       createdAtEnd: endDate.toISOString(),
       pageSize: 500
     })
+    const emails = response.data?.list ?? []
     
-    if (response.list.length === 0) {
+    if (emails.length === 0) {
       showError('没有找到符合条件的邮件')
       return
     }
     
     // 批量提取
-    const emailIds = response.list.map(email => email.id)
+    const emailIds = toNumericEmailIds(emails)
     const result = await verificationCodeApi.batchExtract({ emailIds })
     
     // 过滤低置信度结果

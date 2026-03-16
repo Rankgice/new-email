@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"strings"
 	"time"
 
@@ -62,6 +63,24 @@ func (m *EmailModel) GetById(id int64) (*Email, error) {
 	if err := m.db.First(&email, id).Error; err != nil {
 		return nil, err
 	}
+	return &email, nil
+}
+
+// GetByMailboxIdAndMessageId 根据邮箱和消息ID获取邮件
+func (m *EmailModel) GetByMailboxIdAndMessageId(mailboxId int64, messageId string) (*Email, error) {
+	if messageId == "" {
+		return nil, nil
+	}
+
+	var email Email
+	err := m.db.Where("mailbox_id = ? AND message_id = ?", mailboxId, messageId).First(&email).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	return &email, nil
 }
 

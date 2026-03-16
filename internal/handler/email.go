@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/base64"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -214,88 +213,46 @@ func (h *EmailHandler) Send(c *gin.Context) {
 	}
 
 	// 调用邮件发送服务
-	smtpConfig := service.SMTPConfig{
-		Host:     h.svcCtx.Config.SMTP.Host,
-		Port:     h.svcCtx.Config.SMTP.Port,
-		Username: mailbox.Email,
-		Password: mailbox.Password,
-		UseTLS:   h.svcCtx.Config.SMTP.UseTLS,
+	smtpConfig, err := buildSMTPConfig(h.svcCtx, mailbox)
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮箱凭据不可用于发信"))
+		return
 	}
 
 	smtpService := service.NewSMTPService(smtpConfig)
 
-	// 处理附件
-	var attachments []service.EmailAttachment
-	if len(req.Attachments) > 0 {
-		for _, att := range req.Attachments {
-			// 解码Base64数据
-			data, err := base64.StdEncoding.DecodeString(att.Data)
-			if err != nil {
-				c.JSON(http.StatusOK, result.ErrorSimpleResult("附件数据格式错误: "+err.Error()))
-				return
-			}
-
-			attachments = append(attachments, service.EmailAttachment{
-				Filename:    att.Filename,
-				ContentType: att.ContentType,
-				Data:        data,
-			})
-		}
+	attachments, err := decodeEmailAttachments(req.Attachments)
+	if err != nil {
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("附件解析失败"))
+		return
 	}
+
+	normalizedReq := req
+	normalizedReq.ContentType = normalizeEmailContentType(req.ContentType)
 
 	// 构建邮件消息
 	emailMessage := service.EmailMessage{
 		From:        mailbox.Email,
-		To:          req.ToEmail,
-		Cc:          req.CcEmail,
-		Bcc:         req.BccEmail,
-		Subject:     req.Subject,
-		Body:        req.Content,
-		ContentType: req.ContentType,
+		To:          normalizedReq.ToEmail,
+		Cc:          normalizedReq.CcEmail,
+		Bcc:         normalizedReq.BccEmail,
+		Subject:     normalizedReq.Subject,
+		Body:        normalizedReq.Content,
+		ContentType: normalizedReq.ContentType,
 		Attachments: attachments,
 	}
 
 	// 发送邮件
 	if err := smtpService.SendEmail(emailMessage); err != nil {
-		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮件发送失败: "+err.Error()))
+		c.JSON(http.StatusOK, result.ErrorSimpleResult("邮件发送失败"))
 		return
 	}
 
-	// 创建邮件记录
-	email := &model.Email{
-		UserId:      currentUserId, // 添加用户ID
-		MailboxId:   req.MailboxId,
-		Subject:     req.Subject,
-		FromEmail:   mailbox.Email,
-		ToEmails:    req.ToEmail,  // 使用ToEmails字段
-		CcEmails:    req.CcEmail,  // 使用CcEmails字段
-		BccEmails:   req.BccEmail, // 使用BccEmails字段
-		Content:     req.Content,
-		ContentType: req.ContentType,
-		Direction:   "sent", // 设置方向为发送
-	}
-
-	if err := h.svcCtx.EmailModel.Create(email); err != nil {
+	sentAt := time.Now()
+	email, err := persistSentEmailRecord(h.svcCtx, currentUserId, mailbox, &normalizedReq, sentAt)
+	if err != nil {
 		c.JSON(http.StatusOK, result.ErrorAdd.AddError(err))
 		return
-	}
-
-	// 保存附件记录
-	if len(req.Attachments) > 0 {
-		for _, att := range req.Attachments {
-			attachment := &model.EmailAttachment{
-				EmailId:  email.Id,
-				Filename: att.Filename,
-				FilePath: "", // 由于我们使用MIME直接发送，不需要存储文件路径
-				FileSize: att.Size,
-				MimeType: att.ContentType,
-			}
-
-			if err := h.svcCtx.EmailAttachmentModel.Create(attachment); err != nil {
-				// 记录错误但不影响邮件发送成功的响应
-				fmt.Printf("Failed to save attachment record: %v\n", err)
-			}
-		}
 	}
 
 	// 发送成功响应
@@ -303,7 +260,7 @@ func (h *EmailHandler) Send(c *gin.Context) {
 		Success: true,
 		Message: "邮件发送成功",
 		EmailId: email.Id,
-		SentAt:  time.Now(),
+		SentAt:  sentAt,
 	}
 
 	c.JSON(http.StatusOK, result.SuccessResult(sendResp))

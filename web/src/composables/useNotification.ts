@@ -81,6 +81,11 @@ export const useNotification = () => {
       duration
     })
   }
+
+  const showSuccess = success
+  const showError = error
+  const showWarning = warning
+  const showInfo = info
   
   return {
     notifications: readonly(notifications),
@@ -90,6 +95,10 @@ export const useNotification = () => {
     success,
     error,
     warning,
-    info
+    info,
+    showSuccess,
+    showError,
+    showWarning,
+    showInfo
   }
 }

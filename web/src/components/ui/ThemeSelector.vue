@@ -28,14 +28,14 @@
         <div class="grid grid-cols-2 gap-2 mb-4">
           <button
             v-for="theme in availableThemes"
-            :key="theme.name"
+            :key="theme.id"
             :class="[
               'relative p-3 rounded-lg border-2 transition-all duration-200 group',
-              currentTheme === theme.name
+              currentTheme.id === theme.id
                 ? 'border-primary-500 bg-primary-500/10'
                 : 'border-glass-border hover:border-primary-400/50 hover:bg-white/5'
             ]"
-            @click="setTheme(theme.name)"
+            @click="setTheme(theme.id)"
           >
             <!-- 主题预览色块 -->
             <div class="flex space-x-1 mb-2">
@@ -60,7 +60,7 @@
 
             <!-- 选中指示器 -->
             <div
-              v-if="currentTheme === theme.name"
+              v-if="currentTheme.id === theme.id"
               class="absolute top-1 right-1"
             >
               <CheckIcon class="w-3 h-3 text-primary-500" />
@@ -112,7 +112,6 @@ import {
 } from '@heroicons/vue/24/outline'
 
 const {
-  theme,
   currentTheme,
   availableThemes,
   setTheme,
