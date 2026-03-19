@@ -1,8 +1,6 @@
 module github.com/rankgice/new-email
 
-go 1.23.0
-
-toolchain go1.24.3
+go 1.26.1
 
 require (
 	github.com/emersion/go-imap/v2 v2.0.0-beta.7
